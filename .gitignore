@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Environment files — NEVER push these
+.env
+**/.env
+
+# Build output
+dist/
+**/dist/
+
+# Prisma generated
+**/src/generated/
+
+# Logs
+*.log
+**/logs/
+
+# OS files
+.DS_Store
+Thumbs.db

@@ -1,0 +1,11 @@
+{
+  "name": "smart-brief",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently --names \"AUTH,BRIEF,GATEWAY,CLIENT\" --prefix-colors \"magenta,cyan,yellow,green\" \"npm run dev --prefix services/auth-service\" \"npm run dev --prefix services/brief-service\" \"npm run dev --prefix services/gateway\" \"npm run dev --prefix client\""
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}

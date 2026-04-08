@@ -1,9 +1,8 @@
 import { useMemo, useState } from "react";
-import { DoorOpen, Pencil, Save, ShieldAlert, Trash2, UserCircle2, X } from "lucide-react";
+import { Pencil, Save, ShieldAlert, Trash2, UserCircle2, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../app/hooks";
 import { changePasswordThunk, deleteMeThunk, updateMeThunk } from "../features/auth/authSlice/authThunk";
-import { logout } from "../features/auth/authSlice/authSlice";
 import { selectAuthError, selectAuthLoading, selectUser } from "../features/auth/authSlice/authSelectors";
 
 type UserProfileModalProps = {

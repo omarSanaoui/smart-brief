@@ -20,11 +20,14 @@ type FormState = {
 };
 
 const projectTypeOptions: Array<{ value: ProjectType; label: string }> = [
-  { value: "WEB", label: "Web App" },
-  { value: "MOBILE", label: "Mobile App" },
-  { value: "DESKTOP", label: "Desktop App" },
-  { value: "UI_UX", label: "UI/UX Design" },
-  { value: "BRANDING", label: "Branding" },
+  { value: "SITE_WEB", label: "Website Design & Development" },
+  { value: "SEO", label: "Natural SEO" },
+  { value: "GOOGLE_ADS", label: "Google Paid Ads" },
+  { value: "SOCIAL_MEDIA", label: "Social Media & Campaigns" },
+  { value: "PHOTO_VIDEO", label: "Photography & Videography" },
+  { value: "EMAIL_MARKETING", label: "Email Marketing Campaign" },
+  { value: "COMMUNITY_MANAGER", label: "Community Manager" },
+  { value: "BRANDING", label: "Branding & Visual Identity" },
   { value: "OTHER", label: "Other" },
 ];
 

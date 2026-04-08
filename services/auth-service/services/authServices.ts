@@ -111,6 +111,18 @@ export async function findOrCreateGoogleUser(profile: any) {
     return { user: excludePassword(user), token }
 }
 
+export async function resendVerificationCode(email: string) {
+    const record = await prisma.verifyToken.findUnique({ where: { email } });
+    if (!record) throw new Error("No pending registration for this email");
+
+    const code = generateCode();
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+
+    await prisma.verifyToken.update({ where: { email }, data: { code, expiresAt } });
+    await sendVerificationEmail(email, code);
+    return { message: "Verification code resent" };
+}
+
 export async function requestPasswordReset(email: string) {
     const user = await prisma.user.findUnique({ where: { email } });
 

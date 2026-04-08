@@ -28,7 +28,7 @@ export default function MyBriefs() {
   };
 
   return (
-    <section className="font-poppins text-white min-h-[calc(100vh-80px)] pt-16 pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto overflow-x-hidden">
+    <section className="font-poppins text-white sm:min-h-[calc(100vh-80px)] pt-10 sm:pt-16 pb-10 sm:pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto overflow-x-hidden">
       
       <BriefModal 
         brief={selectedBrief} 

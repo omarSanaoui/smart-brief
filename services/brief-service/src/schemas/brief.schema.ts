@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const ProjectTypeEnum = z.enum(["WEB", "MOBILE", "DESKTOP", "UI_UX", "BRANDING", "OTHER"]);
+export const ProjectTypeEnum = z.enum(["SITE_WEB", "SEO", "GOOGLE_ADS", "SOCIAL_MEDIA", "PHOTO_VIDEO", "EMAIL_MARKETING", "COMMUNITY_MANAGER", "BRANDING", "OTHER"]);
 export const BriefStatusEnum = z.enum(["PENDING", "ACCEPTED", "REFUSED", "IN_PROGRESS", "COMPLETED"]);
 
 export const createBriefSchema = z.object({

@@ -1,7 +1,15 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
+import { AxiosError } from "axios";
 import api from "../api/briefAxios"; 
 import AuthApi from "../../../api/axiosAuth";
 import type { CreateBriefPayload, UpdateBriefPayload } from "./briefTypes";
+
+const getErrorMessage = (error: unknown, fallback: string) => {
+    if (error instanceof AxiosError) {
+        return (error.response?.data as { message?: string } | undefined)?.message || fallback;
+    }
+    return fallback;
+};
 
 export const fetchBriefsThunk = createAsyncThunk(
     "briefs/fetchAll",
@@ -9,10 +17,8 @@ export const fetchBriefsThunk = createAsyncThunk(
         try {
             const response = await api.get("/briefs");
             return response.data;
-        } catch (error: any) {
-             return thunkAPI.rejectWithValue(
-                error.response?.data?.message || "Failed to fetch briefs"
-            );
+        } catch (error: unknown) {
+             return thunkAPI.rejectWithValue(getErrorMessage(error, "Failed to fetch briefs"));
         }
     }
 );
@@ -23,10 +29,8 @@ export const fetchBriefByIdThunk = createAsyncThunk(
         try {
             const response = await api.get(`/briefs/${id}`);
             return response.data;
-        } catch (error: any) {
-             return thunkAPI.rejectWithValue(
-                error.response?.data?.message || "Failed to fetch brief"
-            );
+        } catch (error: unknown) {
+             return thunkAPI.rejectWithValue(getErrorMessage(error, "Failed to fetch brief"));
         }
     }
 );
@@ -37,10 +41,8 @@ export const createBriefThunk = createAsyncThunk(
         try {
             const response = await api.post("/briefs", data);
             return response.data;
-        } catch (error: any) {
-             return thunkAPI.rejectWithValue(
-                error.response?.data?.message || "Failed to create brief"
-            );
+        } catch (error: unknown) {
+             return thunkAPI.rejectWithValue(getErrorMessage(error, "Failed to create brief"));
         }
     }
 );
@@ -56,10 +58,8 @@ export const updateBriefThunk = createAsyncThunk(
             }
             const response = await api.patch(`/briefs/${id}`, data);
             return response.data;
-        } catch (error: any) {
-             return thunkAPI.rejectWithValue(
-                error.response?.data?.message || "Failed to update brief"
-            );
+        } catch (error: unknown) {
+             return thunkAPI.rejectWithValue(getErrorMessage(error, "Failed to update brief"));
         }
     }
 );
@@ -70,10 +70,8 @@ export const deleteBriefThunk = createAsyncThunk(
         try {
             await api.delete(`/briefs/${id}`);
             return id;
-        } catch (error: any) {
-             return thunkAPI.rejectWithValue(
-                error.response?.data?.message || "Failed to delete brief"
-            );
+        } catch (error: unknown) {
+             return thunkAPI.rejectWithValue(getErrorMessage(error, "Failed to delete brief"));
         }
     }
 );
@@ -84,10 +82,8 @@ export const assignBriefThunk = createAsyncThunk(
         try {
             const response = await api.patch(`/briefs/admin/${briefId}/assign`, { employeeIds });
             return response.data;
-        } catch (error: any) {
-             return thunkAPI.rejectWithValue(
-                error.response?.data?.message || "Failed to assign brief"
-            );
+        } catch (error: unknown) {
+             return thunkAPI.rejectWithValue(getErrorMessage(error, "Failed to assign brief"));
         }
     }
 );
@@ -97,10 +93,8 @@ export const fetchEmployeesThunk = createAsyncThunk(
         try {
             const response = await AuthApi.get("/auth/users/role/employee");
             return response.data;
-        } catch (error: any) {
-             return thunkAPI.rejectWithValue(
-                error.response?.data?.message || "Failed to fetch employees"
-            );
+        } catch (error: unknown) {
+             return thunkAPI.rejectWithValue(getErrorMessage(error, "Failed to fetch employees"));
         }
     }
 );

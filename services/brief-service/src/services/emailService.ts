@@ -8,78 +8,217 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-export async function sendBriefStatusEmail(to: string, clientName: string, briefTitle: string, status: string, reason?: string) {
+const STATUS_LABELS: Record<string, string> = {
+  PENDING: "En attente",
+  ACCEPTED: "Accepté",
+  REFUSED: "Refusé",
+  IN_PROGRESS: "En cours de production",
+  COMPLETED: "Terminé",
+};
+
+const STATUS_COLORS: Record<string, string> = {
+  PENDING: "#F59E0B",
+  ACCEPTED: "#67CFB1",
+  REFUSED: "#EF4444",
+  IN_PROGRESS: "#414CC4",
+  COMPLETED: "#10B981",
+};
+
+function layout(content: string): string {
+  return `<!DOCTYPE html>
+<html lang="fr">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background-color:#0F1528;font-family:Arial,Helvetica,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#0F1528;padding:40px 16px;">
+    <tr><td align="center">
+      <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
+
+        <!-- Header -->
+        <tr>
+          <td style="background:#141824;border-radius:16px 16px 0 0;padding:24px 36px;border-bottom:3px solid #414CC4;">
+            <span style="color:#67CFB1;font-size:20px;font-weight:900;letter-spacing:4px;text-transform:uppercase;">SMART</span>
+            <span style="color:#ffffff;font-size:20px;font-weight:900;letter-spacing:4px;text-transform:uppercase;"> BRIEF</span>
+            <span style="color:rgba(255,255,255,0.35);font-size:11px;margin-left:10px;letter-spacing:1px;vertical-align:middle;">by Agence 47</span>
+          </td>
+        </tr>
+
+        <!-- Body -->
+        <tr>
+          <td style="background:#1A2238;padding:36px;border-radius:0 0 16px 16px;">
+            ${content}
+            <p style="color:rgba(255,255,255,0.25);font-size:11px;margin-top:32px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.08);">
+              Ceci est un message automatique de la plateforme Smart Brief. Merci de ne pas répondre à cet email.
+            </p>
+          </td>
+        </tr>
+
+        <!-- Footer -->
+        <tr>
+          <td style="padding:20px 0;text-align:center;">
+            <p style="color:rgba(255,255,255,0.2);font-size:11px;margin:0;">©2026 Agence 47 · Smart Brief · contact@agence47.ma</p>
+          </td>
+        </tr>
+
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+}
+
+export async function sendBriefStatusEmail(
+  to: string,
+  clientName: string,
+  briefTitle: string,
+  status: string,
+  reason?: string
+) {
   if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
     console.warn("EMAIL_USER or EMAIL_PASS missing. Skipping email.");
     return;
   }
 
-  const html = `
-    <div style="font-family: sans-serif; max-width: 600px; padding: 20px;">
-      <h2 style="color: #333;">Smart Brief Update</h2>
-      <p>Hello ${clientName},</p>
-      <p>Your brief <strong>"${briefTitle}"</strong> has had its status updated to: <strong style="color: #0066cc;">${status.replace("_", " ")}</strong>.</p>
-      ${reason ? `<p style="background: #f4f4f4; padding: 10px; border-left: 4px solid #ccc;"><strong>Reason:</strong> ${reason}</p>` : ""}
-      <p style="margin-top: 30px; font-size: 12px; color: gray;">If you have any questions, please contact support.</p>
-    </div>
+  const statusLabel = STATUS_LABELS[status] || status;
+  const statusColor = STATUS_COLORS[status] || "#414CC4";
+
+  const isAccepted = status === "ACCEPTED";
+  const isRefused = status === "REFUSED";
+  const isCompleted = status === "COMPLETED";
+
+  let headline = "Mise à jour de votre brief";
+  let subtext = `Le statut de votre projet a été mis à jour.`;
+  if (isAccepted) {
+    headline = "Votre projet a été accepté !";
+    subtext = "Notre équipe a examiné votre brief et est prête à démarrer. Nous vous contacterons prochainement.";
+  } else if (isRefused) {
+    headline = "Suite à votre brief";
+    subtext = "Après examen, nous ne sommes pas en mesure d'accepter ce projet pour le moment.";
+  } else if (isCompleted) {
+    headline = "Votre projet est terminé !";
+    subtext = "L'équipe a finalisé la production de votre projet. Merci de nous faire confiance.";
+  }
+
+  const content = `
+    <h2 style="color:#ffffff;font-size:22px;font-weight:900;margin:0 0 8px;letter-spacing:1px;">${headline}</h2>
+    <p style="color:rgba(255,255,255,0.6);font-size:14px;margin:0 0 24px;">Bonjour <strong style="color:#ffffff;">${clientName}</strong>,</p>
+    <p style="color:rgba(255,255,255,0.7);font-size:14px;margin:0 0 24px;line-height:1.6;">${subtext}</p>
+
+    <table width="100%" cellpadding="0" cellspacing="0" style="background:#0F1528;border-radius:12px;padding:20px;margin-bottom:24px;">
+      <tr>
+        <td>
+          <p style="color:rgba(255,255,255,0.4);font-size:11px;margin:0 0 4px;letter-spacing:1px;text-transform:uppercase;">Projet</p>
+          <p style="color:#ffffff;font-size:16px;font-weight:700;margin:0 0 16px;">${briefTitle}</p>
+          <p style="color:rgba(255,255,255,0.4);font-size:11px;margin:0 0 4px;letter-spacing:1px;text-transform:uppercase;">Statut</p>
+          <span style="display:inline-block;background:${statusColor}22;color:${statusColor};font-size:12px;font-weight:700;letter-spacing:2px;padding:6px 14px;border-radius:20px;text-transform:uppercase;">${statusLabel}</span>
+        </td>
+      </tr>
+    </table>
+
+    ${reason ? `
+    <table width="100%" cellpadding="0" cellspacing="0" style="background:#0F1528;border-left:3px solid ${statusColor};border-radius:0 8px 8px 0;padding:16px;margin-bottom:24px;">
+      <tr>
+        <td>
+          <p style="color:rgba(255,255,255,0.4);font-size:11px;margin:0 0 6px;letter-spacing:1px;text-transform:uppercase;">Commentaire</p>
+          <p style="color:rgba(255,255,255,0.8);font-size:13px;margin:0;line-height:1.6;">${reason}</p>
+        </td>
+      </tr>
+    </table>
+    ` : ""}
+
+    <p style="color:rgba(255,255,255,0.5);font-size:13px;line-height:1.6;">Pour toute question, contactez-nous à
+      <a href="mailto:contact@agence47.ma" style="color:#67CFB1;text-decoration:none;">contact@agence47.ma</a>.
+    </p>
   `;
 
   try {
     await transporter.sendMail({
-      from: `"Smart Brief" <${process.env.EMAIL_USER}>`,
+      from: `"Smart Brief | Agence 47" <${process.env.EMAIL_USER}>`,
       to,
-      subject: `Brief status updated: ${status}`,
-      html,
+      subject: `${isAccepted ? "✅" : isRefused ? "❌" : isCompleted ? "🎉" : "📋"} Votre brief "${briefTitle}" — ${statusLabel}`,
+      html: layout(content),
     });
   } catch (error) {
     console.error("Failed to send status email:", error);
   }
 }
 
-export async function sendEmployeeAssignmentEmail(to: string, employeeName: string, briefTitle: string) {
+export async function sendEmployeeAssignmentEmail(
+  to: string,
+  employeeName: string,
+  briefTitle: string
+) {
   if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) return;
 
-  const html = `
-    <div style="font-family: sans-serif; max-width: 600px; padding: 20px; color: #333;">
-      <h2 style="color: #4f46e5;">New Project Assigned</h2>
-      <p>Hello ${employeeName},</p>
-      <p>You have been assigned to a new brief: <strong>"${briefTitle}"</strong>.</p>
-      <p>Please log in to your dashboard to view the documentation and begin production.</p>
-      <p style="margin-top: 30px; font-size: 12px; color: gray;">This is an automated notification from Smart Brief Management.</p>
-    </div>
+  const content = `
+    <h2 style="color:#ffffff;font-size:22px;font-weight:900;margin:0 0 8px;letter-spacing:1px;">Nouveau projet assigné</h2>
+    <p style="color:rgba(255,255,255,0.6);font-size:14px;margin:0 0 24px;">Bonjour <strong style="color:#ffffff;">${employeeName}</strong>,</p>
+    <p style="color:rgba(255,255,255,0.7);font-size:14px;margin:0 0 24px;line-height:1.6;">
+      Vous avez été assigné(e) à un nouveau projet. Consultez votre tableau de bord pour accéder au brief et démarrer la production.
+    </p>
+
+    <table width="100%" cellpadding="0" cellspacing="0" style="background:#0F1528;border-radius:12px;padding:20px;margin-bottom:24px;">
+      <tr>
+        <td>
+          <p style="color:rgba(255,255,255,0.4);font-size:11px;margin:0 0 4px;letter-spacing:1px;text-transform:uppercase;">Projet</p>
+          <p style="color:#ffffff;font-size:16px;font-weight:700;margin:0 0 16px;">${briefTitle}</p>
+          <p style="color:rgba(255,255,255,0.4);font-size:11px;margin:0 0 4px;letter-spacing:1px;text-transform:uppercase;">Action requise</p>
+          <span style="display:inline-block;background:#414CC422;color:#414CC4;font-size:12px;font-weight:700;letter-spacing:2px;padding:6px 14px;border-radius:20px;text-transform:uppercase;">Démarrer la production</span>
+        </td>
+      </tr>
+    </table>
+
+    <p style="color:rgba(255,255,255,0.5);font-size:13px;line-height:1.6;">
+      Connectez-vous à votre espace pour consulter tous les détails du projet.
+    </p>
   `;
 
   try {
     await transporter.sendMail({
-      from: `"Smart Brief" <${process.env.EMAIL_USER}>`,
+      from: `"Smart Brief | Agence 47" <${process.env.EMAIL_USER}>`,
       to,
-      subject: `New Project Assigned: ${briefTitle}`,
-      html,
+      subject: `🚀 Nouveau projet assigné : ${briefTitle}`,
+      html: layout(content),
     });
   } catch (error) {
     console.error("Failed to send assignment email:", error);
   }
 }
 
-export async function sendAdminNewBriefEmail(to: string, clientName: string, briefTitle: string) {
+export async function sendAdminNewBriefEmail(
+  to: string,
+  clientName: string,
+  briefTitle: string
+) {
   if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) return;
 
-  const html = `
-    <div style="font-family: sans-serif; max-width: 600px; padding: 20px; color: #333;">
-      <h2 style="color: #0d9488;">New Brief Submitted</h2>
-      <p>A new brief has been submitted for review by <strong>${clientName}</strong>.</p>
-      <p>Project Title: <strong>"${briefTitle}"</strong></p>
-      <p>Please review the details and accept or refuse the project from your admin panel.</p>
-      <p style="margin-top: 30px; font-size: 12px; color: gray;">Smart Brief Automated Oversight.</p>
-    </div>
+  const content = `
+    <h2 style="color:#ffffff;font-size:22px;font-weight:900;margin:0 0 8px;letter-spacing:1px;">Nouveau brief soumis</h2>
+    <p style="color:rgba(255,255,255,0.6);font-size:14px;margin:0 0 24px;">Un client vient de soumettre un nouveau projet.</p>
+
+    <table width="100%" cellpadding="0" cellspacing="0" style="background:#0F1528;border-radius:12px;padding:20px;margin-bottom:24px;">
+      <tr>
+        <td>
+          <p style="color:rgba(255,255,255,0.4);font-size:11px;margin:0 0 4px;letter-spacing:1px;text-transform:uppercase;">Client</p>
+          <p style="color:#ffffff;font-size:15px;font-weight:700;margin:0 0 16px;">${clientName}</p>
+          <p style="color:rgba(255,255,255,0.4);font-size:11px;margin:0 0 4px;letter-spacing:1px;text-transform:uppercase;">Projet</p>
+          <p style="color:#ffffff;font-size:15px;font-weight:700;margin:0 0 16px;">${briefTitle}</p>
+          <p style="color:rgba(255,255,255,0.4);font-size:11px;margin:0 0 4px;letter-spacing:1px;text-transform:uppercase;">Action requise</p>
+          <span style="display:inline-block;background:#F59E0B22;color:#F59E0B;font-size:12px;font-weight:700;letter-spacing:2px;padding:6px 14px;border-radius:20px;text-transform:uppercase;">En attente de validation</span>
+        </td>
+      </tr>
+    </table>
+
+    <p style="color:rgba(255,255,255,0.5);font-size:13px;line-height:1.6;">
+      Connectez-vous au panneau d'administration pour examiner, accepter ou refuser ce brief.
+    </p>
   `;
 
   try {
     await transporter.sendMail({
-      from: `"Smart Brief" <${process.env.EMAIL_USER}>`,
+      from: `"Smart Brief | Agence 47" <${process.env.EMAIL_USER}>`,
       to,
-      subject: `New Brief Submission: ${briefTitle}`,
-      html,
+      subject: `📬 Nouveau brief : ${briefTitle} — ${clientName}`,
+      html: layout(content),
     });
   } catch (error) {
     console.error("Failed to send admin notification email:", error);

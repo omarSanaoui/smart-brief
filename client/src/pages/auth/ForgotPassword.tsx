@@ -36,20 +36,20 @@ export default function ForgotPassword() {
   };
 
   return (
-    <section className="font-poppins text-white min-h-[calc(100vh-80px)] flex flex-col items-center pt-16 pb-20 relative overflow-hidden">
+    <section className="font-poppins text-white sm:min-h-[calc(100vh-80px)] flex flex-col items-center pt-10 sm:pt-16 pb-10 sm:pb-20 relative overflow-hidden px-4">
       <div className="absolute right-0 top-0 bottom-0 w-1/2 pointer-events-none" />
 
-      <h1 className="text-white text-[58px] font-bold tracking-widest uppercase mb-[20px] z-10 text-center">
+      <h1 className="text-white text-3xl sm:text-5xl font-bold tracking-widest uppercase mb-6 z-10 text-center">
         FORGOT PASSWORD
       </h1>
 
       {!submitted ? (
         <>
-          <p className="text-white/50 text-sm mb-10 z-10 text-center max-w-[395px]">
+          <p className="text-white/50 text-sm mb-10 z-10 text-center max-w-[460px]">
             Enter your email and we'll send you a reset link.
           </p>
 
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4 w-[395px] max-w-[460px] z-10">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4 w-full max-w-[460px] z-10">
             <input
               type="email"
               value={email}

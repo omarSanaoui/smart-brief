@@ -105,7 +105,7 @@ const CountrySelect = ({
       </button>
 
       {isOpen && (
-        <div className="absolute left-0 top-[56px] z-30 w-[395px] max-w-[calc(100vw-48px)] rounded-md border border-[#354066] bg-[#1D253E] p-2 shadow-[0_20px_40px_rgba(4,8,25,0.6)]">
+        <div className="absolute left-0 top-[56px] z-30 w-[calc(100vw-48px)] sm:w-[395px] rounded-md border border-[#354066] bg-[#1D253E] p-2 shadow-[0_20px_40px_rgba(4,8,25,0.6)]">
           <input
             value={searchValue}
             onChange={(e) => setSearchValue(e.target.value)}

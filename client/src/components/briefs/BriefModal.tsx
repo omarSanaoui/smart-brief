@@ -6,6 +6,7 @@ import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import { updateBriefThunk, assignBriefThunk, deleteBriefThunk, fetchEmployeesThunk } from "../../features/briefs/briefSlice/briefThunk";
 import { selectEmployees } from "../../features/briefs/briefSlice/briefSelectors";
 import api from "../../features/briefs/api/briefAxios";
+import EditBriefModal from "./EditBriefModal";
 
 interface BriefModalProps {
   brief: Brief | null;
@@ -19,6 +20,7 @@ export default function BriefModal({ brief, isOpen, onClose, userRole }: BriefMo
   const employees = useAppSelector(selectEmployees);
   const [selectedEmployees, setSelectedEmployees] = useState<string[]>([]);
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -39,6 +41,7 @@ export default function BriefModal({ brief, isOpen, onClose, userRole }: BriefMo
 
   const isAdmin = userRole === "ADMIN";
   const isEmployee = userRole === "EMPLOYEE";
+  const isClient = userRole === "CLIENT";
 
   const handleUpdateStatus = async (status: BriefStatus) => {
     await dispatch(updateBriefThunk({ id: brief.id, data: { status } }));
@@ -55,6 +58,10 @@ export default function BriefModal({ brief, isOpen, onClose, userRole }: BriefMo
     if (!window.confirm("Are you sure you want to delete this brief?")) return;
     await dispatch(deleteBriefThunk(brief.id));
     onClose();
+  };
+
+  const handleEdit = () => {
+    setIsEditOpen(true);
   };
 
   const handleExport = async () => {
@@ -76,6 +83,13 @@ export default function BriefModal({ brief, isOpen, onClose, userRole }: BriefMo
 
   return (
     <div className="fixed inset-0 z-100 flex items-center justify-center px-4 py-6 sm:p-0">
+      {isEditOpen && (
+        <EditBriefModal
+          brief={brief}
+          isOpen
+          onClose={() => setIsEditOpen(false)}
+        />
+      )}
       {/* Overlay */}
       <div 
         className="absolute inset-0 bg-[#0A0F1E]/95 backdrop-blur-md transition-opacity duration-500 animate-in fade-in"
@@ -86,7 +100,7 @@ export default function BriefModal({ brief, isOpen, onClose, userRole }: BriefMo
       <div className="relative w-full max-w-[900px] max-h-[90vh] bg-[#141B2D] border border-[#2E3A5C] rounded-3xl overflow-hidden shadow-2xl flex flex-col md:flex-row animate-in zoom-in-95 duration-300">
         
         {/* Left Side: Summary & Actions (Fixed) */}
-        <div className="w-full md:w-[320px] bg-[#1A2238] border-r border-[#2E3A5C] flex flex-col pt-8 sm:pt-12 px-6 sm:px-8 pb-8 relative overflow-hidden shrink-0">
+        <div className="w-full md:w-[300px] lg:w-[320px] bg-[#1A2238] border-b md:border-b-0 md:border-r border-[#2E3A5C] flex flex-col pt-6 sm:pt-10 px-5 sm:px-7 pb-6 relative overflow-hidden shrink-0">
           
           <div className="absolute -top-20 -left-20 w-40 h-40 bg-sbpurple/10 blur-[60px] rounded-full pointer-events-none"></div>
           
@@ -157,6 +171,11 @@ export default function BriefModal({ brief, isOpen, onClose, userRole }: BriefMo
                    Mark Completed
                  </button>
                )}
+               {isClient && brief.status === "PENDING" && (
+                 <button onClick={handleEdit} className="w-full bg-sbpurple hover:bg-[#3a44b0] text-white font-bold uppercase text-xs tracking-widest py-3.5 rounded-xl transition-all flex items-center justify-center gap-2">
+                   <Edit size={16} /> Edit Brief
+                 </button>
+               )}
                {isAdmin && (
                  <button onClick={handleDelete} className="w-full text-rose-500/50 hover:text-rose-400 text-[10px] font-bold uppercase tracking-widest flex items-center justify-center px-4 py-2 hover:bg-rose-500/5 rounded-lg transition-all mt-4">
                    <Trash2 size={12} className="mr-2" /> Permanently Delete
@@ -169,7 +188,7 @@ export default function BriefModal({ brief, isOpen, onClose, userRole }: BriefMo
         {/* Right Side: Details (Scrollable) */}
         <div className="flex-1 flex flex-col min-h-0 bg-[#141B2D]">
            {/* Fixed Header on top of scroll */}
-            <div className="flex justify-between items-center px-8 py-6 border-b border-[#2E3A5C]/40 bg-[#141B2D]/80 backdrop-blur-sm sticky top-0 z-20">
+            <div className="flex justify-between items-center px-4 sm:px-6 md:px-8 py-4 sm:py-5 border-b border-[#2E3A5C]/40 bg-[#141B2D]/80 backdrop-blur-sm sticky top-0 z-20">
                <h3 className="text-[#64748B] font-bold uppercase tracking-widest text-xs flex items-center gap-2">
                  <FileText size={14} className="text-sbteal"/> Brief Documentation
                </h3>
@@ -189,7 +208,7 @@ export default function BriefModal({ brief, isOpen, onClose, userRole }: BriefMo
                </div>
             </div>
 
-           <div className="flex-1 overflow-y-auto p-8 sm:p-12 thin-scrollbar space-y-12">
+           <div className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 thin-scrollbar space-y-8 md:space-y-12">
               
               <div className="bg-[#1A2238]/30 border border-[#2E3A5C]/40 p-6 rounded-2xl relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-sbpurple/5 blur-3xl rounded-full"></div>
@@ -283,15 +302,35 @@ export default function BriefModal({ brief, isOpen, onClose, userRole }: BriefMo
                  </div>
               </section>
 
-              {/* Mobile View Actions (Duplicate for UI logic) */}
-              <div className="flex md:hidden flex-col gap-3 py-6 border-t border-[#2E3A5C]/40 mt-12 bg-white/5 p-6 rounded-2xl">
-                 {/* ... repeated actions for mobile if needed ... */}
-                 {isAdmin && brief.status === 'PENDING' && (
-                    <button onClick={() => handleUpdateStatus('ACCEPTED')} className="w-full bg-sbteal text-black font-black py-4 rounded-xl">Accept Project</button>
-                 )}
-                 {isEmployee && brief.status === 'ACCEPTED' && (
-                    <button onClick={() => handleUpdateStatus('IN_PROGRESS')} className="w-full bg-blue-500 text-white font-black py-4 rounded-xl">Start Production</button>
-                 )}
+              {/* Mobile actions */}
+              <div className="flex md:hidden flex-col gap-3 border-t border-[#2E3A5C]/40 mt-8 pt-6 pb-4">
+                {isAdmin && brief.status === 'PENDING' && (
+                  <>
+                    <button onClick={() => handleUpdateStatus('ACCEPTED')} className="w-full bg-sbteal hover:bg-[#52a68e] text-[#0F1528] font-black uppercase text-xs tracking-widest py-3.5 rounded-xl transition-all">Accept Project</button>
+                    <button onClick={() => handleUpdateStatus('REFUSED')} className="w-full bg-transparent border border-rose-500/40 text-rose-400 hover:bg-rose-500/10 font-bold uppercase text-xs tracking-widest py-3.5 rounded-xl transition-all">Refuse Project</button>
+                  </>
+                )}
+                {isAdmin && (brief.status === 'ACCEPTED' || brief.status === 'IN_PROGRESS') && (
+                  <button onClick={() => setIsAssignModalOpen(!isAssignModalOpen)} className="w-full bg-sbpurple hover:bg-[#3a44b0] text-white font-bold uppercase text-xs tracking-widest py-3.5 rounded-xl transition-all flex items-center justify-center gap-2">
+                    <Users size={16} /> {isAssignModalOpen ? "Cancel Assign" : "Manage Team"}
+                  </button>
+                )}
+                {isEmployee && brief.status === 'ACCEPTED' && (
+                  <button onClick={() => handleUpdateStatus('IN_PROGRESS')} className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold uppercase text-xs tracking-widest py-3.5 rounded-xl transition-all">Start Production</button>
+                )}
+                {isEmployee && brief.status === 'IN_PROGRESS' && (
+                  <button onClick={() => handleUpdateStatus('COMPLETED')} className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold uppercase text-xs tracking-widest py-3.5 rounded-xl transition-all">Mark Completed</button>
+                )}
+                {isClient && brief.status === 'PENDING' && (
+                  <button onClick={handleEdit} className="w-full bg-sbpurple hover:bg-[#3a44b0] text-white font-bold uppercase text-xs tracking-widest py-3.5 rounded-xl transition-all flex items-center justify-center gap-2">
+                    <Edit size={16} /> Edit Brief
+                  </button>
+                )}
+                {isAdmin && (
+                  <button onClick={handleDelete} className="w-full text-rose-500/50 hover:text-rose-400 text-[10px] font-bold uppercase tracking-widest flex items-center justify-center px-4 py-2 hover:bg-rose-500/5 rounded-lg transition-all mt-2">
+                    <Trash2 size={12} className="mr-2" /> Permanently Delete
+                  </button>
+                )}
               </div>
            </div>
         </div>

@@ -13,10 +13,13 @@ datasource db {
 }
 
 enum ProjectType {
-  WEB
-  MOBILE
-  DESKTOP
-  UI_UX
+  SITE_WEB
+  SEO
+  GOOGLE_ADS
+  SOCIAL_MEDIA
+  PHOTO_VIDEO
+  EMAIL_MARKETING
+  COMMUNITY_MANAGER
   BRANDING
   OTHER
 }

@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
-import { fetchBriefByIdThunk, updateBriefThunk, deleteBriefThunk, assignBriefThunk } from "../../features/briefs/briefSlice/briefThunk";
+import { fetchBriefByIdThunk, updateBriefThunk, deleteBriefThunk } from "../../features/briefs/briefSlice/briefThunk";
 import { selectCurrentBrief, selectBriefsLoading } from "../../features/briefs/briefSlice/briefSelectors";
 import { selectUser } from "../../features/auth/authSlice/authSelectors";
-import { ArrowLeft, Clock, CheckCircle, XCircle, Edit, Calendar, DollarSign, Download, Users, Trash2 } from "lucide-react";
+import { ArrowLeft, Clock, CheckCircle, XCircle, Edit, Calendar, DollarSign, Download, Trash2 } from "lucide-react";
 import type { BriefStatus } from "../../features/briefs/briefSlice/briefTypes";
+import EditBriefModal from "../../components/briefs/EditBriefModal";
 
 const StatusBadgeLarge = ({ status }: { status: BriefStatus }) => {
   switch (status) {
@@ -37,8 +38,7 @@ export default function BriefDetails() {
   const isEmployee = user?.role === "EMPLOYEE";
   const isClient = user?.role === "CLIENT";
 
-  const [assigning, setAssigning] = useState(false);
-  const [mockEmployeeId, setMockEmployeeId] = useState("");
+  const [isEditOpen, setIsEditOpen] = useState(false);
 
   useEffect(() => {
     if (id) dispatch(fetchBriefByIdThunk(id));
@@ -55,12 +55,6 @@ export default function BriefDetails() {
     navigate(-1);
   };
 
-  const handleAssign = async () => {
-    if (!brief || !mockEmployeeId) return;
-    await dispatch(assignBriefThunk({ briefId: brief.id, employeeIds: [mockEmployeeId] }));
-    setAssigning(false);
-    setMockEmployeeId("");
-  };
 
   if (loading || !brief) {
     return (
@@ -72,17 +66,24 @@ export default function BriefDetails() {
 
   return (
     <section className="font-poppins text-white min-h-[calc(100vh-80px)] pt-10 pb-20 px-4 sm:px-6 lg:px-8 max-w-[1000px] mx-auto">
+      {isEditOpen && (
+        <EditBriefModal
+          brief={brief}
+          isOpen
+          onClose={() => setIsEditOpen(false)}
+        />
+      )}
       <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-white/50 hover:text-white mb-8 transition-colors">
         <ArrowLeft size={16} /> Back
       </button>
 
-      <div className="bg-[#1A2238] border border-[#2E3A5C] rounded-2xl p-8 md:p-10 shadow-2xl relative overflow-hidden">
+      <div className="bg-[#1A2238] border border-[#2E3A5C] rounded-2xl p-5 sm:p-8 md:p-10 shadow-2xl relative overflow-hidden">
         {/* Background glow */}
         <div className="absolute -top-[200px] -right-[200px] w-[400px] h-[400px] bg-sbpurple/20 blur-[100px] rounded-full pointer-events-none"></div>
 
         <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 mb-10 relative z-10">
           <div>
-            <h1 className="text-3xl md:text-5xl font-bold mb-4">{brief.title}</h1>
+            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-4 wrap-break-word">{brief.title}</h1>
             <div className="flex flex-wrap gap-3">
                <span className="bg-[#2D3652] text-white/80 px-4 py-1.5 rounded-full text-sm font-semibold tracking-wide border border-[#2E3A5C]">
                  {brief.projectType.replace('_', ' ')}
@@ -104,12 +105,6 @@ export default function BriefDetails() {
                </>
              )}
 
-             {isAdmin && brief.status === 'ACCEPTED' && (
-               <button onClick={() => setAssigning(!assigning)} className="bg-sbpurple hover:bg-[#3a44b0] text-white font-bold px-6 py-2.5 rounded-lg transition-colors flex items-center gap-2">
-                 <Users size={18} /> Assign Team
-               </button>
-             )}
-
              {isAdmin && (
                <button onClick={handleDelete} title="Delete Brief" className="bg-transparent border border-red-500/50 text-red-400 hover:bg-red-500/10 p-2.5 rounded-lg transition-colors">
                  <Trash2 size={18} />
@@ -129,6 +124,14 @@ export default function BriefDetails() {
              )}
 
              {/* Client Actions */}
+             {isClient && brief.status === 'PENDING' && (
+               <button
+                 onClick={() => setIsEditOpen(true)}
+                 className="bg-sbpurple hover:bg-[#3a44b0] text-white font-bold px-6 py-2.5 rounded-lg transition-colors flex items-center gap-2"
+               >
+                 <Edit size={18} /> Edit Brief
+               </button>
+             )}
              {isClient && brief.status === 'COMPLETED' && (
                <button className="bg-sbpurple hover:bg-[#3a44b0] text-white font-bold px-6 py-2.5 rounded-lg transition-colors flex items-center gap-2">
                  <Download size={18} /> Download Deliverables
@@ -137,30 +140,9 @@ export default function BriefDetails() {
           </div>
         </div>
 
-        {/* Dummy Assignment UI for Admin */}
-        {assigning && (
-          <div className="bg-[#2D3652] p-6 rounded-xl border border-[#2E3A5C] mb-8 animate-in slide-in-from-top-2">
-            <h3 className="font-bold mb-4 flex items-center gap-2"><Users size={16}/> Assign Employee</h3>
-            <div className="flex gap-4">
-              <input 
-                type="text" 
-                placeholder="Enter Employee ID (Mock)" 
-                value={mockEmployeeId}
-                onChange={e => setMockEmployeeId(e.target.value)}
-                className="flex-1 bg-[#1A2238] border border-[#2E3A5C] rounded-md px-4 py-2 text-sm focus:outline-none focus:border-sbteal"
-              />
-              <button 
-                onClick={handleAssign}
-                className="bg-sbteal hover:bg-[#52a68e] transition-colors text-black font-bold px-6 py-2 rounded-md"
-              >
-                Assign
-              </button>
-            </div>
-          </div>
-        )}
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="md:col-span-2 space-y-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
+          <div className="sm:col-span-2 lg:col-span-2 space-y-6 sm:space-y-8">
             <section>
               <h3 className="text-white/60 uppercase tracking-widest text-xs font-bold mb-3 border-b border-[#2E3A5C] pb-2">Description & Goals</h3>
               <div className="text-white/90 leading-relaxed whitespace-pre-wrap font-light">

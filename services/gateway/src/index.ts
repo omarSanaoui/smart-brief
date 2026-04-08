@@ -26,7 +26,7 @@ const publicRoutes = [
 ]
 
 app.use((req, _res, next) => {
-    console.log(`→ ${req.method} ${req.path}`)
+    console.log(`-> ${req.method} ${req.path}`)
     next()
 })
 
@@ -57,10 +57,10 @@ app.use(authenticate)
 app.use("/auth", createProxyMiddleware({
     target: process.env.AUTH_SERVICE_URL || "http://localhost:3000",
     changeOrigin: true,
-    pathRewrite: (path) => `/auth${path}`,  // ← add /auth back manually
+    pathRewrite: (path) => `/auth${path}`,
     on: {
-        proxyReq: (proxyReq, req) => {
-            console.log(`Forwarding: ${req.method} ${req.path} → ${proxyReq.path}`)
+        proxyReq: (_proxyReq, req) => {
+            console.log(`Forwarding: ${req.method} ${req.url}`)
         },
         error: (err) => {
             console.log("Proxy error:", err.message)
@@ -78,8 +78,8 @@ app.use("/briefs", createProxyMiddleware({
     changeOrigin: true,
     pathRewrite: (path) => `/briefs${path}`,
     on: {
-        proxyReq: (proxyReq, req) => {
-            console.log(`Forwarding: ${req.method} ${req.path} → ${proxyReq.path}`)
+        proxyReq: (_proxyReq, req) => {
+            console.log(`Forwarding: ${req.method} ${req.url}`)
         },
         error: (err) => {
             console.log("Proxy error:", err.message)

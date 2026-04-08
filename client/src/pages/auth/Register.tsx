@@ -106,8 +106,8 @@ export default function Register() {
   };
 
   return (
-    <section className="font-poppins text-white min-h-[calc(100vh-80px)] flex flex-col items-center pt-16 pb-20 relative overflow-hidden">
-      <h1 className="text-white text-[58px] font-bold tracking-widest uppercase mb-[34px] z-10">
+    <section className="font-poppins text-white sm:min-h-[calc(100vh-80px)] flex flex-col items-center pt-10 sm:pt-16 pb-10 sm:pb-20 relative overflow-hidden px-4">
+      <h1 className="text-white text-3xl sm:text-5xl font-bold tracking-widest uppercase mb-8 z-10 text-center">
         REGISTER
       </h1>
 
@@ -115,9 +115,9 @@ export default function Register() {
         <p className="text-red-400 text-sm mb-4 z-10">{error}</p>
       )}
 
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4 w-[395px] max-w-[460px] z-10">
-        <div className="flex gap-4">
-          <div className="w-1/2">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4 w-full max-w-[460px] z-10">
+        <div className="flex flex-col sm:flex-row gap-4">
+          <div className="w-full sm:w-1/2">
             <input
               name="firstName" value={form.firstName} onChange={handleChange}
               placeholder="First name..." required
@@ -125,7 +125,7 @@ export default function Register() {
             />
             {fieldErrors.firstName && <p className="text-red-400 text-xs mt-1">{fieldErrors.firstName}</p>}
           </div>
-          <div className="w-1/2">
+          <div className="w-full sm:w-1/2">
             <input
               name="lastName" value={form.lastName} onChange={handleChange}
               placeholder="Last name..." required
@@ -172,7 +172,7 @@ export default function Register() {
             tabIndex={-1}
             aria-label={showPassword ? "Hide password" : "Show password"}
           >
-            {showPassword ? <Eye /> : <EyeOff />}
+            {showPassword ? <EyeOff /> : <Eye />}
           </button>
         </div>
         {form.password && (
@@ -227,7 +227,7 @@ export default function Register() {
         </div>
 
         <a
-          href="http://localhost:3000/auth/google"
+          href={`${import.meta.env.VITE_API_URL || "http://localhost:8080"}/auth/google`}
           className="flex items-center justify-center gap-3 bg-white hover:bg-gray-100 text-gray-800 font-semibold py-3 rounded-md transition-colors text-sm"
         >
           <svg width="18" height="18" viewBox="0 0 48 48">

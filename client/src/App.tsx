@@ -28,6 +28,7 @@ export default function SmarBriefApp() {
   const user = useAppSelector(selectUser)
   const isLoggedIn = useAppSelector(selectIsLoggedIn);
 
+
   const authPaths = ['/register', '/login', '/verify-code', '/forgot-password', '/reset-password'];
   const isAuthPage = authPaths.includes(location.pathname);
 
@@ -41,19 +42,19 @@ export default function SmarBriefApp() {
       next.delete('token')
       setSearchParams(next, { replace: true })
     }
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [dispatch, searchParams, setSearchParams])
 
   // Restore user session on refresh
   useEffect(() => {
     if (token && !user) {
       dispatch(getMeThunk())
     }
-  }, [token])
+  }, [dispatch, token, user])
 
   const backgroundAbstract = isAuthPage ? (
-    <AbstractObj2 className="absolute top-80 right-[-466px] w-[1600px]" />
+    <AbstractObj2 className="absolute top-[35vh] sm:top-56 lg:top-80 right-[-180px] sm:right-[-280px] lg:right-[-466px] w-[420px] sm:w-[800px] lg:w-[1600px] opacity-90" />
   ) : (
-    <AbstractObj1 className="absolute top-40 right-[-466px] w-[1600px]" />
+    <AbstractObj1 className="absolute top-[35vh] sm:top-32 lg:top-40 right-[-180px] sm:right-[-280px] lg:right-[-466px] w-[420px] sm:w-[800px] lg:w-[1600px] opacity-90" />
   )
 
   return (
@@ -62,8 +63,9 @@ export default function SmarBriefApp() {
         {backgroundAbstract}
       </div>
 
-      <div className="relative z-10">
+      <div className="relative z-10 flex flex-col min-h-screen">
         <Navbar />
+        <div className="flex-1">
         <Routes>
           {isLoggedIn ? (
             <Route path="/" element={<Home />} />
@@ -81,6 +83,7 @@ export default function SmarBriefApp() {
           <Route path='/forgot-password' element={<ForgotPassword />} />
           <Route path='/reset-password' element={<ResetPassword />} />
         </Routes>
+        </div>
         <Footer />
       </div>
     </div>

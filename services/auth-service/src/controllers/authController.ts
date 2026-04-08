@@ -1,10 +1,12 @@
 import { Request, Response } from 'express';
 import prisma from "../../db/prisma.js";
+import bcrypt from "bcryptjs";
 import {
     completePasswordReset,
     initiateRegister,
     logUser,
     requestPasswordReset,
+    resendVerificationCode,
     verifyAndCreateUser
 } from '../../services/authServices.js';
 import {
@@ -158,6 +160,25 @@ export async function resetPassword(req: Request, res: Response) {
     }
 }
 
+export async function resendCode(req: Request, res: Response) {
+    try {
+        const { email } = req.body;
+        if (!email) {
+            res.status(400).json({ message: "Email is required" });
+            return;
+        }
+        const cleanEmail = normalizeEmail(String(email));
+        if (!isValidEmail(cleanEmail)) {
+            res.status(400).json({ message: "Invalid email format" });
+            return;
+        }
+        const result = await resendVerificationCode(cleanEmail);
+        res.status(200).json(result);
+    } catch (error: any) {
+        res.status(400).json({ message: error.message });
+    }
+}
+
 export async function googleCallback(req: Request, res: Response) {
     try {
         const { token } = req.user as any
@@ -214,6 +235,157 @@ export async function getUsersByRole(req: Request, res: Response) {
 
 export async function getMe(req: Request, res: Response) {
     res.status(200).json({ user: req.user });
+}
+
+export async function updateMe(req: Request, res: Response) {
+    try {
+        const requester = req.user as any;
+        if (!requester?.id) {
+            res.status(401).json({ message: "Unauthorized" });
+            return;
+        }
+
+        const { firstName, lastName, email, phone } = req.body ?? {};
+        const data: Record<string, unknown> = {};
+
+        if (typeof firstName === "string") {
+            const clean = firstName.trim();
+            if (!clean || !isValidName(clean)) {
+                res.status(400).json({ message: "First name must be 2-40 letters" });
+                return;
+            }
+            data.firstName = clean;
+        }
+
+        if (typeof lastName === "string") {
+            const clean = lastName.trim();
+            if (!clean || !isValidName(clean)) {
+                res.status(400).json({ message: "Last name must be 2-40 letters" });
+                return;
+            }
+            data.lastName = clean;
+        }
+
+        if (typeof phone === "string") {
+            const clean = phone.trim();
+            if (clean && !isValidPhone(clean)) {
+                res.status(400).json({ message: "Invalid phone number" });
+                return;
+            }
+            data.phone = clean || null;
+        }
+
+        if (typeof email === "string") {
+            const clean = normalizeEmail(email);
+            if (!isValidEmail(clean)) {
+                res.status(400).json({ message: "Invalid email format" });
+                return;
+            }
+
+            // If changing email, ensure uniqueness.
+            if (clean !== requester.email) {
+                const existing = await prisma.user.findUnique({ where: { email: clean } });
+                if (existing) {
+                    res.status(400).json({ message: "Email already in use" });
+                    return;
+                }
+                data.email = clean;
+            }
+        }
+
+        if (Object.keys(data).length === 0) {
+            res.status(400).json({ message: "No fields to update" });
+            return;
+        }
+
+        const updated = await prisma.user.update({
+            where: { id: requester.id },
+            data,
+        });
+
+        const { password, ...safeUser } = updated as any;
+        res.status(200).json({ user: safeUser });
+    } catch (error: any) {
+        res.status(500).json({ message: error.message });
+    }
+}
+
+export async function changePassword(req: Request, res: Response) {
+    try {
+        const requester = req.user as any;
+        if (!requester?.id) {
+            res.status(401).json({ message: "Unauthorized" });
+            return;
+        }
+
+        const { currentPassword, newPassword } = req.body ?? {};
+        if (typeof currentPassword !== "string" || typeof newPassword !== "string") {
+            res.status(400).json({ message: "Current password and new password are required" });
+            return;
+        }
+
+        if (!isStrongPassword(String(newPassword))) {
+            res.status(400).json({ message: "New password format is invalid" });
+            return;
+        }
+
+        const user = await prisma.user.findUnique({ where: { id: requester.id } });
+        if (!user || !user.password) {
+            res.status(400).json({ message: "Password change is not available for this account" });
+            return;
+        }
+
+        const isValid = await bcrypt.compare(currentPassword, user.password);
+        if (!isValid) {
+            res.status(400).json({ message: "Current password is incorrect" });
+            return;
+        }
+
+        const hashed = await bcrypt.hash(newPassword, 10);
+        await prisma.user.update({ where: { id: requester.id }, data: { password: hashed } });
+
+        res.status(200).json({ message: "Password updated" });
+    } catch (error: any) {
+        res.status(500).json({ message: error.message });
+    }
+}
+
+export async function deleteMe(req: Request, res: Response) {
+    try {
+        const requester = req.user as any;
+        if (!requester?.id) {
+            res.status(401).json({ message: "Unauthorized" });
+            return;
+        }
+
+        const { password } = req.body ?? {};
+        const user = await prisma.user.findUnique({ where: { id: requester.id } });
+        if (!user) {
+            res.status(404).json({ message: "User not found" });
+            return;
+        }
+
+        if (user.provider === "LOCAL") {
+            if (typeof password !== "string" || !password) {
+                res.status(400).json({ message: "Password is required to delete this account" });
+                return;
+            }
+            if (!user.password) {
+                res.status(400).json({ message: "Password is required to delete this account" });
+                return;
+            }
+            const isValid = await bcrypt.compare(password, user.password);
+            if (!isValid) {
+                res.status(400).json({ message: "Password is incorrect" });
+                return;
+            }
+        }
+
+        await prisma.user.delete({ where: { id: requester.id } });
+        res.status(204).send();
+    } catch (error: any) {
+        res.status(500).json({ message: error.message });
+    }
 }
 
 export async function getUserById(req: Request, res: Response) {

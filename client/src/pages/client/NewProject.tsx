@@ -1,30 +1,41 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useRef, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { DatePicker, Portal } from "@chakra-ui/react";
+import { fromDate, getLocalTimeZone } from "@internationalized/date";
 import Select from "react-select";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
-import { createBriefThunk } from "../../features/briefs/briefSlice/briefThunk";
+import { createBriefThunk, updateBriefThunk } from "../../features/briefs/briefSlice/briefThunk";
 import { selectBriefsLoading } from "../../features/briefs/briefSlice/briefSelectors";
-import type { ProjectType } from "../../features/briefs/briefSlice/briefTypes";
-import { UploadCloud, CheckCircle, ArrowRight, ArrowLeft } from "lucide-react";
+import type { Brief, ProjectType } from "../../features/briefs/briefSlice/briefTypes";
+import { UploadCloud, CheckCircle, ArrowRight, ArrowLeft, Calendar, X } from "lucide-react";
+import type { MultiValue, StylesConfig } from "react-select";
 
 const serviceOptions = [
-  { value: "WEB", label: "Web App" },
-  { value: "MOBILE", label: "Mobile App" },
-  { value: "UI_UX", label: "UI/UX Design" },
-  { value: "BRANDING", label: "Branding" },
-  { value: "OTHER", label: "E-commerce / Other" },
+  { value: "SITE_WEB", label: "Website Design & Development" },
+  { value: "SEO", label: "Natural SEO" },
+  { value: "GOOGLE_ADS", label: "Google Paid Ads" },
+  { value: "SOCIAL_MEDIA", label: "Social Media & Campaigns" },
+  { value: "PHOTO_VIDEO", label: "Photography & Videography" },
+  { value: "EMAIL_MARKETING", label: "Email Marketing Campaign" },
+  { value: "COMMUNITY_MANAGER", label: "Community Manager" },
+  { value: "BRANDING", label: "Branding & Visual Identity" },
+  { value: "OTHER", label: "Other" },
 ];
 
 const featureOptions = [
-  { value: "Login System", label: "Login System" },
-  { value: "Payment Gateway", label: "Payment Gateway" },
-  { value: "Real-Time Chat", label: "Real-Time Chat" },
-  { value: "Dashboard", label: "Admin Dashboard" },
-  { value: "Analytics", label: "Analytics" },
-  { value: "Social Login", label: "Social Login" },
-  { value: "Email Notifications", label: "Email Notifications" },
+  { value: "Responsive Design", label: "Responsive Design" },
+  { value: "SEO Optimization", label: "SEO Optimization" },
+  { value: "Social Media Integration", label: "Social Media Integration" },
+  { value: "Google Analytics", label: "Google Analytics" },
+  { value: "Content Creation", label: "Content Creation" },
+  { value: "Ad Campaign Setup", label: "Ad Campaign Setup" },
+  { value: "Email Templates", label: "Email Templates" },
+  { value: "Brand Guidelines", label: "Brand Guidelines" },
+  { value: "Logo & Brand Identity", label: "Logo & Brand Identity" },
+  { value: "Photo Shooting", label: "Photo Shooting" },
+  { value: "Video Production", label: "Video Production" },
+  { value: "Monthly Reporting", label: "Monthly Reporting" },
+  { value: "E-reputation Management", label: "E-reputation Management" },
 ];
 
 const budgetOptions = [
@@ -34,10 +45,41 @@ const budgetOptions = [
   { value: "$20,000+", label: "$20,000+" },
 ];
 
-// Dark theme styles for react-select
-import type { StylesConfig } from "react-select";
+type SelectOption = {
+  value: string;
+  label: string;
+};
 
-const selectStyles: StylesConfig<any, false> = {
+type AttachmentItem = {
+  id: string;
+  name: string;
+  file?: File;
+  sizeLabel?: string;
+};
+
+const parseDescription = (description: string) => {
+  const brandMatch = description.match(/Brand:\s*(.*)/);
+  const goalMatch = description.match(/Core Goal:\s*([\s\S]*)/);
+
+  return {
+    brandName: brandMatch?.[1]?.trim() || "",
+    coreGoal: goalMatch?.[1]?.trim() || description,
+  };
+};
+
+const toAttachmentItem = (file: File): AttachmentItem => ({
+  id: `${file.name}-${file.size}-${file.lastModified}`,
+  name: file.name,
+  file,
+  sizeLabel: `${(file.size / 1024).toFixed(1)} KB`,
+});
+
+const toExistingAttachmentItem = (name: string, index: number): AttachmentItem => ({
+  id: `existing-${index}-${name}`,
+  name,
+});
+
+const selectStyles: StylesConfig<SelectOption, boolean> = {
   control: (base, state) => ({
     ...base,
     backgroundColor: "#2D3652",
@@ -90,48 +132,89 @@ const selectStyles: StylesConfig<any, false> = {
 export default function NewProject() {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
   const loading = useAppSelector(selectBriefsLoading);
+  const timeZone = getLocalTimeZone();
+  const attachmentInputRef = useRef<HTMLInputElement | null>(null);
+  const editingBrief = location.state && "brief" in location.state ? (location.state.brief as Brief) : null;
+  const isEditing = !!editingBrief;
+  const parsedDescription = editingBrief ? parseDescription(editingBrief.description) : null;
 
   const [step, setStep] = useState(1);
 
   // Form State
-  const [projectName, setProjectName] = useState("");
-  const [brandName, setBrandName] = useState("");
-  const [coreGoal, setCoreGoal] = useState("");
-  const [serviceType, setServiceType] = useState<{value:string;label:string} | null>(null);
-  const [features, setFeatures] = useState<Array<{value:string;label:string}>>([]);
-  const [budget, setBudget] = useState<{value:string;label:string} | null>(null);
-  const [deadline, setDeadline] = useState<Date | null>(null);
-  const [attachments, setAttachments] = useState<File[]>([]);
+  const [projectName, setProjectName] = useState(editingBrief?.title ?? "");
+  const [brandName, setBrandName] = useState(parsedDescription?.brandName ?? "");
+  const [coreGoal, setCoreGoal] = useState(parsedDescription?.coreGoal ?? "");
+  const [serviceType, setServiceType] = useState<SelectOption | null>(
+    serviceOptions.find((option) => option.value === editingBrief?.projectType) ?? null
+  );
+  const [features, setFeatures] = useState<SelectOption[]>(
+    editingBrief?.features.map((feature) => ({ value: feature, label: feature })) ?? []
+  );
+  const [budget, setBudget] = useState<SelectOption | null>(
+    budgetOptions.find((option) => option.value === editingBrief?.budgetRange) ??
+      (editingBrief?.budgetRange
+        ? { value: editingBrief.budgetRange, label: editingBrief.budgetRange }
+        : null)
+  );
+  const [deadline, setDeadline] = useState<Date | null>(
+    editingBrief?.deadline ? new Date(editingBrief.deadline) : null
+  );
+  const [attachments, setAttachments] = useState<AttachmentItem[]>(
+    editingBrief?.attachments.map(toExistingAttachmentItem) ?? []
+  );
   const [success, setSuccess] = useState(false);
+  const deadlineValue = deadline ? [fromDate(deadline, timeZone)] : [];
 
-  const isStep1Valid = projectName && brandName && coreGoal && serviceType;
+  const isStep1Valid = projectName && brandName && coreGoal && serviceType && features.length > 0;
   const isStep2Valid = budget && deadline;
 
   const handleNext = () => setStep(2);
   const handleBack = () => setStep(1);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      setAttachments(Array.from(e.target.files));
+    const files = e.target.files;
+    if (files) {
+      const nextFiles = Array.from(files).map(toAttachmentItem);
+      setAttachments((prev) => {
+        const existing = new Set(prev.map((file) => file.id));
+
+        const uniqueNewFiles = nextFiles.filter(
+          (file) => !existing.has(file.id)
+        );
+
+        return [...prev, ...uniqueNewFiles];
+      });
+      e.target.value = "";
     }
+  };
+
+  const handleRemoveAttachment = (indexToRemove: number) => {
+    setAttachments((prev) => prev.filter((_, index) => index !== indexToRemove));
   };
 
   const handleCreate = async () => {
     // Combine fields for the backend payload
     const payload = {
       title: projectName,
-      projectType: serviceType?.value as ProjectType || "WEB",
+      projectType: serviceType?.value as ProjectType || "OTHER",
       description: `Brand: ${brandName}\n\nCore Goal: ${coreGoal}`,
       features: features.map(f => f.value),
       budgetRange: budget?.value || "",
       deadline: deadline ? deadline.toISOString() : new Date().toISOString(),
-      // We will skip actual file uploads to S3 here and just mock attachment strings for the demo
-      attachments: attachments.map(a => a.name)
+      attachments: attachments.map((attachment) => attachment.name)
     };
 
-    const result = await dispatch(createBriefThunk(payload));
-    if (createBriefThunk.fulfilled.match(result)) {
+    const result = isEditing && editingBrief
+      ? await dispatch(updateBriefThunk({ id: editingBrief.id, data: payload }))
+      : await dispatch(createBriefThunk(payload));
+
+    const didSucceed = isEditing
+      ? updateBriefThunk.fulfilled.match(result)
+      : createBriefThunk.fulfilled.match(result);
+
+    if (didSucceed) {
       setSuccess(true);
       setTimeout(() => {
         navigate("/my-briefs");
@@ -144,9 +227,11 @@ export default function NewProject() {
       <div className="min-h-[calc(100vh-80px)] flex flex-col items-center justify-center">
         <CheckCircle className="text-sbteal w-24 h-24 mb-6 animate-bounce" />
         <h1 className="text-4xl font-bold uppercase tracking-widest text-center text-white mb-4">
-          Brief Submitted!
+          {isEditing ? "Brief Updated!" : "Brief Submitted!"}
         </h1>
-        <p className="text-white/60">We'll review your project and get back to you shortly.</p>
+        <p className="text-white/60">
+          {isEditing ? "Your project brief was updated successfully." : "We'll review your project and get back to you shortly."}
+        </p>
       </div>
     );
   }
@@ -156,11 +241,11 @@ export default function NewProject() {
       {/* Title */}
       <div className="w-full max-w-[500px] mb-[40px] px-4">
         {step === 1 ? (
-          <h1 className="text-white text-[48px] md:text-[58px] font-bold tracking-widest uppercase leading-tight">
-            PROJECT <span className="text-sbteal">IDENTITY</span>
+          <h1 className="text-white text-[30px] sm:text-[40px] md:text-[50px] lg:text-[58px] font-bold tracking-widest uppercase leading-tight">
+            {isEditing ? <>EDIT <span className="text-sbteal">PROJECT</span></> : <>PROJECT <span className="text-sbteal">IDENTITY</span></>}
           </h1>
         ) : (
-          <h1 className="text-white text-[44px] md:text-[52px] font-bold tracking-widest uppercase leading-tight">
+          <h1 className="text-white text-[28px] sm:text-[36px] md:text-[44px] lg:text-[52px] font-bold tracking-widest uppercase leading-tight">
             ADDITIONAL <span className="text-sbteal">INFORMATIONS</span>
           </h1>
         )}
@@ -194,19 +279,19 @@ export default function NewProject() {
               className="w-full bg-[#2D3652] border border-[#2E3A5C] rounded-md px-4 py-3 text-white placeholder-white/40 text-sm focus:outline-none focus:border-sbteal transition-colors resize-none"
             />
 
-            <Select
+            <Select<SelectOption, false>
               options={serviceOptions}
               value={serviceType}
-              onChange={setServiceType}
+              onChange={(val) => setServiceType(val)}
               placeholder="Service Type"
               styles={selectStyles}
             />
 
-            <Select
+            <Select<SelectOption, true>
               isMulti
               options={featureOptions}
               value={features}
-              onChange={(val) => setFeatures(val as any)}
+              onChange={(val: MultiValue<SelectOption>) => setFeatures([...val])}
               placeholder="Must-Have Features"
               styles={selectStyles}
             />
@@ -232,51 +317,111 @@ export default function NewProject() {
         {/* STEP 2 */}
         {step === 2 && (
           <div className="animate-in fade-in slide-in-from-right-4 duration-500 flex flex-col gap-5">
-            <Select
+            <Select<SelectOption, false>
               options={budgetOptions}
               value={budget}
-              onChange={setBudget}
+              onChange={(val) => setBudget(val)}
               placeholder="Budget Range"
               styles={selectStyles}
             />
 
-            <div className="relative w-full">
-              <DatePicker
-                selected={deadline}
-                onChange={(date: Date | null) => setDeadline(date)}
-                placeholderText="Desired Launch Date"
-                minDate={new Date()}
-                className="w-full bg-[#2D3652] border border-[#2E3A5C] rounded-md px-4 py-3 text-white placeholder-white/40 text-sm focus:outline-none focus:border-sbteal transition-colors"
-                wrapperClassName="w-full"
-                calendarClassName="bg-[#2D3652] text-white border-[#2E3A5C]"
-              />
-            </div>
+            <DatePicker.Root
+              value={deadlineValue}
+              onValueChange={({ value }) => setDeadline(value[0]?.toDate(timeZone) ?? null)}
+              min={fromDate(new Date(), timeZone)}
+              closeOnSelect
+              positioning={{ placement: "bottom-start" }}
+            >
+              <DatePicker.Control className="project-date-picker-control group flex w-full items-center rounded-md border border-[#2E3A5C] bg-[#2D3652] transition-colors focus-within:border-sbteal focus-within:ring-1 focus-within:ring-sbteal">
+                <DatePicker.Input
+                  placeholder="Desired Launch Date"
+                  className="project-date-picker-input border border-[#2E3A5C] w-full bg-transparent px-4 py-3 text-sm text-white placeholder-white/40 focus:outline-none"
+                />
+                <DatePicker.IndicatorGroup className="pr-3">
+                  <DatePicker.Trigger
+                    className="flex h-8 w-8 items-center justify-center rounded-md text-white/60 transition-colors hover:bg-white/5 hover:text-white"
+                    aria-label="Open calendar"
+                  >
+                    <Calendar className="w-4 h-4" />
+                  </DatePicker.Trigger>
+                </DatePicker.IndicatorGroup>
+              </DatePicker.Control>
 
-            <div className="flex justify-between items-center bg-[#2D3652] border border-[#2E3A5C] rounded-md px-4 py-3">
-              <span className="text-white/60 text-sm">Attachments (Brand, References...)</span>
-              <label className="cursor-pointer bg-sbpurple hover:bg-[#3a44b0] px-4 py-1.5 rounded-md text-xs font-medium transition-colors">
-                Add
-                <input type="file" multiple className="hidden" onChange={handleFileChange} />
-              </label>
-            </div>
+              <Portal>
+                <DatePicker.Positioner>
+                  <DatePicker.Content className="project-date-picker-popup z-50 rounded-xl border border-[#2E3A5C] bg-[#1a2238] p-3 text-white shadow-2xl">
+                    <DatePicker.View view="day" className="w-[280px]">
+                      <DatePicker.Header className="mb-3" />
+                      <DatePicker.DayTable />
+                    </DatePicker.View>
+                    <DatePicker.View view="month" className="w-[280px]">
+                      <DatePicker.Header className="mb-3" />
+                      <DatePicker.MonthTable />
+                    </DatePicker.View>
+                    <DatePicker.View view="year" className="w-[280px]">
+                      <DatePicker.Header className="mb-3" />
+                      <DatePicker.YearTable />
+                    </DatePicker.View>
+                  </DatePicker.Content>
+                </DatePicker.Positioner>
+              </Portal>
+            </DatePicker.Root>
 
-            {/* Display Attachment placeholders (just squares for demo like the image) */}
-            <div className="flex gap-3 overflow-x-auto py-2">
-              {attachments.length > 0 ? (
-                attachments.map((file, i) => (
-                  <div key={i} className="w-[60px] h-[60px] shrink-0 bg-[#E0E0E0] rounded-md flex items-center justify-center flex-col overflow-hidden shadow-sm" title={file.name}>
-                    <UploadCloud className="w-5 h-5 text-gray-500" />
-                    <span className="text-[8px] text-gray-600 truncate w-full px-1 text-center mt-1">{file.name}</span>
+            <div className="rounded-md border border-[#2E3A5C] bg-[#2D3652] p-4">
+              <div className="mb-4 flex items-center justify-between gap-4">
+                <div>
+                  <p className="text-sm text-white">Attachments</p>
+                  <p className="text-xs text-white/50">Brand files, references, or notes. You can add multiple files.</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => attachmentInputRef.current?.click()}
+                  className="bg-sbpurple hover:bg-[#3a44b0] px-4 py-2 rounded-md text-xs font-medium transition-colors shrink-0"
+                >
+                  {attachments.length > 0 ? "Add More" : "Add Files"}
+                </button>
+                <input
+                  ref={attachmentInputRef}
+                  type="file"
+                  multiple
+                  className="hidden"
+                  onChange={handleFileChange}
+                />
+              </div>
+
+              <div className="rounded-md bg-[#26304A] px-4 py-5">
+                {attachments.length > 0 ? (
+                  <div className="attachment-scroll flex max-h-[276px] flex-col gap-3 overflow-y-auto pr-1">
+                    {attachments.map((file, i) => (
+                      <div
+                        key={`${file.name}-${i}`}
+                        className="group flex items-center gap-3 rounded-md border border-[#36415F] bg-[#2D3652] px-3 py-3"
+                        title={file.name}
+                      >
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-[#414CC4]/20">
+                          <UploadCloud className="h-5 w-5 text-sbteal" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="truncate text-sm text-white">{file.name}</p>
+                          <p className="text-xs text-white/45">{file.sizeLabel ?? "Existing attachment"}</p>
+                        </div>
+                      <button
+                          type="button"
+                          onClick={() => handleRemoveAttachment(i)}
+                          className="ml-auto flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-white/35 opacity-0 transition-all hover:bg-white/8 hover:text-white group-hover:opacity-100"
+                          aria-label={`Remove ${file.name}`}
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      </div>
+                    ))}
                   </div>
-                ))
-              ) : (
-                <>
-                  <div className="w-[60px] h-[60px] shrink-0 bg-[#E0E0E0] rounded-md"></div>
-                  <div className="w-[60px] h-[60px] shrink-0 bg-[#E0E0E0] rounded-md"></div>
-                  <div className="w-[60px] h-[60px] shrink-0 bg-[#E0E0E0] rounded-md"></div>
-                  <div className="w-[60px] h-[60px] shrink-0 bg-[#E0E0E0] rounded-md"></div>
-                </>
-              )}
+                ) : (
+                  <div className="flex min-h-24 items-center justify-center rounded-md text-center text-sm text-white/45">
+                    No attachment added
+                  </div>
+                )}
+              </div>
             </div>
 
             <div className="flex justify-between mt-6">
@@ -299,21 +444,172 @@ export default function NewProject() {
       </div>
 
       <style>{`
-        /* Overriding some datepicker default text colors for dark mode */
-        .react-datepicker__header {
-           background-color: #1a2238; border-bottom: 1px solid #2E3A5C;
+        .project-date-picker-input {
+          color: white !important;
+          caret-color: white;
+          border: none !important;
+          outline: none !important;
+          box-shadow: none !important;
+          background: transparent !important;
         }
-        .react-datepicker__current-month, .react-datepicker-time__header, .react-datepicker-year-header {
-           color: white;
+
+        .project-date-picker-input:hover,
+        .project-date-picker-input:focus,
+        .project-date-picker-input:focus-visible {
+          border: none !important;
+          outline: none !important;
+          box-shadow: none !important;
+          background: transparent !important;
         }
-        .react-datepicker__day-name, .react-datepicker__day, .react-datepicker__time-name {
-           color: white;
+
+        .project-date-picker-control {
+          border-color: #2E3A5C !important;
+          box-shadow: none !important;
+          outline: none !important;
         }
-        .react-datepicker__day:hover, .react-datepicker__month-text:hover, .react-datepicker__quarter-text:hover, .react-datepicker__year-text:hover {
-           background-color: #67CFB1; color: black;
+
+        .project-date-picker-control:hover {
+          border-color: #2E3A5C !important;
         }
-        .react-datepicker__day--selected, .react-datepicker__day--in-selecting-range, .react-datepicker__day--in-range, .react-datepicker__month-text--selected, .react-datepicker__month-text--in-selecting-range, .react-datepicker__month-text--in-range, .react-datepicker__quarter-text--selected, .react-datepicker__quarter-text--in-selecting-range, .react-datepicker__quarter-text--in-range, .react-datepicker__year-text--selected, .react-datepicker__year-text--in-selecting-range, .react-datepicker__year-text--in-range {
-           background-color: #414CC4;
+
+        .project-date-picker-control:focus-within {
+          border-color: #67CFB1 !important;
+          box-shadow: 0 0 0 1px #67CFB1 !important;
+        }
+
+        .project-date-picker-input::placeholder {
+          color: rgba(255, 255, 255, 0.4) !important;
+        }
+
+        .project-date-picker-popup[data-part="content"] {
+          color: white;
+        }
+
+        .project-date-picker-popup [data-part="positioner"] {
+          z-index: 60;
+        }
+
+        .project-date-picker-popup {
+          min-width: 280px;
+          border-radius: 14px;
+          border: 1px solid #2E3A5C;
+          background: #1A2238;
+          box-shadow: 0 24px 60px rgba(0, 0, 0, 0.42);
+        }
+
+        .project-date-picker-popup [data-part="view"] {
+          width: 100%;
+        }
+
+        .project-date-picker-popup [data-part="view-control"] {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 10px;
+          margin-bottom: 8px;
+        }
+
+        .project-date-picker-popup [data-part="prev-trigger"],
+        .project-date-picker-popup [data-part="next-trigger"],
+        .project-date-picker-popup [data-part="view-trigger"] {
+          border-radius: 8px;
+          color: white !important;
+          transition: background-color 0.2s ease, color 0.2s ease;
+        }
+
+        .project-date-picker-popup [data-part="prev-trigger"]:hover,
+        .project-date-picker-popup [data-part="next-trigger"]:hover,
+        .project-date-picker-popup [data-part="view-trigger"]:hover {
+          background: rgba(255, 255, 255, 0.08);
+        }
+
+        .project-date-picker-popup [data-part="table"] {
+          width: 100%;
+          border-collapse: separate;
+          border-spacing: 6px;
+        }
+
+        .project-date-picker-popup [data-part="table-header"] {
+          color: rgba(255, 255, 255, 0.45) !important;
+          font-size: 12px;
+          font-weight: 500;
+          text-align: center;
+          padding-bottom: 4px;
+        }
+
+        .project-date-picker-popup [data-part="table-cell-trigger"] {
+          width: 34px;
+          height: 34px;
+          border: none !important;
+          outline: none !important;
+          box-shadow: none;
+          border-radius: 10px;
+          color: white !important;
+          font-size: 13px;
+          transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+        }
+
+        .project-date-picker-popup [data-part="table-cell-trigger"]:hover {
+          background: rgba(103, 207, 177, 0.18);
+          color: white !important;
+        }
+
+        .project-date-picker-popup [data-part="table-cell-trigger"][data-selected] {
+          background: #414CC4;
+          color: white !important;
+        }
+
+        .project-date-picker-popup [data-part="table-cell-trigger"][data-in-range] {
+          background: rgba(65, 76, 196, 0.22);
+          color: white !important;
+        }
+
+        .project-date-picker-popup [data-part="table-cell-trigger"][data-today] {
+          box-shadow: inset 0 0 0 1px rgba(103, 207, 177, 0.55);
+        }
+
+        .project-date-picker-popup button:focus,
+        .project-date-picker-popup button:focus-visible,
+        .project-date-picker-popup [data-part="table-cell-trigger"]:focus,
+        .project-date-picker-popup [data-part="table-cell-trigger"]:focus-visible {
+          outline: none !important;
+          box-shadow: none;
+        }
+
+        .project-date-picker-popup [data-part="table-cell-trigger"][data-outside-range],
+        .project-date-picker-popup [data-part="table-cell-trigger"][data-disabled] {
+          color: rgba(255, 255, 255, 0.28) !important;
+        }
+
+        .project-date-picker-popup select,
+        .project-date-picker-popup button,
+        .project-date-picker-popup th,
+        .project-date-picker-popup td,
+        .project-date-picker-popup span,
+        .project-date-picker-popup div {
+          color: inherit;
+        }
+
+        .attachment-scroll {
+          scrollbar-width: thin;
+          scrollbar-color: #414CC4 transparent;
+        }
+
+        .attachment-scroll::-webkit-scrollbar {
+          width: 8px;
+        }
+
+        .attachment-scroll::-webkit-scrollbar-track {
+          background: transparent;
+        }
+
+        .attachment-scroll::-webkit-scrollbar-thumb {
+          background: linear-gradient(180deg, #414CC4 0%, #67CFB1 100%);
+          border-radius: 9999px;
+        }
+
+        .attachment-scroll::-webkit-scrollbar-thumb:hover {
+          background: linear-gradient(180deg, #5560db 0%, #7ae4c5 100%);
         }
       `}</style>
     </section>

@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
-import { verifyCodeThunk } from "../../features/auth/authSlice/authThunk";
+import { verifyCodeThunk, resendCodeThunk } from "../../features/auth/authSlice/authThunk";
 import { selectAuthLoading, selectAuthError } from "../../features/auth/authSlice/authSelectors";
 import { isEmailValid, isVerificationCodeValid } from "../../utils/validators";
 
@@ -12,6 +12,8 @@ export default function VerifyCode() {
   const loading = useAppSelector(selectAuthLoading);
   const error = useAppSelector(selectAuthError);
   const [fieldErrors, setFieldErrors] = useState({ code: "" });
+  const [resendCooldown, setResendCooldown] = useState(0);
+  const [resendStatus, setResendStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
 
   const email = (location.state as { email?: string; rememberMe?: boolean })?.email || "";
   const rememberMe = (location.state as { email?: string; rememberMe?: boolean })?.rememberMe ?? false;
@@ -22,6 +24,24 @@ export default function VerifyCode() {
     if (!email) navigate("/register");
     inputs.current[0]?.focus();
   }, [email, navigate]);
+
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const timer = setTimeout(() => setResendCooldown((v) => v - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [resendCooldown]);
+
+  const handleResend = async () => {
+    if (resendCooldown > 0 || resendStatus === "sending") return;
+    setResendStatus("sending");
+    const result = await dispatch(resendCodeThunk(email));
+    if (resendCodeThunk.fulfilled.match(result)) {
+      setResendStatus("sent");
+      setResendCooldown(60);
+    } else {
+      setResendStatus("error");
+    }
+  };
 
   const handleChange = (i: number, val: string) => {
     if (!/^\d?$/.test(val)) return;
@@ -75,14 +95,14 @@ export default function VerifyCode() {
   };
 
   return (
-    <section className="font-poppins text-white min-h-[calc(100vh-80px)] flex flex-col items-center pt-16 pb-20 relative overflow-hidden">
+    <section className="font-poppins text-white sm:min-h-[calc(100vh-80px)] flex flex-col items-center pt-10 sm:pt-16 pb-10 sm:pb-20 relative overflow-hidden px-4">
 
       {/* Blobs */}
       <div className="absolute right-0 top-0 bottom-0 w-1/2 pointer-events-none">
         {/* Drop your blob SVGs/divs here */}
       </div>
 
-      <h1 className="text-white text-[58px] font-bold tracking-widest uppercase mb-[20px] z-10 text-center">
+      <h1 className="text-white text-3xl sm:text-5xl font-bold tracking-widest uppercase mb-6 z-10 text-center">
         VERIFY EMAIL
       </h1>
 
@@ -94,10 +114,10 @@ export default function VerifyCode() {
         <p className="text-red-400 text-sm mb-4 z-10">{error}</p>
       )}
 
-      <form onSubmit={handleSubmit} className="flex flex-col items-center gap-6 z-10" onPaste={handlePaste}>
+      <form onSubmit={handleSubmit} className="flex flex-col items-center gap-6 z-10 w-full" onPaste={handlePaste}>
 
         {/* 6 digit inputs */}
-        <div className="flex gap-3">
+        <div className="flex gap-2 sm:gap-3 justify-center w-full">
           {digits.map((d, i) => (
             <input
               key={i}
@@ -106,7 +126,7 @@ export default function VerifyCode() {
               value={d}
               onChange={(e) => handleChange(i, e.target.value)}
               onKeyDown={(e) => handleKeyDown(i, e)}
-              className={`w-12 h-14 text-center text-xl font-bold font-mono rounded-md border bg-[#2D3652] text-white focus:outline-none transition-colors
+              className={`w-10 h-12 sm:w-12 sm:h-14 text-center text-lg sm:text-xl font-bold font-mono rounded-md border bg-[#2D3652] text-white focus:outline-none transition-colors
                 ${fieldErrors.code ? "border-red-400 focus:border-red-400" : d ? "border-[#414CC4]" : "border-[#2E3A5C]"}
                 ${fieldErrors.code ? "focus:border-red-400" : "focus:border-[#414CC4]"}`}
             />
@@ -117,16 +137,31 @@ export default function VerifyCode() {
         <button
           type="submit"
           disabled={loading || digits.join("").length < 6}
-          className="w-[395px] max-w-[460px] bg-[#414CC4] hover:bg-[#3a44b0] disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 rounded-md tracking-widest transition-colors"
+          className="w-full max-w-[460px] bg-[#414CC4] hover:bg-[#3a44b0] disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 rounded-md tracking-widest transition-colors"
         >
           {loading ? "VERIFYING..." : "VERIFY"}
         </button>
 
-        <p className="text-white/30 text-sm">
+        <p className="text-white/30 text-sm text-center">
           Didn't receive the code?{" "}
-          <button type="button" className="text-[#00C9B1] hover:underline">
-            Resend
+          <button
+            type="button"
+            onClick={handleResend}
+            disabled={resendCooldown > 0 || resendStatus === "sending"}
+            className="text-[#00C9B1] hover:underline disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            {resendStatus === "sending"
+              ? "Sending..."
+              : resendCooldown > 0
+              ? `Resend in ${resendCooldown}s`
+              : "Resend"}
           </button>
+          {resendStatus === "sent" && resendCooldown > 0 && (
+            <span className="ml-2 text-[#00C9B1] text-xs">Code sent!</span>
+          )}
+          {resendStatus === "error" && (
+            <span className="ml-2 text-red-400 text-xs">Failed to resend.</span>
+          )}
         </p>
       </form>
     </section>

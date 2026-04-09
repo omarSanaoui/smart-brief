@@ -46,7 +46,7 @@ export default function BriefDetails() {
 
   const handleUpdateStatus = async (status: BriefStatus) => {
     if (!brief) return;
-    await dispatch(updateBriefThunk({ id: brief.id, data: { status } }));
+    await dispatch(updateBriefThunk({ id: brief.id, data: { status }, userRole: user?.role }));
   };
 
   const handleDelete = async () => {

@@ -44,7 +44,7 @@ export default function BriefModal({ brief, isOpen, onClose, userRole }: BriefMo
   const isClient = userRole === "CLIENT";
 
   const handleUpdateStatus = async (status: BriefStatus) => {
-    await dispatch(updateBriefThunk({ id: brief.id, data: { status } }));
+    await dispatch(updateBriefThunk({ id: brief.id, data: { status }, userRole }));
   };
 
   const handleAssign = async () => {

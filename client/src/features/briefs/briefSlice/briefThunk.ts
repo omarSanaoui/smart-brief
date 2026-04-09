@@ -49,11 +49,14 @@ export const createBriefThunk = createAsyncThunk(
 
 export const updateBriefThunk = createAsyncThunk(
     "briefs/update",
-    async ({ id, data }: UpdateBriefPayload, thunkAPI) => {
+    async ({ id, data, userRole }: UpdateBriefPayload & { userRole?: string }, thunkAPI) => {
         try {
-            // If the payload contains only status/reason, call the status endpoint
+            // If the payload contains only status/reason, call the role-specific status endpoint
             if (data.status && Object.keys(data).length <= 2) {
-                const response = await api.patch(`/briefs/${id}/status`, { status: data.status, reason: data.statusReason });
+                let endpoint = `/briefs/${id}/status`;
+                if (userRole === "ADMIN") endpoint = `/briefs/admin/${id}/status`;
+                else if (userRole === "EMPLOYEE") endpoint = `/briefs/employee/${id}/status`;
+                const response = await api.patch(endpoint, { status: data.status, reason: data.statusReason });
                 return response.data;
             }
             const response = await api.patch(`/briefs/${id}`, data);

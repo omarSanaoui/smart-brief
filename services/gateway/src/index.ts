@@ -32,6 +32,7 @@ app.use(cors({
 const publicRoutes = [
     { path: "/auth/register", method: "POST" },
     { path: "/auth/verify-code", method: "POST" },
+    { path: "/auth/resend-code", method: "POST" },
     { path: "/auth/login", method: "POST" },
     { path: "/auth/forgot-password", method: "POST" },
     { path: "/auth/reset-password", method: "POST" },

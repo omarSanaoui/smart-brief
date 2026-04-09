@@ -1,6 +1,6 @@
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const getResend = () => new Resend(process.env.RESEND_API_KEY);
 const FROM = "Smart Brief <onboarding@resend.dev>";
 
 const STATUS_LABELS: Record<string, string> = {
@@ -85,7 +85,7 @@ export async function sendBriefStatusEmail(to: string, clientName: string, brief
   `;
 
   try {
-    await resend.emails.send({
+    await getResend().emails.send({
       from: FROM,
       to,
       subject: `${isAccepted ? "✅" : isRefused ? "❌" : isCompleted ? "🎉" : "📋"} Votre brief "${briefTitle}" — ${statusLabel}`,
@@ -112,7 +112,7 @@ export async function sendEmployeeAssignmentEmail(to: string, employeeName: stri
   `;
 
   try {
-    await resend.emails.send({ from: FROM, to, subject: `🚀 Nouveau projet assigné : ${briefTitle}`, html: layout(content) });
+    await getResend().emails.send({ from: FROM, to, subject: `🚀 Nouveau projet assigné : ${briefTitle}`, html: layout(content) });
   } catch (error) {
     console.error("Failed to send assignment email:", error);
   }
@@ -136,7 +136,7 @@ export async function sendAdminNewBriefEmail(to: string, clientName: string, bri
   `;
 
   try {
-    await resend.emails.send({ from: FROM, to, subject: `📬 Nouveau brief : ${briefTitle} — ${clientName}`, html: layout(content) });
+    await getResend().emails.send({ from: FROM, to, subject: `📬 Nouveau brief : ${briefTitle} — ${clientName}`, html: layout(content) });
   } catch (error) {
     console.error("Failed to send admin notification email:", error);
   }

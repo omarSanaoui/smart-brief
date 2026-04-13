@@ -1,4 +1,7 @@
 import nodemailer from 'nodemailer'
+import { setDefaultResultOrder } from 'dns'
+
+setDefaultResultOrder('ipv4first')
 
 const getTransporter = () => {
     if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {

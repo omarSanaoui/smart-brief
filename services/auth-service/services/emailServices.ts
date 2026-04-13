@@ -1,7 +1,14 @@
-import { Resend } from 'resend'
+import nodemailer from 'nodemailer'
 
-const FROM = 'Smart Brief <onboarding@resend.dev>'
-const getResend = () => new Resend(process.env.RESEND_API_KEY)
+const getTransporter = () => nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+    },
+})
+
+const FROM = `Smart Brief <${process.env.EMAIL_USER}>`
 
 function layout(content: string): string {
     return `<!DOCTYPE html>
@@ -52,7 +59,7 @@ export async function sendVerificationEmail(email: string, code: string) {
         <p style="color:rgba(255,255,255,0.4);font-size:12px;text-align:center;margin:0;">Ne partagez ce code avec personne.</p>
     `
 
-    await getResend().emails.send({
+    await getTransporter().sendMail({
         from: FROM,
         to: email,
         subject: `${code} — Code de vérification Smart Brief`,
@@ -78,7 +85,7 @@ export async function sendPasswordResetEmail(email: string, resetLink: string) {
         </p>
     `
 
-    await getResend().emails.send({
+    await getTransporter().sendMail({
         from: FROM,
         to: email,
         subject: `🔐 Réinitialisation de votre mot de passe Smart Brief`,

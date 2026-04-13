@@ -34,6 +34,7 @@ export async function initiateRegister(
         update: { email, code, expiresAt, firstName, lastName, password: hashedPassword, phone },
         create: { email, code, expiresAt, firstName, lastName, password: hashedPassword, phone }
     })
+    console.log(`[DEV] Verification code for ${email}: ${code}`)
     sendVerificationEmail(email, code).catch(err =>
         console.error("[EMAIL] Failed to send verification email:", err?.message ?? err)
     )

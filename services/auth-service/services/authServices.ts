@@ -35,7 +35,7 @@ export async function initiateRegister(
         create: { email, code, expiresAt, firstName, lastName, password: hashedPassword, phone }
     })
     sendVerificationEmail(email, code).catch(err =>
-        console.error("Failed to send verification email:", err)
+        console.error("[EMAIL] Failed to send verification email:", err?.message ?? err)
     )
     return { message: "Verification code sent to your email" }
 }

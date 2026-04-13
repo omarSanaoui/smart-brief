@@ -34,11 +34,9 @@ export async function initiateRegister(
         update: { email, code, expiresAt, firstName, lastName, password: hashedPassword, phone },
         create: { email, code, expiresAt, firstName, lastName, password: hashedPassword, phone }
     })
-    try {
-        await sendVerificationEmail(email, code)
-    } catch (err) {
+    sendVerificationEmail(email, code).catch(err =>
         console.error("Failed to send verification email:", err)
-    }
+    )
     return { message: "Verification code sent to your email" }
 }
 //verify user then create the user with its token and delete verify Token
@@ -123,11 +121,9 @@ export async function resendVerificationCode(email: string) {
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
     await prisma.verifyToken.update({ where: { email }, data: { code, expiresAt } });
-    try {
-        await sendVerificationEmail(email, code);
-    } catch (err) {
+    sendVerificationEmail(email, code).catch(err =>
         console.error("Failed to resend verification email:", err)
-    }
+    )
     return { message: "Verification code resent" };
 }
 

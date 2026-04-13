@@ -1,22 +1,29 @@
-import nodemailer from "nodemailer";
-import { setDefaultResultOrder } from "dns";
+const FROM_NAME = "Smart Brief";
+const FROM_EMAIL = process.env.EMAIL_USER || "omarsanaoui5@gmail.com";
 
-setDefaultResultOrder("ipv4first");
-
-const getTransporter = () => nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 587,
-  secure: false,
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-  connectionTimeout: 5000,
-  greetingTimeout: 5000,
-  socketTimeout: 10000,
-});
-
-const FROM = `Smart Brief <${process.env.EMAIL_USER}>`;
+async function sendEmail(to: string, subject: string, html: string) {
+  if (!process.env.BREVO_API_KEY) {
+    console.error("[EMAIL] BREVO_API_KEY env var is missing!");
+    return;
+  }
+  const res = await fetch("https://api.brevo.com/v3/smtp/email", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "api-key": process.env.BREVO_API_KEY,
+    },
+    body: JSON.stringify({
+      sender: { name: FROM_NAME, email: FROM_EMAIL },
+      to: [{ email: to }],
+      subject,
+      htmlContent: html,
+    }),
+  });
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`Brevo error ${res.status}: ${body}`);
+  }
+}
 
 const STATUS_LABELS: Record<string, string> = {
   PENDING: "En attente",
@@ -70,7 +77,7 @@ function layout(content: string): string {
 }
 
 export async function sendBriefStatusEmail(to: string, clientName: string, briefTitle: string, status: string, reason?: string) {
-  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) return;
+  if (!process.env.BREVO_API_KEY) return;
 
   const statusLabel = STATUS_LABELS[status] || status;
   const statusColor = STATUS_COLORS[status] || "#414CC4";
@@ -100,19 +107,14 @@ export async function sendBriefStatusEmail(to: string, clientName: string, brief
   `;
 
   try {
-    await getTransporter().sendMail({
-      from: FROM,
-      to,
-      subject: `${isAccepted ? "✅" : isRefused ? "❌" : isCompleted ? "🎉" : "📋"} Votre brief "${briefTitle}" — ${statusLabel}`,
-      html: layout(content),
-    });
+    await sendEmail(to, `${isAccepted ? "✅" : isRefused ? "❌" : isCompleted ? "🎉" : "📋"} Votre brief "${briefTitle}" — ${statusLabel}`, layout(content));
   } catch (error) {
-    console.error("Failed to send status email:", error);
+    console.error("[EMAIL] Failed to send status email:", error);
   }
 }
 
 export async function sendEmployeeAssignmentEmail(to: string, employeeName: string, briefTitle: string) {
-  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) return;
+  if (!process.env.BREVO_API_KEY) return;
 
   const content = `
     <h2 style="color:#ffffff;font-size:22px;font-weight:900;margin:0 0 8px;">Nouveau projet assigné</h2>
@@ -127,14 +129,14 @@ export async function sendEmployeeAssignmentEmail(to: string, employeeName: stri
   `;
 
   try {
-    await getTransporter().sendMail({ from: FROM, to, subject: `🚀 Nouveau projet assigné : ${briefTitle}`, html: layout(content) });
+    await sendEmail(to, `🚀 Nouveau projet assigné : ${briefTitle}`, layout(content));
   } catch (error) {
-    console.error("Failed to send assignment email:", error);
+    console.error("[EMAIL] Failed to send assignment email:", error);
   }
 }
 
 export async function sendAdminNewBriefEmail(to: string, clientName: string, briefTitle: string) {
-  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) return;
+  if (!process.env.BREVO_API_KEY) return;
 
   const content = `
     <h2 style="color:#ffffff;font-size:22px;font-weight:900;margin:0 0 8px;">Nouveau brief soumis</h2>
@@ -151,8 +153,8 @@ export async function sendAdminNewBriefEmail(to: string, clientName: string, bri
   `;
 
   try {
-    await getTransporter().sendMail({ from: FROM, to, subject: `📬 Nouveau brief : ${briefTitle} — ${clientName}`, html: layout(content) });
+    await sendEmail(to, `📬 Nouveau brief : ${briefTitle} — ${clientName}`, layout(content));
   } catch (error) {
-    console.error("Failed to send admin notification email:", error);
+    console.error("[EMAIL] Failed to send admin notification email:", error);
   }
 }

@@ -1,27 +1,29 @@
-import nodemailer from 'nodemailer'
-import { setDefaultResultOrder } from 'dns'
+const FROM_NAME = 'Smart Brief'
+const FROM_EMAIL = process.env.EMAIL_USER || 'omarsanaoui5@gmail.com'
 
-setDefaultResultOrder('ipv4first')
-
-const getTransporter = () => {
-    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-        console.error('[EMAIL] EMAIL_USER or EMAIL_PASS env var is missing!')
+async function sendEmail(to: string, subject: string, html: string) {
+    if (!process.env.BREVO_API_KEY) {
+        console.error('[EMAIL] BREVO_API_KEY env var is missing!')
+        return
     }
-    return nodemailer.createTransport({
-        host: 'smtp.gmail.com',
-        port: 587,
-        secure: false,
-        auth: {
-            user: process.env.EMAIL_USER,
-            pass: process.env.EMAIL_PASS,
+    const res = await fetch('https://api.brevo.com/v3/smtp/email', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'api-key': process.env.BREVO_API_KEY,
         },
-        connectionTimeout: 5000,
-        greetingTimeout: 5000,
-        socketTimeout: 10000,
+        body: JSON.stringify({
+            sender: { name: FROM_NAME, email: FROM_EMAIL },
+            to: [{ email: to }],
+            subject,
+            htmlContent: html,
+        }),
     })
+    if (!res.ok) {
+        const body = await res.text()
+        throw new Error(`Brevo error ${res.status}: ${body}`)
+    }
 }
-
-const FROM = `Smart Brief <${process.env.EMAIL_USER}>`
 
 function layout(content: string): string {
     return `<!DOCTYPE html>
@@ -72,12 +74,7 @@ export async function sendVerificationEmail(email: string, code: string) {
         <p style="color:rgba(255,255,255,0.4);font-size:12px;text-align:center;margin:0;">Ne partagez ce code avec personne.</p>
     `
 
-    await getTransporter().sendMail({
-        from: FROM,
-        to: email,
-        subject: `${code} — Code de vérification Smart Brief`,
-        html: layout(content),
-    })
+    await sendEmail(email, `${code} — Code de vérification Smart Brief`, layout(content))
 }
 
 export async function sendPasswordResetEmail(email: string, resetLink: string) {
@@ -98,10 +95,5 @@ export async function sendPasswordResetEmail(email: string, resetLink: string) {
         </p>
     `
 
-    await getTransporter().sendMail({
-        from: FROM,
-        to: email,
-        subject: `🔐 Réinitialisation de votre mot de passe Smart Brief`,
-        html: layout(content),
-    })
+    await sendEmail(email, `🔐 Réinitialisation de votre mot de passe Smart Brief`, layout(content))
 }

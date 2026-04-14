@@ -1,7 +1,29 @@
-import { Resend } from 'resend'
+const FROM_NAME = 'Smart Brief'
+const FROM_EMAIL = 'hello@demomailtrap.com'
 
-const FROM = 'Smart Brief <onboarding@resend.dev>'
-const getResend = () => new Resend(process.env.RESEND_API_KEY)
+async function sendEmail(to: string, subject: string, html: string) {
+    if (!process.env.MAILTRAP_TOKEN) {
+        console.error('[EMAIL] MAILTRAP_TOKEN env var is missing!')
+        return
+    }
+    const res = await fetch('https://send.api.mailtrap.io/api/send', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${process.env.MAILTRAP_TOKEN}`,
+        },
+        body: JSON.stringify({
+            from: { name: FROM_NAME, email: FROM_EMAIL },
+            to: [{ email: to }],
+            subject,
+            html,
+        }),
+    })
+    if (!res.ok) {
+        const body = await res.text()
+        throw new Error(`Mailtrap error ${res.status}: ${body}`)
+    }
+}
 
 function layout(content: string): string {
     return `<!DOCTYPE html>
@@ -52,13 +74,7 @@ export async function sendVerificationEmail(email: string, code: string) {
         <p style="color:rgba(255,255,255,0.4);font-size:12px;text-align:center;margin:0;">Ne partagez ce code avec personne.</p>
     `
 
-    const { error } = await getResend().emails.send({
-        from: FROM,
-        to: email,
-        subject: `${code} — Code de vérification Smart Brief`,
-        html: layout(content),
-    })
-    if (error) throw new Error(JSON.stringify(error))
+    await sendEmail(email, `${code} — Code de vérification Smart Brief`, layout(content))
 }
 
 export async function sendPasswordResetEmail(email: string, resetLink: string) {
@@ -79,11 +95,5 @@ export async function sendPasswordResetEmail(email: string, resetLink: string) {
         </p>
     `
 
-    const { error } = await getResend().emails.send({
-        from: FROM,
-        to: email,
-        subject: `🔐 Réinitialisation de votre mot de passe Smart Brief`,
-        html: layout(content),
-    })
-    if (error) throw new Error(JSON.stringify(error))
+    await sendEmail(email, `🔐 Réinitialisation de votre mot de passe Smart Brief`, layout(content))
 }

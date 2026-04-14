@@ -38,6 +38,7 @@ const publicRoutes = [
     { path: "/auth/reset-password", method: "POST" },
     { path: "/auth/google", method: "GET" },
     { path: "/auth/google/callback", method: "GET" },
+    { path: "/api/users/internal", method: "GET" },
 ]
 
 app.use((req, _res, next) => {
@@ -86,6 +87,7 @@ app.use("/auth", createProxyMiddleware({
 app.use("/api/users/internal", createProxyMiddleware({
     target: process.env.AUTH_SERVICE_URL || "http://localhost:3000",
     changeOrigin: true,
+    pathRewrite: { "^/api/users/internal": "/auth/api/users/internal" },
 }))
 
 app.use("/briefs", createProxyMiddleware({

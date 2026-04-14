@@ -16,18 +16,20 @@ export async function fetchUsersFromAuthService(userIds: string[]): Promise<Map<
   }
 
   const gatewayUrl = process.env.GATEWAY_URL || "http://localhost:8080";
+  const url = `${gatewayUrl}/api/users/internal`;
+  console.log(`[authClient] Fetching users from ${url} ids=${uniqueIds.join(",")}`);
 
   try {
-    const response = await axios.get<UserSnapshot[]>(
-      `${gatewayUrl}/api/users/internal`,
-      {
-        params: { ids: uniqueIds.join(",") },
-      }
-    );
+    const response = await axios.get<UserSnapshot[]>(url, {
+      params: { ids: uniqueIds.join(",") },
+    });
 
+    console.log(`[authClient] Got ${response.data.length} user(s)`);
     return new Map(response.data.map((user) => [user.id, user]));
-  } catch (error) {
-    console.error("Error communicating with Auth Service via Gateway:", error);
+  } catch (error: any) {
+    console.error(
+      `[authClient] Failed to fetch users — status=${error?.response?.status} body=${JSON.stringify(error?.response?.data)} url=${url}`
+    );
     return new Map();
   }
 }

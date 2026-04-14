@@ -100,23 +100,23 @@ export default function BriefModal({ brief, isOpen, onClose, userRole }: BriefMo
       <div className="relative w-full max-w-[900px] max-h-[90vh] bg-[#141B2D] border border-[#2E3A5C] rounded-3xl overflow-hidden shadow-2xl flex flex-col md:flex-row animate-in zoom-in-95 duration-300">
         
         {/* Left Side: Summary & Actions (Fixed) */}
-        <div className="w-full md:w-[300px] lg:w-[320px] bg-[#1A2238] border-b md:border-b-0 md:border-r border-[#2E3A5C] flex flex-col pt-6 sm:pt-10 px-5 sm:px-7 pb-6 relative overflow-hidden shrink-0">
-          
+        <div className="w-full md:w-[300px] lg:w-[320px] bg-[#1A2238] border-b md:border-b-0 md:border-r border-[#2E3A5C] flex flex-col pt-4 sm:pt-10 px-4 sm:px-7 pb-4 sm:pb-6 relative overflow-hidden shrink-0">
+
           <div className="absolute -top-20 -left-20 w-40 h-40 bg-sbpurple/10 blur-[60px] rounded-full pointer-events-none"></div>
-          
-          <button 
-            onClick={onClose} 
-            className="absolute top-4 right-4 text-white/40 hover:text-white transition-colors bg-[#0A0F1E]/30 p-2 rounded-full md:hidden"
+
+          <button
+            onClick={onClose}
+            className="absolute top-3 right-3 text-white/40 hover:text-white transition-colors bg-[#0A0F1E]/30 p-2 rounded-full md:hidden"
           >
-            <X size={20} />
+            <X size={18} />
           </button>
 
-          <div className="relative z-10 space-y-8">
-            <div className="space-y-4">
+          <div className="relative z-10 space-y-3 sm:space-y-8">
+            <div className="space-y-1.5 sm:space-y-4">
               <div className="inline-block">
                 <StatusBadge status={brief.status} large />
               </div>
-              <h2 className="text-2xl sm:text-3xl font-bold font-poppins text-white leading-tight wrap-break-word" title={brief.title}>
+              <h2 className="text-lg sm:text-3xl font-bold font-poppins text-white leading-tight wrap-break-word" title={brief.title}>
                 {brief.title}
               </h2>
               <p className="text-white/40 text-[10px] font-mono tracking-[0.2em] uppercase font-bold flex items-center gap-2">
@@ -125,20 +125,20 @@ export default function BriefModal({ brief, isOpen, onClose, userRole }: BriefMo
               </p>
             </div>
 
-            <div className="space-y-4 bg-[#0F1528]/50 p-5 rounded-2xl border border-[#2E3A5C]/40">
-              <div className="flex items-center gap-4">
-                <div className="bg-[#2D3652] p-2.5 rounded-xl text-sbteal border border-[#2E3A5C]"><DollarSign size={18} /></div>
+            <div className="grid grid-cols-2 sm:grid-cols-1 gap-2 sm:gap-0 bg-[#0F1528]/50 p-3 sm:p-5 rounded-2xl border border-[#2E3A5C]/40">
+              <div className="flex items-center gap-3">
+                <div className="bg-[#2D3652] p-2 sm:p-2.5 rounded-xl text-sbteal border border-[#2E3A5C] shrink-0"><DollarSign size={16} /></div>
                 <div>
-                  <p className="text-[9px] text-[#64748B] uppercase font-bold tracking-widest leading-none mb-1.5">Budget</p>
-                  <p className="text-sm font-bold text-white/90">{brief.budgetRange || "N/A"}</p>
+                  <p className="text-[9px] text-[#64748B] uppercase font-bold tracking-widest leading-none mb-1">Budget</p>
+                  <p className="text-xs sm:text-sm font-bold text-white/90 leading-tight">{brief.budgetRange || "N/A"}</p>
                 </div>
               </div>
-              <div className="flex items-center gap-4 pt-4 border-t border-[#2E3A5C]/20">
-                <div className="bg-[#2D3652] p-2.5 rounded-xl text-sbpurple border border-[#2E3A5C]"><Calendar size={18} /></div>
+              <div className="flex items-center gap-3 sm:pt-4 sm:border-t border-[#2E3A5C]/20">
+                <div className="bg-[#2D3652] p-2 sm:p-2.5 rounded-xl text-sbpurple border border-[#2E3A5C] shrink-0"><Calendar size={16} /></div>
                 <div>
-                  <p className="text-[9px] text-[#64748B] uppercase font-bold tracking-widest leading-none mb-1.5">Launch Target</p>
-                  <p className="text-sm font-bold text-white/90">
-                    {new Date(brief.deadline).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                  <p className="text-[9px] text-[#64748B] uppercase font-bold tracking-widest leading-none mb-1">Launch Target</p>
+                  <p className="text-xs sm:text-sm font-bold text-white/90 leading-tight">
+                    {new Date(brief.deadline).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                   </p>
                 </div>
               </div>
@@ -179,6 +179,11 @@ export default function BriefModal({ brief, isOpen, onClose, userRole }: BriefMo
                {isAdmin && (
                  <button onClick={handleDelete} className="w-full text-rose-500/50 hover:text-rose-400 text-[10px] font-bold uppercase tracking-widest flex items-center justify-center px-4 py-2 hover:bg-rose-500/5 rounded-lg transition-all mt-4">
                    <Trash2 size={12} className="mr-2" /> Permanently Delete
+                 </button>
+               )}
+               {isClient && brief.status === "PENDING" && (
+                 <button onClick={handleDelete} className="w-full text-rose-500/50 hover:text-rose-400 text-[10px] font-bold uppercase tracking-widest flex items-center justify-center px-4 py-2 hover:bg-rose-500/5 rounded-lg transition-all mt-2">
+                   <Trash2 size={12} className="mr-2" /> Delete Brief
                  </button>
                )}
             </div>
@@ -329,6 +334,11 @@ export default function BriefModal({ brief, isOpen, onClose, userRole }: BriefMo
                 {isAdmin && (
                   <button onClick={handleDelete} className="w-full text-rose-500/50 hover:text-rose-400 text-[10px] font-bold uppercase tracking-widest flex items-center justify-center px-4 py-2 hover:bg-rose-500/5 rounded-lg transition-all mt-2">
                     <Trash2 size={12} className="mr-2" /> Permanently Delete
+                  </button>
+                )}
+                {isClient && brief.status === 'PENDING' && (
+                  <button onClick={handleDelete} className="w-full text-rose-500/50 hover:text-rose-400 text-[10px] font-bold uppercase tracking-widest flex items-center justify-center px-4 py-2 hover:bg-rose-500/5 rounded-lg transition-all mt-2">
+                    <Trash2 size={12} className="mr-2" /> Delete Brief
                   </button>
                 )}
               </div>

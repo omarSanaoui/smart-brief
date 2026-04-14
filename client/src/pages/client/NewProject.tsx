@@ -39,11 +39,11 @@ const featureOptions = [
 ];
 
 const budgetOptions = [
-  { value: "3 000 – 10 000 MAD", label: "3 000 – 10 000 MAD — Réseaux sociaux, email marketing, CM" },
-  { value: "10 000 – 25 000 MAD", label: "10 000 – 25 000 MAD — SEO, Google Ads, photo/vidéo" },
-  { value: "25 000 – 50 000 MAD", label: "25 000 – 50 000 MAD — Site web, branding, identité visuelle" },
-  { value: "50 000 – 100 000 MAD", label: "50 000 – 100 000 MAD — Stratégie digitale complète" },
-  { value: "100 000+ MAD", label: "100 000+ MAD — Projet entreprise / grand compte" },
+  { value: "3 000 – 10 000 MAD", label: "3 000 – 10 000 MAD" },
+  { value: "10 000 – 25 000 MAD", label: "10 000 – 25 000 MAD" },
+  { value: "25 000 – 50 000 MAD", label: "25 000 – 50 000 MAD" },
+  { value: "50 000 – 100 000 MAD", label: "50 000 – 100 000 MAD" },
+  { value: "100 000+ MAD", label: "100 000+ MAD" },
 ];
 
 type SelectOption = {

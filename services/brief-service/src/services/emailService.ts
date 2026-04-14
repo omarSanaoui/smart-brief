@@ -85,12 +85,13 @@ export async function sendBriefStatusEmail(to: string, clientName: string, brief
   `;
 
   try {
-    await getResend().emails.send({
+    const { error: resendError } = await getResend().emails.send({
       from: FROM,
       to,
       subject: `${isAccepted ? "✅" : isRefused ? "❌" : isCompleted ? "🎉" : "📋"} Votre brief "${briefTitle}" — ${statusLabel}`,
       html: layout(content),
     });
+    if (resendError) throw new Error(JSON.stringify(resendError));
   } catch (error) {
     console.error("[EMAIL] Failed to send status email:", error);
   }
@@ -112,7 +113,8 @@ export async function sendEmployeeAssignmentEmail(to: string, employeeName: stri
   `;
 
   try {
-    await getResend().emails.send({ from: FROM, to, subject: `🚀 Nouveau projet assigné : ${briefTitle}`, html: layout(content) });
+    const { error: resendError } = await getResend().emails.send({ from: FROM, to, subject: `🚀 Nouveau projet assigné : ${briefTitle}`, html: layout(content) });
+    if (resendError) throw new Error(JSON.stringify(resendError));
   } catch (error) {
     console.error("[EMAIL] Failed to send assignment email:", error);
   }
@@ -136,7 +138,8 @@ export async function sendAdminNewBriefEmail(to: string, clientName: string, bri
   `;
 
   try {
-    await getResend().emails.send({ from: FROM, to, subject: `📬 Nouveau brief : ${briefTitle} — ${clientName}`, html: layout(content) });
+    const { error: resendError } = await getResend().emails.send({ from: FROM, to, subject: `📬 Nouveau brief : ${briefTitle} — ${clientName}`, html: layout(content) });
+    if (resendError) throw new Error(JSON.stringify(resendError));
   } catch (error) {
     console.error("[EMAIL] Failed to send admin notification email:", error);
   }

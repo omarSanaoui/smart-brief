@@ -52,12 +52,13 @@ export async function sendVerificationEmail(email: string, code: string) {
         <p style="color:rgba(255,255,255,0.4);font-size:12px;text-align:center;margin:0;">Ne partagez ce code avec personne.</p>
     `
 
-    await getResend().emails.send({
+    const { error } = await getResend().emails.send({
         from: FROM,
         to: email,
         subject: `${code} — Code de vérification Smart Brief`,
         html: layout(content),
     })
+    if (error) throw new Error(JSON.stringify(error))
 }
 
 export async function sendPasswordResetEmail(email: string, resetLink: string) {
@@ -78,10 +79,11 @@ export async function sendPasswordResetEmail(email: string, resetLink: string) {
         </p>
     `
 
-    await getResend().emails.send({
+    const { error } = await getResend().emails.send({
         from: FROM,
         to: email,
         subject: `🔐 Réinitialisation de votre mot de passe Smart Brief`,
         html: layout(content),
     })
+    if (error) throw new Error(JSON.stringify(error))
 }

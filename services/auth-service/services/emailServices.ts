@@ -1,32 +1,7 @@
-const FROM_NAME = 'Smart Brief'
-const FROM_EMAIL = 'omarsanaoui5@gmail.com'
+import { Resend } from 'resend'
 
-async function sendEmail(to: string, subject: string, html: string) {
-    if (!process.env.MAILJET_API_KEY || !process.env.MAILJET_SECRET_KEY) {
-        console.error('[EMAIL] MAILJET_API_KEY or MAILJET_SECRET_KEY env var is missing!')
-        return
-    }
-    const auth = Buffer.from(`${process.env.MAILJET_API_KEY}:${process.env.MAILJET_SECRET_KEY}`).toString('base64')
-    const res = await fetch('https://api.mailjet.com/v3.1/send', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Basic ${auth}`,
-        },
-        body: JSON.stringify({
-            Messages: [{
-                From: { Name: FROM_NAME, Email: FROM_EMAIL },
-                To: [{ Email: to }],
-                Subject: subject,
-                HTMLPart: html,
-            }]
-        }),
-    })
-    if (!res.ok) {
-        const body = await res.text()
-        throw new Error(`Mailjet error ${res.status}: ${body}`)
-    }
-}
+const FROM = 'Smart Brief <onboarding@resend.dev>'
+const getResend = () => new Resend(process.env.RESEND_API_KEY)
 
 function layout(content: string): string {
     return `<!DOCTYPE html>
@@ -77,7 +52,13 @@ export async function sendVerificationEmail(email: string, code: string) {
         <p style="color:rgba(255,255,255,0.4);font-size:12px;text-align:center;margin:0;">Ne partagez ce code avec personne.</p>
     `
 
-    await sendEmail(email, `${code} — Code de vérification Smart Brief`, layout(content))
+    const { error } = await getResend().emails.send({
+        from: FROM,
+        to: email,
+        subject: `${code} — Code de vérification Smart Brief`,
+        html: layout(content),
+    })
+    if (error) throw new Error(JSON.stringify(error))
 }
 
 export async function sendPasswordResetEmail(email: string, resetLink: string) {
@@ -98,5 +79,11 @@ export async function sendPasswordResetEmail(email: string, resetLink: string) {
         </p>
     `
 
-    await sendEmail(email, `🔐 Réinitialisation de votre mot de passe Smart Brief`, layout(content))
+    const { error } = await getResend().emails.send({
+        from: FROM,
+        to: email,
+        subject: `🔐 Réinitialisation de votre mot de passe Smart Brief`,
+        html: layout(content),
+    })
+    if (error) throw new Error(JSON.stringify(error))
 }

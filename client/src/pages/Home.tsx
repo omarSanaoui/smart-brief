@@ -22,7 +22,7 @@ export default function Home() {
     }
 
     return (
-        <section className="relative max-w-300 mx-auto px-4 sm:px-6 lg:px-8 py-0 min-h-[calc(100vh-80px)] flex items-center justify-center sm:justify-start">
+        <section className="relative max-w-300 mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-0 sm:min-h-[calc(100vh-80px)] flex items-center justify-center sm:justify-start">
             <div className="w-full text-center sm:text-left">
                 <h1 className="font-bold text-4xl sm:text-6xl lg:text-7xl leading-tight sm:leading-[1.05] mb-6 sm:mb-12 [text-shadow:0_4px_20px_rgba(0,0,0,0.45),0_1px_2px_rgba(0,0,0,0.6)]">
                     Welcome Back{" "}

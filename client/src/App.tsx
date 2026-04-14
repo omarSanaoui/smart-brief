@@ -59,7 +59,7 @@ export default function SmarBriefApp() {
 
   return (
     <div className="relative isolate min-h-screen bg-theme overflow-x-hidden font-poppins text-white" >
-      <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden" aria-hidden="true">
+      <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden hidden sm:block" aria-hidden="true">
         {backgroundAbstract}
       </div>
 

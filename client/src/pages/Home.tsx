@@ -22,14 +22,14 @@ export default function Home() {
     }
 
     return (
-        <section className="relative max-w-300 mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-6 sm:py-0 sm:min-h-[calc(100vh-80px)] flex items-center">
-            <div className="w-full">
-                <h1 className="font-bold text-4xl sm:text-6xl lg:text-7xl leading-tight sm:leading-[1.05] mb-8 sm:mb-12 [text-shadow:0_4px_20px_rgba(0,0,0,0.45),0_1px_2px_rgba(0,0,0,0.6)]">
+        <section className="relative max-w-300 mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-6 sm:py-0 sm:min-h-[calc(100vh-80px)] flex items-center">
+            <div className="w-full text-center sm:text-left">
+                <h1 className="font-bold text-4xl sm:text-6xl lg:text-7xl leading-tight sm:leading-[1.05] mb-6 sm:mb-12 [text-shadow:0_4px_20px_rgba(0,0,0,0.45),0_1px_2px_rgba(0,0,0,0.6)]">
                     Welcome Back{" "}
                     <span className="block text-sbteal">{user?.firstName}</span>
                 </h1>
                 {isClient && (
-                    <div className="flex flex-row gap-3 sm:gap-5 font-medium text-sm sm:text-base">
+                    <div className="flex flex-row justify-center sm:justify-start gap-3 sm:gap-5 font-medium text-sm sm:text-base">
                         <button onClick={handleCreateProject} className="bg-sbpurple px-5 sm:px-7 py-2.5 rounded-full">
                             Create a Project
                         </button>
@@ -39,14 +39,14 @@ export default function Home() {
                     </div>
                 )}
                 {isAdmin && (
-                    <div className="flex flex-row gap-3 sm:gap-5 font-medium text-sm sm:text-base">
+                    <div className="flex flex-row justify-center sm:justify-start gap-3 sm:gap-5 font-medium text-sm sm:text-base">
                         <button onClick={handleCheckBriefs} className="bg-sbpurple px-5 sm:px-7 py-2.5 rounded-full">
                             Check Briefs
                         </button>
                     </div>
                 )}
                 {isEmployee && (
-                    <div className="flex flex-row gap-3 sm:gap-5 font-medium text-sm sm:text-base">
+                    <div className="flex flex-row justify-center sm:justify-start gap-3 sm:gap-5 font-medium text-sm sm:text-base">
                         <button onClick={handleCheckAssignedBriefs} className="bg-sbpurple px-5 sm:px-7 py-2.5 rounded-full">
                             Check Assigned Briefs
                         </button>

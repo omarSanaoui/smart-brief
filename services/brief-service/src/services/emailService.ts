@@ -1,27 +1,30 @@
 const FROM_NAME = "Smart Brief";
-const FROM_EMAIL = "hello@demomailtrap.com";
+const FROM_EMAIL = "omarsanaoui5@gmail.com";
 
 async function sendEmail(to: string, subject: string, html: string) {
-  if (!process.env.MAILTRAP_TOKEN) {
-    console.error("[EMAIL] MAILTRAP_TOKEN env var is missing!");
+  if (!process.env.MAILJET_API_KEY || !process.env.MAILJET_SECRET_KEY) {
+    console.error("[EMAIL] MAILJET_API_KEY or MAILJET_SECRET_KEY env var is missing!");
     return;
   }
-  const res = await fetch("https://send.api.mailtrap.io/api/send", {
+  const auth = Buffer.from(`${process.env.MAILJET_API_KEY}:${process.env.MAILJET_SECRET_KEY}`).toString("base64");
+  const res = await fetch("https://api.mailjet.com/v3.1/send", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "Authorization": `Bearer ${process.env.MAILTRAP_TOKEN}`,
+      "Authorization": `Basic ${auth}`,
     },
     body: JSON.stringify({
-      from: { name: FROM_NAME, email: FROM_EMAIL },
-      to: [{ email: to }],
-      subject,
-      html,
+      Messages: [{
+        From: { Name: FROM_NAME, Email: FROM_EMAIL },
+        To: [{ Email: to }],
+        Subject: subject,
+        HTMLPart: html,
+      }]
     }),
   });
   if (!res.ok) {
     const body = await res.text();
-    throw new Error(`Mailtrap error ${res.status}: ${body}`);
+    throw new Error(`Mailjet error ${res.status}: ${body}`);
   }
 }
 
@@ -77,7 +80,7 @@ function layout(content: string): string {
 }
 
 export async function sendBriefStatusEmail(to: string, clientName: string, briefTitle: string, status: string, reason?: string) {
-  if (!process.env.MAILTRAP_TOKEN) return;
+  if (!process.env.MAILJET_API_KEY) return;
 
   const statusLabel = STATUS_LABELS[status] || status;
   const statusColor = STATUS_COLORS[status] || "#414CC4";
@@ -114,7 +117,7 @@ export async function sendBriefStatusEmail(to: string, clientName: string, brief
 }
 
 export async function sendEmployeeAssignmentEmail(to: string, employeeName: string, briefTitle: string) {
-  if (!process.env.MAILTRAP_TOKEN) return;
+  if (!process.env.MAILJET_API_KEY) return;
 
   const content = `
     <h2 style="color:#ffffff;font-size:22px;font-weight:900;margin:0 0 8px;">Nouveau projet assigné</h2>
@@ -136,7 +139,7 @@ export async function sendEmployeeAssignmentEmail(to: string, employeeName: stri
 }
 
 export async function sendAdminNewBriefEmail(to: string, clientName: string, briefTitle: string) {
-  if (!process.env.MAILTRAP_TOKEN) return;
+  if (!process.env.MAILJET_API_KEY) return;
 
   const content = `
     <h2 style="color:#ffffff;font-size:22px;font-weight:900;margin:0 0 8px;">Nouveau brief soumis</h2>

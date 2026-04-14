@@ -1,27 +1,30 @@
 const FROM_NAME = 'Smart Brief'
-const FROM_EMAIL = 'hello@demomailtrap.com'
+const FROM_EMAIL = 'omarsanaoui5@gmail.com'
 
 async function sendEmail(to: string, subject: string, html: string) {
-    if (!process.env.MAILTRAP_TOKEN) {
-        console.error('[EMAIL] MAILTRAP_TOKEN env var is missing!')
+    if (!process.env.MAILJET_API_KEY || !process.env.MAILJET_SECRET_KEY) {
+        console.error('[EMAIL] MAILJET_API_KEY or MAILJET_SECRET_KEY env var is missing!')
         return
     }
-    const res = await fetch('https://send.api.mailtrap.io/api/send', {
+    const auth = Buffer.from(`${process.env.MAILJET_API_KEY}:${process.env.MAILJET_SECRET_KEY}`).toString('base64')
+    const res = await fetch('https://api.mailjet.com/v3.1/send', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${process.env.MAILTRAP_TOKEN}`,
+            'Authorization': `Basic ${auth}`,
         },
         body: JSON.stringify({
-            from: { name: FROM_NAME, email: FROM_EMAIL },
-            to: [{ email: to }],
-            subject,
-            html,
+            Messages: [{
+                From: { Name: FROM_NAME, Email: FROM_EMAIL },
+                To: [{ Email: to }],
+                Subject: subject,
+                HTMLPart: html,
+            }]
         }),
     })
     if (!res.ok) {
         const body = await res.text()
-        throw new Error(`Mailtrap error ${res.status}: ${body}`)
+        throw new Error(`Mailjet error ${res.status}: ${body}`)
     }
 }
 

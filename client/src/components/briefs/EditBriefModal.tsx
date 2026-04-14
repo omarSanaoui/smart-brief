@@ -239,7 +239,7 @@ export default function EditBriefModal({ brief, isOpen, onClose }: EditBriefModa
                 onChange={(e) => setForm((prev) => ({ ...prev, budgetRange: e.target.value }))}
                 disabled={!canEdit || saving}
                 className="w-full bg-[#2D3652] border border-[#2E3A5C] rounded-md px-4 py-3 text-white placeholder-white/40 text-sm focus:outline-none focus:border-sbteal transition-colors disabled:opacity-60"
-                placeholder="$5,000 - $10,000"
+                placeholder="ex: 25 000 – 50 000 MAD"
               />
             </div>
 

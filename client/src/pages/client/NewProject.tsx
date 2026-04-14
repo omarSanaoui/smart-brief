@@ -39,10 +39,11 @@ const featureOptions = [
 ];
 
 const budgetOptions = [
-  { value: "$1,000 - $5,000", label: "$1,000 - $5,000" },
-  { value: "$5,000 - $10,000", label: "$5,000 - $10,000" },
-  { value: "$10,000 - $20,000", label: "$10,000 - $20,000" },
-  { value: "$20,000+", label: "$20,000+" },
+  { value: "3 000 – 10 000 MAD", label: "3 000 – 10 000 MAD — Réseaux sociaux, email marketing, CM" },
+  { value: "10 000 – 25 000 MAD", label: "10 000 – 25 000 MAD — SEO, Google Ads, photo/vidéo" },
+  { value: "25 000 – 50 000 MAD", label: "25 000 – 50 000 MAD — Site web, branding, identité visuelle" },
+  { value: "50 000 – 100 000 MAD", label: "50 000 – 100 000 MAD — Stratégie digitale complète" },
+  { value: "100 000+ MAD", label: "100 000+ MAD — Projet entreprise / grand compte" },
 ];
 
 type SelectOption = {
@@ -394,7 +395,7 @@ export default function NewProject() {
                         className="group flex items-center gap-3 rounded-md border border-[#36415F] bg-[#2D3652] px-3 py-3"
                         title={file.name}
                       >
-                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-[#414CC4]/20">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-sbpurple/20">
                           <UploadCloud className="h-5 w-5 text-sbteal" />
                         </div>
                         <div className="min-w-0">

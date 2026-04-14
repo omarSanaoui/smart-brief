@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { X, Save, AlertTriangle } from "lucide-react";
+import Select from "react-select";
+import type { StylesConfig } from "react-select";
 import { useAppDispatch } from "../../app/hooks";
 import { updateBriefThunk } from "../../features/briefs/briefSlice/briefThunk";
 import type { Brief, ProjectType } from "../../features/briefs/briefSlice/briefTypes";
@@ -18,6 +20,47 @@ type FormState = {
   deadline: string; // YYYY-MM-DD
   featuresText: string; // one per line or comma-separated
 };
+
+type SelectOption = { value: string; label: string };
+
+const selectStyles = (disabled: boolean): StylesConfig<SelectOption, false> => ({
+  control: (base, state) => ({
+    ...base,
+    backgroundColor: "#2D3652",
+    borderColor: state.isFocused ? "#67CFB1" : "#2E3A5C",
+    borderRadius: "6px",
+    padding: "4px 4px",
+    boxShadow: "none",
+    opacity: disabled ? 0.6 : 1,
+    pointerEvents: disabled ? "none" : "auto",
+    "&:hover": { borderColor: "#67CFB1" },
+  }),
+  menu: (base) => ({
+    ...base,
+    backgroundColor: "#1e2a42",
+    border: "1px solid #2E3A5C",
+    borderRadius: "8px",
+    zIndex: 9999,
+  }),
+  menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+  option: (base, state) => ({
+    ...base,
+    backgroundColor: state.isFocused ? "#414CC4" : "transparent",
+    color: "white",
+    fontSize: "13px",
+    cursor: "pointer",
+    "&:active": { backgroundColor: "#67CFB1" },
+  }),
+  singleValue: (base) => ({ ...base, color: "#fff", fontSize: "13px" }),
+  placeholder: (base) => ({ ...base, color: "rgba(255,255,255,0.4)", fontSize: "13px" }),
+  input: (base) => ({ ...base, color: "#fff" }),
+  indicatorSeparator: () => ({ display: "none" }),
+  dropdownIndicator: (base, state) => ({
+    ...base,
+    color: state.isFocused ? "#67CFB1" : "rgba(255,255,255,0.4)",
+    "&:hover": { color: "#67CFB1" },
+  }),
+});
 
 const projectTypeOptions: Array<{ value: ProjectType; label: string }> = [
   { value: "SITE_WEB", label: "Website Design & Development" },
@@ -176,18 +219,15 @@ export default function EditBriefModal({ brief, isOpen, onClose }: EditBriefModa
               <label className="block text-white/60 uppercase tracking-widest text-[10px] font-bold mb-2">
                 Project Type
               </label>
-              <select
-                value={form.projectType}
-                onChange={(e) => setForm((prev) => ({ ...prev, projectType: e.target.value as ProjectType }))}
-                disabled={!canEdit || saving}
-                className="w-full bg-[#2D3652] border border-[#2E3A5C] rounded-md px-4 py-3 text-white text-sm focus:outline-none focus:border-sbteal transition-colors disabled:opacity-60"
-              >
-                {projectTypeOptions.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
+              <Select
+                options={projectTypeOptions}
+                value={projectTypeOptions.find(o => o.value === form.projectType) ?? null}
+                onChange={(opt) => opt && setForm((prev) => ({ ...prev, projectType: opt.value as ProjectType }))}
+                isDisabled={!canEdit || saving}
+                styles={selectStyles(!canEdit || saving)}
+                placeholder="Select project type..."
+                menuPortalTarget={document.body}
+              />
             </div>
 
             <div>

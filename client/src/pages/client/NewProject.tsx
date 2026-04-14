@@ -87,45 +87,41 @@ const selectStyles: StylesConfig<SelectOption, boolean> = {
     color: "#fff",
     padding: "4px",
     boxShadow: "none",
+    borderRadius: "6px",
     "&:hover": { borderColor: "#67CFB1" },
   }),
   menu: (base) => ({
     ...base,
-    backgroundColor: "#2D3652",
+    backgroundColor: "#1e2a42",
     border: "1px solid #2E3A5C",
+    borderRadius: "8px",
   }),
   option: (base, state) => ({
     ...base,
     backgroundColor: state.isFocused ? "#414CC4" : "transparent",
     color: "white",
+    fontSize: "13px",
     cursor: "pointer",
     "&:active": { backgroundColor: "#67CFB1" },
   }),
   multiValue: (base) => ({
     ...base,
     backgroundColor: "#414CC4",
-    color: "#fff",
     borderRadius: "4px",
   }),
-  multiValueLabel: (base) => ({
-    ...base,
-    color: "#fff",
-  }),
+  multiValueLabel: (base) => ({ ...base, color: "#fff" }),
   multiValueRemove: (base) => ({
     ...base,
     "&:hover": { backgroundColor: "#ff4d4f", color: "white" },
   }),
-  singleValue: (base) => ({
+  singleValue: (base) => ({ ...base, color: "#fff", fontSize: "13px" }),
+  placeholder: (base) => ({ ...base, color: "rgba(255,255,255,0.4)", fontSize: "13px" }),
+  input: (base) => ({ ...base, color: "#fff" }),
+  indicatorSeparator: () => ({ display: "none" }),
+  dropdownIndicator: (base, state) => ({
     ...base,
-    color: "#fff",
-  }),
-  placeholder: (base) => ({
-    ...base,
-    color: "rgba(255, 255, 255, 0.4)",
-  }),
-  input: (base) => ({
-    ...base,
-    color: "#fff",
+    color: state.isFocused ? "#67CFB1" : "rgba(255,255,255,0.4)",
+    "&:hover": { color: "#67CFB1" },
   }),
 };
 

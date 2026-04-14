@@ -84,7 +84,9 @@ app.use("/auth", createProxyMiddleware({
     }
 }))
 
-app.use("/api/users/internal", createProxyMiddleware({
+// app.get keeps the full path, so pathRewrite can match /api/users/internal correctly
+// (app.use strips the mount prefix before handing to the proxy)
+app.get("/api/users/internal", createProxyMiddleware({
     target: process.env.AUTH_SERVICE_URL || "http://localhost:3000",
     changeOrigin: true,
     pathRewrite: { "^/api/users/internal": "/auth/api/users/internal" },

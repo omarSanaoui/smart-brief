@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
-import { X, Save, AlertTriangle } from "lucide-react";
+import { X, Save, AlertTriangle, Calendar } from "lucide-react";
 import Select from "react-select";
 import type { StylesConfig } from "react-select";
+import { DatePicker, Portal } from "@chakra-ui/react";
+import { fromDate, getLocalTimeZone } from "@internationalized/date";
 import { useAppDispatch } from "../../app/hooks";
 import { updateBriefThunk } from "../../features/briefs/briefSlice/briefThunk";
 import type { Brief, ProjectType } from "../../features/briefs/briefSlice/briefTypes";
@@ -17,7 +19,7 @@ type FormState = {
   projectType: ProjectType;
   description: string;
   budgetRange: string;
-  deadline: string; // YYYY-MM-DD
+  deadline: Date | null;
   featuresText: string; // one per line or comma-separated
 };
 
@@ -74,12 +76,6 @@ const projectTypeOptions: Array<{ value: ProjectType; label: string }> = [
   { value: "OTHER", label: "Other" },
 ];
 
-const toDateInputValue = (isoString: string) => {
-  const date = new Date(isoString);
-  if (Number.isNaN(date.getTime())) return "";
-  return date.toISOString().slice(0, 10);
-};
-
 const parseFeatures = (text: string) => {
   const split = text
     .split(/\n|,/g)
@@ -90,6 +86,7 @@ const parseFeatures = (text: string) => {
 
 export default function EditBriefModal({ brief, isOpen, onClose }: EditBriefModalProps) {
   const dispatch = useAppDispatch();
+  const timeZone = getLocalTimeZone();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState<FormState>(() => ({
@@ -97,7 +94,7 @@ export default function EditBriefModal({ brief, isOpen, onClose }: EditBriefModa
     projectType: (brief?.projectType ?? "WEB") as ProjectType,
     description: brief?.description ?? "",
     budgetRange: brief?.budgetRange ?? "",
-    deadline: brief?.deadline ? toDateInputValue(brief.deadline) : "",
+    deadline: brief?.deadline ? new Date(brief.deadline) : null,
     featuresText: brief?.features?.join("\n") ?? "",
   }));
 
@@ -122,9 +119,8 @@ export default function EditBriefModal({ brief, isOpen, onClose }: EditBriefModa
     const description = form.description.trim();
     const budgetRange = form.budgetRange.trim();
     const features = parseFeatures(form.featuresText);
-    const deadline = form.deadline.trim();
 
-    if (!title || !description || !budgetRange || !deadline) {
+    if (!title || !description || !budgetRange || !form.deadline) {
       setError("Please fill in all required fields.");
       return;
     }
@@ -144,8 +140,7 @@ export default function EditBriefModal({ brief, isOpen, onClose }: EditBriefModa
           description,
           features,
           budgetRange,
-          // Backend expects a date-parsable string.
-          deadline,
+          deadline: form.deadline.toISOString(),
         },
       }),
     );
@@ -243,17 +238,52 @@ export default function EditBriefModal({ brief, isOpen, onClose }: EditBriefModa
               />
             </div>
 
-            <div>
+            <div className={!canEdit || saving ? "opacity-60 pointer-events-none" : ""}>
               <label className="block text-white/60 uppercase tracking-widest text-[10px] font-bold mb-2">
                 Deadline
               </label>
-              <input
-                type="date"
-                value={form.deadline}
-                onChange={(e) => setForm((prev) => ({ ...prev, deadline: e.target.value }))}
-                disabled={!canEdit || saving}
-                className="w-full bg-[#2D3652] border border-[#2E3A5C] rounded-md px-4 py-3 text-white text-sm focus:outline-none focus:border-sbteal transition-colors disabled:opacity-60"
-              />
+              <DatePicker.Root
+                value={form.deadline ? [fromDate(form.deadline, timeZone)] : []}
+                onValueChange={({ value }) =>
+                  setForm((prev) => ({ ...prev, deadline: value[0]?.toDate(timeZone) ?? null }))
+                }
+                min={fromDate(new Date(), timeZone)}
+                closeOnSelect
+                positioning={{ placement: "bottom-start" }}
+              >
+                <DatePicker.Control className="edit-dp-control group flex w-full items-center rounded-md border border-[#2E3A5C] bg-[#2D3652] transition-colors focus-within:border-sbteal focus-within:ring-1 focus-within:ring-sbteal">
+                  <DatePicker.Input
+                    placeholder="Desired Launch Date"
+                    className="edit-dp-input w-full bg-transparent px-4 py-3 text-sm text-white placeholder-white/40 focus:outline-none"
+                  />
+                  <DatePicker.IndicatorGroup className="pr-3">
+                    <DatePicker.Trigger
+                      className="flex h-8 w-8 items-center justify-center rounded-md text-white/60 transition-colors hover:bg-white/5 hover:text-white"
+                      aria-label="Open calendar"
+                    >
+                      <Calendar className="w-4 h-4" />
+                    </DatePicker.Trigger>
+                  </DatePicker.IndicatorGroup>
+                </DatePicker.Control>
+                <Portal>
+                  <DatePicker.Positioner>
+                    <DatePicker.Content className="edit-dp-popup z-[200] rounded-xl border border-[#2E3A5C] bg-[#1a2238] p-3 text-white shadow-2xl">
+                      <DatePicker.View view="day" className="w-[280px]">
+                        <DatePicker.Header className="mb-3" />
+                        <DatePicker.DayTable />
+                      </DatePicker.View>
+                      <DatePicker.View view="month" className="w-[280px]">
+                        <DatePicker.Header className="mb-3" />
+                        <DatePicker.MonthTable />
+                      </DatePicker.View>
+                      <DatePicker.View view="year" className="w-[280px]">
+                        <DatePicker.Header className="mb-3" />
+                        <DatePicker.YearTable />
+                      </DatePicker.View>
+                    </DatePicker.Content>
+                  </DatePicker.Positioner>
+                </Portal>
+              </DatePicker.Root>
             </div>
 
             <div className="md:col-span-2">
@@ -313,6 +343,43 @@ export default function EditBriefModal({ brief, isOpen, onClose }: EditBriefModa
         .thin-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .thin-scrollbar::-webkit-scrollbar-thumb { background: #2E3A5C; border-radius: 10px; }
         .thin-scrollbar::-webkit-scrollbar-thumb:hover { background: #414CC4; }
+
+        .edit-dp-input {
+          color: white !important;
+          caret-color: white;
+          border: none !important;
+          outline: none !important;
+          box-shadow: none !important;
+          background: transparent !important;
+        }
+        .edit-dp-input::placeholder { color: rgba(255,255,255,0.4) !important; }
+        .edit-dp-input:hover, .edit-dp-input:focus, .edit-dp-input:focus-visible {
+          border: none !important; outline: none !important; box-shadow: none !important;
+        }
+        .edit-dp-control { border-color: #2E3A5C !important; box-shadow: none !important; }
+        .edit-dp-control:focus-within { border-color: #67CFB1 !important; box-shadow: 0 0 0 1px #67CFB1 !important; }
+
+        .edit-dp-popup { min-width: 280px; border-radius: 14px; border: 1px solid #2E3A5C; background: #1A2238; box-shadow: 0 24px 60px rgba(0,0,0,0.42); }
+        .edit-dp-popup [data-part="view-control"] { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+        .edit-dp-popup [data-part="prev-trigger"],
+        .edit-dp-popup [data-part="next-trigger"],
+        .edit-dp-popup [data-part="view-trigger"] { border-radius: 8px; color: white !important; transition: background-color 0.2s; }
+        .edit-dp-popup [data-part="prev-trigger"]:hover,
+        .edit-dp-popup [data-part="next-trigger"]:hover,
+        .edit-dp-popup [data-part="view-trigger"]:hover { background: rgba(255,255,255,0.08); }
+        .edit-dp-popup [data-part="table"] { width: 100%; border-collapse: separate; border-spacing: 6px; }
+        .edit-dp-popup [data-part="table-header"] { color: rgba(255,255,255,0.45) !important; font-size: 12px; font-weight: 500; text-align: center; padding-bottom: 4px; }
+        .edit-dp-popup [data-part="table-cell-trigger"] { width: 34px; height: 34px; border: none !important; outline: none !important; border-radius: 10px; color: white !important; font-size: 13px; transition: background-color 0.2s; }
+        .edit-dp-popup [data-part="table-cell-trigger"]:hover { background: rgba(103,207,177,0.18); }
+        .edit-dp-popup [data-part="table-cell-trigger"][data-selected] { background: #414CC4; color: white !important; }
+        .edit-dp-popup [data-part="table-cell-trigger"][data-today] { box-shadow: inset 0 0 0 1px rgba(103,207,177,0.55); }
+        .edit-dp-popup [data-part="table-cell-trigger"][data-outside-range],
+        .edit-dp-popup [data-part="table-cell-trigger"][data-disabled] { color: rgba(255,255,255,0.28) !important; }
+        .edit-dp-popup button:focus, .edit-dp-popup button:focus-visible,
+        .edit-dp-popup [data-part="table-cell-trigger"]:focus,
+        .edit-dp-popup [data-part="table-cell-trigger"]:focus-visible { outline: none !important; box-shadow: none; }
+        .edit-dp-popup select, .edit-dp-popup button, .edit-dp-popup th,
+        .edit-dp-popup td, .edit-dp-popup span, .edit-dp-popup div { color: inherit; }
       `}</style>
     </div>
   );

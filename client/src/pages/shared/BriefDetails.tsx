@@ -8,6 +8,7 @@ import { ArrowLeft, Clock, CheckCircle, XCircle, Edit, Calendar, DollarSign, Dow
 import type { BriefStatus } from "../../features/briefs/briefSlice/briefTypes";
 import EditBriefModal from "../../components/briefs/EditBriefModal";
 import ConfirmDialog from "../../components/shared/ConfirmDialog";
+import TaskSection from "../../components/briefs/TaskSection";
 
 const StatusBadgeLarge = ({ status }: { status: BriefStatus }) => {
   switch (status) {
@@ -197,6 +198,10 @@ export default function BriefDetails() {
                   </div>
                 </div>
               </div>
+            </div>
+
+            <div className="bg-[#1A2238] p-5 rounded-xl border border-[#2E3A5C]">
+              <TaskSection briefId={brief.id} userRole={user?.role} />
             </div>
 
             <div className="bg-[#2D3652] p-5 rounded-xl border border-[#2E3A5C]">

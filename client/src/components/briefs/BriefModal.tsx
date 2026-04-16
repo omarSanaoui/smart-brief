@@ -8,6 +8,7 @@ import { selectEmployees } from "../../features/briefs/briefSlice/briefSelectors
 import api from "../../features/briefs/api/briefAxios";
 import EditBriefModal from "./EditBriefModal";
 import ConfirmDialog from "../shared/ConfirmDialog";
+import TaskSection from "./TaskSection";
 
 interface BriefModalProps {
   brief: Brief | null;
@@ -291,6 +292,10 @@ export default function BriefModal({ brief, isOpen, onClose, userRole }: BriefMo
                      </div>
                    ))}
                  </div>
+              </section>
+
+              <section>
+                <TaskSection briefId={brief.id} userRole={userRole} />
               </section>
 
               <section className="pb-8">

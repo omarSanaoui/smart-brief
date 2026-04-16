@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { requireAuth } from "../middlewares/auth.middleware.js";
 import * as briefController from "../controllers/brief.controller.js";
+import * as taskController from "../controllers/task.controller.js";
 
 const router = Router();
 
@@ -39,5 +40,12 @@ router.get("/:briefId/export", briefController.exportBriefDataHandler);
 
 // Admin/Client deletion
 router.delete("/:briefId", briefController.deleteBriefHandler);
+
+// Task routes (nested under brief)
+router.get("/:briefId/tasks", taskController.getTasksHandler);
+router.post("/:briefId/tasks", taskController.createTaskHandler);
+router.patch("/:briefId/tasks/:taskId", taskController.updateTaskHandler);
+router.patch("/:briefId/tasks/:taskId/status", taskController.updateTaskStatusHandler);
+router.delete("/:briefId/tasks/:taskId", taskController.deleteTaskHandler);
 
 export default router;

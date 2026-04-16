@@ -32,6 +32,18 @@ enum BriefStatus {
   COMPLETED
 }
 
+enum TaskStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
 model Brief {
   id          String      @id @default(uuid())
   clientId    String
@@ -51,7 +63,24 @@ model Brief {
   attachments String[]
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
+  tasks       Task[]
 
   @@index([clientId])
   @@index([status])
+}
+
+model Task {
+  id          String     @id @default(uuid())
+  briefId     String
+  brief       Brief      @relation(fields: [briefId], references: [id], onDelete: Cascade)
+  name        String
+  description String
+  priority    Priority   @default(MEDIUM)
+  startDate   DateTime
+  endDate     DateTime
+  status      TaskStatus @default(PENDING)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@index([briefId])
 }

@@ -1,19 +1,26 @@
 import { createSlice } from "@reduxjs/toolkit";
 import type { BriefState } from "./briefTypes";
-import { 
-    fetchBriefsThunk, 
-    fetchBriefByIdThunk, 
-    createBriefThunk, 
-    updateBriefThunk, 
+import {
+    fetchBriefsThunk,
+    fetchBriefByIdThunk,
+    createBriefThunk,
+    updateBriefThunk,
     deleteBriefThunk,
     assignBriefThunk,
-    fetchEmployeesThunk
+    fetchEmployeesThunk,
+    fetchTasksThunk,
+    createTaskThunk,
+    updateTaskThunk,
+    updateTaskStatusThunk,
+    deleteTaskThunk,
 } from "./briefThunk";
 
 const initialState: BriefState = {
     briefs: [],
     currentBrief: null,
     employees: [],
+    tasks: [],
+    tasksLoading: false,
     loading: false,
     error: null
 };
@@ -138,6 +145,36 @@ const briefSlice = createSlice({
             .addCase(fetchEmployeesThunk.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload as string;
+            })
+
+            // Fetch Tasks
+            .addCase(fetchTasksThunk.pending, (state) => { state.tasksLoading = true; })
+            .addCase(fetchTasksThunk.fulfilled, (state, action) => {
+                state.tasksLoading = false;
+                state.tasks = action.payload;
+            })
+            .addCase(fetchTasksThunk.rejected, (state) => { state.tasksLoading = false; })
+
+            // Create Task
+            .addCase(createTaskThunk.fulfilled, (state, action) => {
+                state.tasks.push(action.payload);
+            })
+
+            // Update Task
+            .addCase(updateTaskThunk.fulfilled, (state, action) => {
+                const i = state.tasks.findIndex(t => t.id === action.payload.id);
+                if (i !== -1) state.tasks[i] = action.payload;
+            })
+
+            // Update Task Status
+            .addCase(updateTaskStatusThunk.fulfilled, (state, action) => {
+                const i = state.tasks.findIndex(t => t.id === action.payload.id);
+                if (i !== -1) state.tasks[i] = action.payload;
+            })
+
+            // Delete Task
+            .addCase(deleteTaskThunk.fulfilled, (state, action) => {
+                state.tasks = state.tasks.filter(t => t.id !== action.payload);
             });
     }
 });

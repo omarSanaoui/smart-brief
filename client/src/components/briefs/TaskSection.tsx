@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
-import { Plus, Trash2, ChevronDown, Pencil, X, Save } from "lucide-react";
+import { Plus, Trash2, ChevronDown, Pencil, X, Save, Calendar } from "lucide-react";
+import { DatePicker, Portal, Select, createListCollection } from "@chakra-ui/react";
+import { parseDate } from "@internationalized/date";
+import { getLocalTimeZone } from "@internationalized/date";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import { selectTasks, selectTasksLoading } from "../../features/briefs/briefSlice/briefSelectors";
 import {
@@ -29,6 +32,22 @@ const STATUS_STYLES: Record<TaskStatus, string> = {
   COMPLETED: "bg-emerald-500/20 text-emerald-300 border-emerald-500/30",
 };
 
+const priorityCollection = createListCollection({
+  items: [
+    { value: "LOW", label: "Low" },
+    { value: "MEDIUM", label: "Medium" },
+    { value: "HIGH", label: "High" },
+  ],
+});
+
+const statusCollection = createListCollection({
+  items: [
+    { value: "PENDING", label: "Pending" },
+    { value: "IN_PROGRESS", label: "In Progress" },
+    { value: "COMPLETED", label: "Completed" },
+  ],
+});
+
 type TaskForm = {
   name: string;
   description: string;
@@ -45,10 +64,16 @@ const emptyForm = (): TaskForm => ({
   endDate: "",
 });
 
+const toDateValue = (s: string) => {
+  try { return s ? [parseDate(s)] : []; }
+  catch { return []; }
+};
+
 export default function TaskSection({ briefId, userRole }: Props) {
   const dispatch = useAppDispatch();
   const tasks = useAppSelector(selectTasks);
   const loading = useAppSelector(selectTasksLoading);
+  const timeZone = getLocalTimeZone();
 
   const isAdmin = userRole === "ADMIN";
   const isEmployee = userRole === "EMPLOYEE";
@@ -118,7 +143,7 @@ export default function TaskSection({ briefId, userRole }: Props) {
         />
       )}
 
-      {/* Header + progress */}
+      {/* Header */}
       <div className="flex items-center justify-between mb-3">
         <h4 className="text-sbpurple font-black text-[10px] uppercase tracking-widest flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-sbpurple inline-block" />
@@ -166,9 +191,7 @@ export default function TaskSection({ briefId, userRole }: Props) {
           <p className="text-white/60 text-[10px] uppercase tracking-widest font-bold mb-4">
             {editingId ? "Edit Task" : "New Task"}
           </p>
-          {formError && (
-            <p className="mb-3 text-rose-400 text-xs">{formError}</p>
-          )}
+          {formError && <p className="mb-3 text-rose-400 text-xs">{formError}</p>}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="sm:col-span-2">
               <input
@@ -187,37 +210,120 @@ export default function TaskSection({ briefId, userRole }: Props) {
                 className="w-full bg-[#2D3652] border border-[#2E3A5C] rounded-lg px-3 py-2.5 text-white placeholder-white/30 text-sm focus:outline-none focus:border-sbteal transition-colors resize-none"
               />
             </div>
+
+            {/* Priority — Chakra Select */}
             <div>
               <label className="block text-white/40 text-[10px] uppercase tracking-widest mb-1">Priority</label>
-              <select
-                value={form.priority}
-                onChange={e => setForm(p => ({ ...p, priority: e.target.value as TaskPriority }))}
-                className="w-full bg-[#2D3652] border border-[#2E3A5C] rounded-lg px-3 py-2.5 text-white text-sm focus:outline-none focus:border-sbteal transition-colors"
+              <Select.Root
+                collection={priorityCollection}
+                value={[form.priority]}
+                onValueChange={({ value }) => setForm(p => ({ ...p, priority: value[0] as TaskPriority }))}
+                positioning={{ placement: "bottom-start", sameWidth: true }}
               >
-                <option value="LOW">Low</option>
-                <option value="MEDIUM">Medium</option>
-                <option value="HIGH">High</option>
-              </select>
+                <Select.HiddenSelect />
+                <Select.Control className="ts-sel-control w-full rounded-lg border border-[#2E3A5C] bg-[#2D3652]">
+                  <Select.Trigger className="ts-sel-trigger flex w-full items-center justify-between px-3 py-2.5 text-sm text-white focus:outline-none">
+                    <Select.ValueText className="text-sm text-white" />
+                    <Select.Indicator><ChevronDown size={13} className="text-white/40" /></Select.Indicator>
+                  </Select.Trigger>
+                </Select.Control>
+                <Portal>
+                  <Select.Positioner>
+                    <Select.Content className="ts-sel-content z-[9999] rounded-lg border border-[#2E3A5C] py-1 shadow-2xl">
+                      {priorityCollection.items.map(item => (
+                        <Select.Item key={item.value} item={item} className="ts-sel-item flex cursor-pointer items-center px-3 py-2 text-sm text-white transition-colors">
+                          <Select.ItemText>{item.label}</Select.ItemText>
+                        </Select.Item>
+                      ))}
+                    </Select.Content>
+                  </Select.Positioner>
+                </Portal>
+              </Select.Root>
             </div>
+
+            {/* Start Date — Chakra DatePicker */}
             <div>
               <label className="block text-white/40 text-[10px] uppercase tracking-widest mb-1">Start Date</label>
-              <input
-                type="date"
-                value={form.startDate}
-                onChange={e => setForm(p => ({ ...p, startDate: e.target.value }))}
-                className="w-full bg-[#2D3652] border border-[#2E3A5C] rounded-lg px-3 py-2.5 text-white text-sm focus:outline-none focus:border-sbteal transition-colors"
-              />
+              <DatePicker.Root
+                value={toDateValue(form.startDate)}
+                onValueChange={({ value }) => setForm(p => ({ ...p, startDate: value[0]?.toString() ?? "" }))}
+                closeOnSelect
+                positioning={{ placement: "top-start" }}
+              >
+                <DatePicker.Control className="ts-dp-control flex w-full items-center rounded-lg border border-[#2E3A5C] bg-[#2D3652]">
+                  <DatePicker.Input
+                    placeholder="Start date"
+                    className="ts-dp-input w-full bg-transparent px-3 py-2.5 text-sm text-white placeholder-white/30 focus:outline-none"
+                  />
+                  <DatePicker.IndicatorGroup className="pr-2">
+                    <DatePicker.Trigger className="flex h-7 w-7 items-center justify-center rounded-md text-white/40 hover:bg-white/5 hover:text-white transition-colors">
+                      <Calendar className="w-3.5 h-3.5" />
+                    </DatePicker.Trigger>
+                  </DatePicker.IndicatorGroup>
+                </DatePicker.Control>
+                <Portal>
+                  <DatePicker.Positioner>
+                    <DatePicker.Content className="ts-dp-popup z-[9999] rounded-xl border border-[#2E3A5C] bg-[#1a2238] p-3 text-white shadow-2xl">
+                      <DatePicker.View view="day" className="w-[260px]">
+                        <DatePicker.Header className="mb-2" />
+                        <DatePicker.DayTable />
+                      </DatePicker.View>
+                      <DatePicker.View view="month" className="w-[260px]">
+                        <DatePicker.Header className="mb-2" />
+                        <DatePicker.MonthTable />
+                      </DatePicker.View>
+                      <DatePicker.View view="year" className="w-[260px]">
+                        <DatePicker.Header className="mb-2" />
+                        <DatePicker.YearTable />
+                      </DatePicker.View>
+                    </DatePicker.Content>
+                  </DatePicker.Positioner>
+                </Portal>
+              </DatePicker.Root>
             </div>
+
+            {/* End Date — Chakra DatePicker */}
             <div>
               <label className="block text-white/40 text-[10px] uppercase tracking-widest mb-1">End Date</label>
-              <input
-                type="date"
-                value={form.endDate}
-                onChange={e => setForm(p => ({ ...p, endDate: e.target.value }))}
-                className="w-full bg-[#2D3652] border border-[#2E3A5C] rounded-lg px-3 py-2.5 text-white text-sm focus:outline-none focus:border-sbteal transition-colors"
-              />
+              <DatePicker.Root
+                value={toDateValue(form.endDate)}
+                onValueChange={({ value }) => setForm(p => ({ ...p, endDate: value[0]?.toString() ?? "" }))}
+                closeOnSelect
+                positioning={{ placement: "top-start" }}
+              >
+                <DatePicker.Control className="ts-dp-control flex w-full items-center rounded-lg border border-[#2E3A5C] bg-[#2D3652]">
+                  <DatePicker.Input
+                    placeholder="End date"
+                    className="ts-dp-input w-full bg-transparent px-3 py-2.5 text-sm text-white placeholder-white/30 focus:outline-none"
+                  />
+                  <DatePicker.IndicatorGroup className="pr-2">
+                    <DatePicker.Trigger className="flex h-7 w-7 items-center justify-center rounded-md text-white/40 hover:bg-white/5 hover:text-white transition-colors">
+                      <Calendar className="w-3.5 h-3.5" />
+                    </DatePicker.Trigger>
+                  </DatePicker.IndicatorGroup>
+                </DatePicker.Control>
+                <Portal>
+                  <DatePicker.Positioner>
+                    <DatePicker.Content className="ts-dp-popup z-[9999] rounded-xl border border-[#2E3A5C] bg-[#1a2238] p-3 text-white shadow-2xl">
+                      <DatePicker.View view="day" className="w-[260px]">
+                        <DatePicker.Header className="mb-2" />
+                        <DatePicker.DayTable />
+                      </DatePicker.View>
+                      <DatePicker.View view="month" className="w-[260px]">
+                        <DatePicker.Header className="mb-2" />
+                        <DatePicker.MonthTable />
+                      </DatePicker.View>
+                      <DatePicker.View view="year" className="w-[260px]">
+                        <DatePicker.Header className="mb-2" />
+                        <DatePicker.YearTable />
+                      </DatePicker.View>
+                    </DatePicker.Content>
+                  </DatePicker.Positioner>
+                </Portal>
+              </DatePicker.Root>
             </div>
           </div>
+
           <div className="flex justify-end gap-2 mt-4">
             <button onClick={cancelForm} className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest text-white/50 hover:text-white bg-white/5 hover:bg-white/10 transition-all">
               <X size={12} /> Cancel
@@ -250,10 +356,44 @@ export default function TaskSection({ briefId, userRole }: Props) {
               onEdit={startEdit}
               onDelete={id => setDeleteTarget(id)}
               dispatch={dispatch}
+              timeZone={timeZone}
             />
           ))}
         </div>
       )}
+
+      <style>{`
+        .ts-sel-control { border-color: #2E3A5C !important; box-shadow: none !important; }
+        .ts-sel-trigger:focus, .ts-sel-trigger:focus-visible { outline: none !important; box-shadow: none !important; }
+        .ts-sel-control:focus-within { border-color: #67CFB1 !important; box-shadow: 0 0 0 1px #67CFB1 !important; }
+        .ts-sel-content { background-color: #1e2a42 !important; border: 1px solid #2E3A5C !important; }
+        .ts-sel-item { color: white !important; background-color: transparent !important; }
+        .ts-sel-item:hover, .ts-sel-item[data-highlighted] { background-color: #414CC4 !important; color: white !important; }
+        .ts-sel-item[data-selected] { background-color: rgba(65,76,196,0.75) !important; color: white !important; }
+
+        .ts-status-control { border-color: transparent !important; box-shadow: none !important; background: transparent !important; }
+        .ts-status-trigger:focus, .ts-status-trigger:focus-visible { outline: none !important; box-shadow: none !important; }
+
+        .ts-dp-control { border-color: #2E3A5C !important; box-shadow: none !important; }
+        .ts-dp-control:focus-within { border-color: #67CFB1 !important; box-shadow: 0 0 0 1px #67CFB1 !important; }
+        .ts-dp-input { color: white !important; caret-color: white; border: none !important; outline: none !important; box-shadow: none !important; background: transparent !important; }
+        .ts-dp-input::placeholder { color: rgba(255,255,255,0.3) !important; }
+        .ts-dp-input:hover, .ts-dp-input:focus, .ts-dp-input:focus-visible { border: none !important; outline: none !important; box-shadow: none !important; }
+
+        .ts-dp-popup { min-width: 260px; border-radius: 14px; border: 1px solid #2E3A5C; background: #1A2238; box-shadow: 0 24px 60px rgba(0,0,0,0.42); }
+        .ts-dp-popup [data-part="view-control"] { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
+        .ts-dp-popup [data-part="prev-trigger"], .ts-dp-popup [data-part="next-trigger"], .ts-dp-popup [data-part="view-trigger"] { border-radius: 8px; color: white !important; transition: background-color 0.2s; }
+        .ts-dp-popup [data-part="prev-trigger"]:hover, .ts-dp-popup [data-part="next-trigger"]:hover, .ts-dp-popup [data-part="view-trigger"]:hover { background: rgba(255,255,255,0.08); }
+        .ts-dp-popup [data-part="table"] { width: 100%; border-collapse: separate; border-spacing: 4px; }
+        .ts-dp-popup [data-part="table-header"] { color: rgba(255,255,255,0.45) !important; font-size: 11px; font-weight: 500; text-align: center; padding-bottom: 4px; }
+        .ts-dp-popup [data-part="table-cell-trigger"] { width: 32px; height: 32px; border: none !important; outline: none !important; border-radius: 8px; color: white !important; font-size: 12px; transition: background-color 0.2s; }
+        .ts-dp-popup [data-part="table-cell-trigger"]:hover { background: rgba(103,207,177,0.18); }
+        .ts-dp-popup [data-part="table-cell-trigger"][data-selected] { background: #414CC4; color: white !important; }
+        .ts-dp-popup [data-part="table-cell-trigger"][data-today] { box-shadow: inset 0 0 0 1px rgba(103,207,177,0.55); }
+        .ts-dp-popup [data-part="table-cell-trigger"][data-outside-range], .ts-dp-popup [data-part="table-cell-trigger"][data-disabled] { color: rgba(255,255,255,0.28) !important; }
+        .ts-dp-popup button:focus, .ts-dp-popup button:focus-visible, .ts-dp-popup [data-part="table-cell-trigger"]:focus, .ts-dp-popup [data-part="table-cell-trigger"]:focus-visible { outline: none !important; box-shadow: none; }
+        .ts-dp-popup select, .ts-dp-popup button, .ts-dp-popup th, .ts-dp-popup td, .ts-dp-popup span, .ts-dp-popup div { color: inherit; }
+      `}</style>
     </section>
   );
 }
@@ -268,6 +408,7 @@ function TaskCard({
   onEdit: (t: Task) => void;
   onDelete: (id: string) => void;
   dispatch: ReturnType<typeof useAppDispatch>;
+  timeZone: string;
 }) {
   const [open, setOpen] = useState(false);
 
@@ -277,33 +418,51 @@ function TaskCard({
         className="flex items-center gap-3 px-4 py-3 cursor-pointer"
         onClick={() => setOpen(o => !o)}
       >
-        {/* Status dot */}
         <div className={`w-2 h-2 rounded-full shrink-0 ${task.status === "COMPLETED" ? "bg-emerald-400" : task.status === "IN_PROGRESS" ? "bg-blue-400" : "bg-white/20"}`} />
 
         <span className={`flex-1 text-sm font-semibold truncate ${task.status === "COMPLETED" ? "line-through text-white/40" : "text-white/90"}`}>
           {task.name}
         </span>
 
-        <span className={`text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full border ${PRIORITY_STYLES[task.priority]}`}>
+        <span className={`text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full border shrink-0 ${PRIORITY_STYLES[task.priority]}`}>
           {task.priority}
         </span>
 
-        {/* Employee status dropdown */}
+        {/* Employee status select — Chakra */}
         {isEmployee && task.status !== "COMPLETED" && (
-          <select
-            value={task.status}
-            onChange={e => dispatch(updateTaskStatusThunk({ briefId, taskId: task.id, status: e.target.value as TaskStatus }))}
-            onClick={e => e.stopPropagation()}
-            className={`text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded-lg border bg-transparent cursor-pointer focus:outline-none ${STATUS_STYLES[task.status]}`}
-          >
-            <option value="PENDING">Pending</option>
-            <option value="IN_PROGRESS">In Progress</option>
-            <option value="COMPLETED">Completed</option>
-          </select>
+          <div onClick={e => e.stopPropagation()}>
+            <Select.Root
+              collection={statusCollection}
+              value={[task.status]}
+              onValueChange={({ value }) =>
+                dispatch(updateTaskStatusThunk({ briefId, taskId: task.id, status: value[0] as TaskStatus }))
+              }
+              positioning={{ placement: "bottom-end", sameWidth: false }}
+            >
+              <Select.HiddenSelect />
+              <Select.Control className={`ts-status-control rounded-lg border px-0 ${STATUS_STYLES[task.status]}`}>
+                <Select.Trigger className="ts-status-trigger flex items-center gap-1 px-2 py-1 text-[10px] font-bold uppercase tracking-widest focus:outline-none">
+                  <Select.ValueText className="text-[10px] font-bold uppercase tracking-widest" />
+                  <Select.Indicator><ChevronDown size={10} /></Select.Indicator>
+                </Select.Trigger>
+              </Select.Control>
+              <Portal>
+                <Select.Positioner>
+                  <Select.Content className="ts-sel-content z-[9999] rounded-lg border border-[#2E3A5C] py-1 shadow-2xl min-w-[130px]">
+                    {statusCollection.items.map(item => (
+                      <Select.Item key={item.value} item={item} className="ts-sel-item flex cursor-pointer items-center px-3 py-2 text-xs font-bold uppercase tracking-widest text-white transition-colors">
+                        <Select.ItemText>{item.label}</Select.ItemText>
+                      </Select.Item>
+                    ))}
+                  </Select.Content>
+                </Select.Positioner>
+              </Portal>
+            </Select.Root>
+          </div>
         )}
 
         {!isEmployee && (
-          <span className={`text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full border ${STATUS_STYLES[task.status]}`}>
+          <span className={`text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full border shrink-0 ${STATUS_STYLES[task.status]}`}>
             {task.status.replace("_", " ")}
           </span>
         )}

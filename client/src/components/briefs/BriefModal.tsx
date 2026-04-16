@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { X, Calendar, DollarSign, Download, Users, Trash2, Edit, CheckCircle } from "lucide-react";
+import { X, Calendar, DollarSign, Download, Users, Trash2, Edit, CheckCircle, User } from "lucide-react";
 import type { Brief, BriefStatus } from "../../features/briefs/briefSlice/briefTypes";
 import StatusBadge from "./StatusBadge";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
@@ -24,12 +24,21 @@ export default function BriefModal({ brief, isOpen, onClose, userRole }: BriefMo
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+  const [clientUser, setClientUser] = useState<{ firstName: string; lastName: string; email: string } | null>(null);
 
   useEffect(() => {
     if (isOpen) {
       dispatch(fetchEmployeesThunk());
     }
   }, [isOpen, dispatch]);
+
+  useEffect(() => {
+    if (isOpen && brief?.clientId) {
+      api.get(`/auth/users/${brief.clientId}`)
+        .then(res => setClientUser(res.data))
+        .catch(() => setClientUser(null));
+    }
+  }, [isOpen, brief?.clientId]);
 
   useEffect(() => {
     if (isOpen) {
@@ -136,6 +145,18 @@ export default function BriefModal({ brief, isOpen, onClose, userRole }: BriefMo
                  {brief.projectType.replace('_', ' ')}
               </p>
             </div>
+
+            {clientUser && (
+              <div className="flex items-center gap-3 bg-[#0F1528]/50 px-4 py-3 rounded-2xl border border-[#2E3A5C]/40">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-sbpurple/20 border border-sbpurple/30">
+                  <User size={15} className="text-sbpurple" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-white text-sm font-bold truncate">{clientUser.firstName} {clientUser.lastName}</p>
+                  <p className="text-white/40 text-[11px] truncate">{clientUser.email}</p>
+                </div>
+              </div>
+            )}
 
             <div className="grid grid-cols-2 sm:grid-cols-1 gap-2 sm:gap-0 bg-[#0F1528]/50 p-3 sm:p-5 rounded-2xl border border-[#2E3A5C]/40">
               <div className="flex items-center gap-3">

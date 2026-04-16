@@ -34,8 +34,11 @@ export default function BriefModal({ brief, isOpen, onClose, userRole }: BriefMo
 
   useEffect(() => {
     if (isOpen && brief?.clientId) {
-      api.get(`/auth/users/${brief.clientId}`)
-        .then(res => setClientUser(res.data))
+      api.get(`/api/users/internal`, { params: { ids: brief.clientId } })
+        .then(res => {
+          const users = Array.isArray(res.data) ? res.data : [];
+          setClientUser(users[0] ?? null);
+        })
         .catch(() => setClientUser(null));
     }
   }, [isOpen, brief?.clientId]);

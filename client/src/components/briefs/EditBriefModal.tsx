@@ -15,11 +15,21 @@ type EditBriefModalProps = {
 type FormState = {
   title: string;
   projectType: ProjectType;
-  description: string;
+  brand: string;
+  coreGoal: string;
   budgetRange: string;
   deadline: Date | null;
   featuresText: string;
 };
+
+function parseDescription(raw: string) {
+  const brandMatch = raw.match(/^Brand:\s*([\s\S]*?)(?:\n\nCore Goal:|$)/);
+  const goalMatch = raw.match(/Core Goal:\s*([\s\S]*)$/);
+  return {
+    brand: brandMatch?.[1]?.trim() ?? raw,
+    coreGoal: goalMatch?.[1]?.trim() ?? "",
+  };
+}
 
 const projectTypeItems = [
   { value: "SITE_WEB", label: "Website Design & Development" },
@@ -57,14 +67,18 @@ export default function EditBriefModal({ brief, isOpen, onClose }: EditBriefModa
   const timeZone = getLocalTimeZone();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [form, setForm] = useState<FormState>(() => ({
-    title: brief?.title ?? "",
-    projectType: (brief?.projectType ?? "WEB") as ProjectType,
-    description: brief?.description ?? "",
-    budgetRange: brief?.budgetRange ?? "",
-    deadline: brief?.deadline ? new Date(brief.deadline) : null,
-    featuresText: brief?.features?.join("\n") ?? "",
-  }));
+  const [form, setForm] = useState<FormState>(() => {
+    const { brand, coreGoal } = parseDescription(brief?.description ?? "");
+    return {
+      title: brief?.title ?? "",
+      projectType: (brief?.projectType ?? "SITE_WEB") as ProjectType,
+      brand,
+      coreGoal,
+      budgetRange: brief?.budgetRange ?? "",
+      deadline: brief?.deadline ? new Date(brief.deadline) : null,
+      featuresText: brief?.features?.join("\n") ?? "",
+    };
+  });
 
   const canRender = Boolean(isOpen && brief);
 
@@ -85,11 +99,13 @@ export default function EditBriefModal({ brief, isOpen, onClose }: EditBriefModa
     if (!canEdit) return;
 
     const title = form.title.trim();
-    const description = form.description.trim();
+    const brand = form.brand.trim();
+    const coreGoal = form.coreGoal.trim();
     const budgetRange = form.budgetRange.trim();
     const features = parseFeatures(form.featuresText);
+    const description = `Brand: ${brand}\n\nCore Goal: ${coreGoal}`;
 
-    if (!title || !description || !budgetRange || !form.deadline) {
+    if (!title || !brand || !coreGoal || !budgetRange || !form.deadline) {
       setError("Please fill in all required fields.");
       return;
     }
@@ -271,7 +287,7 @@ export default function EditBriefModal({ brief, isOpen, onClose }: EditBriefModa
                 }
                 min={fromDate(new Date(), timeZone)}
                 closeOnSelect
-                positioning={{ placement: "bottom-start" }}
+                positioning={{ placement: "top-start" }}
               >
                 <DatePicker.Control className="edit-dp-control group flex w-full items-center rounded-md border border-[#2E3A5C] bg-[#2D3652] transition-colors focus-within:border-sbteal focus-within:ring-1 focus-within:ring-sbteal">
                   <DatePicker.Input
@@ -308,17 +324,30 @@ export default function EditBriefModal({ brief, isOpen, onClose }: EditBriefModa
               </DatePicker.Root>
             </div>
 
+            <div>
+              <label className="block text-white/60 uppercase tracking-widest text-[10px] font-bold mb-2">
+                Brand
+              </label>
+              <input
+                value={form.brand}
+                onChange={(e) => setForm((prev) => ({ ...prev, brand: e.target.value }))}
+                disabled={disabled}
+                className="w-full bg-[#2D3652] border border-[#2E3A5C] rounded-md px-4 py-3 text-white placeholder-white/40 text-sm focus:outline-none focus:border-sbteal transition-colors disabled:opacity-60"
+                placeholder="Describe your brand..."
+              />
+            </div>
+
             <div className="md:col-span-2">
               <label className="block text-white/60 uppercase tracking-widest text-[10px] font-bold mb-2">
-                Description
+                Core Goal
               </label>
               <textarea
-                value={form.description}
-                onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
+                value={form.coreGoal}
+                onChange={(e) => setForm((prev) => ({ ...prev, coreGoal: e.target.value }))}
                 disabled={disabled}
-                rows={5}
+                rows={3}
                 className="w-full bg-[#2D3652] border border-[#2E3A5C] rounded-md px-4 py-3 text-white placeholder-white/40 text-sm focus:outline-none focus:border-sbteal transition-colors resize-none disabled:opacity-60"
-                placeholder="Describe the project scope and goals..."
+                placeholder="What is the main goal of this project?"
               />
             </div>
 
@@ -369,9 +398,11 @@ export default function EditBriefModal({ brief, isOpen, onClose }: EditBriefModa
         .eb-select-control { border-color: #2E3A5C !important; box-shadow: none !important; }
         .eb-select-trigger:focus, .eb-select-trigger:focus-visible { outline: none !important; box-shadow: none !important; }
         .eb-select-control:focus-within { border-color: #67CFB1 !important; box-shadow: 0 0 0 1px #67CFB1 !important; }
-        .eb-select-item:hover { background: #414CC4; }
-        .eb-select-item[data-highlighted] { background: #414CC4; }
-        .eb-select-item[data-selected] { background: #414CC4cc; }
+        .eb-select-content { background-color: #1e2a42 !important; border: 1px solid #2E3A5C !important; }
+        .eb-select-item { color: white !important; background-color: transparent !important; }
+        .eb-select-item:hover { background-color: #414CC4 !important; color: white !important; }
+        .eb-select-item[data-highlighted] { background-color: #414CC4 !important; color: white !important; }
+        .eb-select-item[data-selected] { background-color: rgba(65,76,196,0.75) !important; color: white !important; }
 
         .edit-dp-input {
           color: white !important; caret-color: white;

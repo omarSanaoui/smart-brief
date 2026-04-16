@@ -7,6 +7,7 @@ import { selectUser } from "../../features/auth/authSlice/authSelectors";
 import { ArrowLeft, Clock, CheckCircle, XCircle, Edit, Calendar, DollarSign, Download, Trash2 } from "lucide-react";
 import type { BriefStatus } from "../../features/briefs/briefSlice/briefTypes";
 import EditBriefModal from "../../components/briefs/EditBriefModal";
+import ConfirmDialog from "../../components/shared/ConfirmDialog";
 
 const StatusBadgeLarge = ({ status }: { status: BriefStatus }) => {
   switch (status) {
@@ -39,6 +40,7 @@ export default function BriefDetails() {
   const isClient = user?.role === "CLIENT";
 
   const [isEditOpen, setIsEditOpen] = useState(false);
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
 
   useEffect(() => {
     if (id) dispatch(fetchBriefByIdThunk(id));
@@ -49,8 +51,11 @@ export default function BriefDetails() {
     await dispatch(updateBriefThunk({ id: brief.id, data: { status }, userRole: user?.role }));
   };
 
-  const handleDelete = async () => {
-    if (!brief || !window.confirm("Are you sure you want to delete this brief?")) return;
+  const handleDelete = () => setConfirmDeleteOpen(true);
+
+  const confirmDelete = async () => {
+    if (!brief) return;
+    setConfirmDeleteOpen(false);
     await dispatch(deleteBriefThunk(brief.id));
     navigate(-1);
   };
@@ -71,6 +76,13 @@ export default function BriefDetails() {
           brief={brief}
           isOpen
           onClose={() => setIsEditOpen(false)}
+        />
+      )}
+      {confirmDeleteOpen && (
+        <ConfirmDialog
+          message="Are you sure you want to delete this brief? This action cannot be undone."
+          onConfirm={confirmDelete}
+          onCancel={() => setConfirmDeleteOpen(false)}
         />
       )}
       <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-white/50 hover:text-white mb-8 transition-colors">

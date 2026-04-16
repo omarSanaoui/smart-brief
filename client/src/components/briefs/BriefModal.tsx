@@ -7,6 +7,7 @@ import { updateBriefThunk, assignBriefThunk, deleteBriefThunk, fetchEmployeesThu
 import { selectEmployees } from "../../features/briefs/briefSlice/briefSelectors";
 import api from "../../features/briefs/api/briefAxios";
 import EditBriefModal from "./EditBriefModal";
+import ConfirmDialog from "../shared/ConfirmDialog";
 
 interface BriefModalProps {
   brief: Brief | null;
@@ -21,6 +22,7 @@ export default function BriefModal({ brief, isOpen, onClose, userRole }: BriefMo
   const [selectedEmployees, setSelectedEmployees] = useState<string[]>([]);
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -54,8 +56,10 @@ export default function BriefModal({ brief, isOpen, onClose, userRole }: BriefMo
     setSelectedEmployees([]);
   };
 
-  const handleDelete = async () => {
-    if (!window.confirm("Are you sure you want to delete this brief?")) return;
+  const handleDelete = () => setConfirmDeleteOpen(true);
+
+  const confirmDelete = async () => {
+    setConfirmDeleteOpen(false);
     await dispatch(deleteBriefThunk(brief.id));
     onClose();
   };
@@ -88,6 +92,13 @@ export default function BriefModal({ brief, isOpen, onClose, userRole }: BriefMo
           brief={brief}
           isOpen
           onClose={() => setIsEditOpen(false)}
+        />
+      )}
+      {confirmDeleteOpen && (
+        <ConfirmDialog
+          message="Are you sure you want to delete this brief? This action cannot be undone."
+          onConfirm={confirmDelete}
+          onCancel={() => setConfirmDeleteOpen(false)}
         />
       )}
       {/* Overlay */}

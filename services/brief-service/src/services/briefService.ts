@@ -120,6 +120,10 @@ export async function getBriefById(briefId: string, requester: AuthContext) {
   return brief;
 }
 
+export async function adminCreateBriefForClient(_adminId: string, clientId: string, input: CreateBriefInput) {
+  return prisma.brief.create({ data: { clientId, ...input } });
+}
+
 export async function deleteBrief(briefId: string, requester: AuthContext) {
   const brief = await prisma.brief.findUnique({ where: { id: briefId } });
   if (!brief) throw new Error("Brief not found");

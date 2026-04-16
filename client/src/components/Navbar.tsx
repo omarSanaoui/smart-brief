@@ -43,7 +43,10 @@ export default function Navbar() {
                 </>
             )}
             {isAdmin && (
-                <NavLink to="/briefs" className={({ isActive }) => isActive ? activeLink : inactiveLink}>Briefs</NavLink>
+                <>
+                    <NavLink to="/briefs" className={({ isActive }) => isActive ? activeLink : inactiveLink}>Briefs</NavLink>
+                    <NavLink to="/admin/new-project" className={({ isActive }) => isActive ? activeLink : inactiveLink}>New Project</NavLink>
+                </>
             )}
             {isEmployee && (
                 <NavLink to="/assigned-briefs" className={({ isActive }) => isActive ? activeLink : inactiveLink}>Assigned Briefs</NavLink>

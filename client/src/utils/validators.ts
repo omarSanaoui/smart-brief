@@ -21,7 +21,6 @@ export function isPasswordStrong(password: string): boolean {
     if (password.length < 8) return false;
     if (!/[A-Z]/.test(password)) return false;
     if (!/[a-z]/.test(password)) return false;
-    if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) return false;
     if (!/\d/.test(password)) return false;
     return true;
 }
@@ -37,6 +36,5 @@ export function getPasswordRules(password: string): PasswordRule[] {
         { label: "One uppercase letter (A-Z)", met: /[A-Z]/.test(password) },
         { label: "One lowercase letter (a-z)", met: /[a-z]/.test(password) },
         { label: "One number (0-9)", met: /\d/.test(password) },
-        { label: "One special symbol", met: /[!@#$%^&*(),.?":{}|<>]/.test(password) }
     ]
 }

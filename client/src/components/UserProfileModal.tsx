@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Pencil, Save, ShieldAlert, Trash2, UserCircle2, X } from "lucide-react";
+import { Pencil, Save, ShieldAlert, Trash2, UserCircle2, X, Mail } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../app/hooks";
 import { changePasswordThunk, deleteMeThunk, updateMeThunk } from "../features/auth/authSlice/authThunk";
@@ -18,6 +18,7 @@ export default function UserProfileModal({ isOpen, onClose }: UserProfileModalPr
   const error = useAppSelector(selectAuthError);
 
   const [mode, setMode] = useState<"view" | "edit" | "password" | "delete">("view");
+  const [pendingEmail, setPendingEmail] = useState<string | null>(null);
   const [edit, setEdit] = useState({ firstName: "", lastName: "", email: "", phone: "" });
   const [passwords, setPasswords] = useState({ currentPassword: "", newPassword: "" });
   const [deletePassword, setDeletePassword] = useState("");
@@ -52,7 +53,13 @@ export default function UserProfileModal({ isOpen, onClose }: UserProfileModalPr
     };
     const result = await dispatch(updateMeThunk(payload));
     if (updateMeThunk.fulfilled.match(result)) {
-      setMode("view");
+      const data = result.payload as any;
+      if (data?.pendingEmailChange) {
+        setPendingEmail(edit.email.trim().toLowerCase());
+        setMode("view");
+      } else {
+        setMode("view");
+      }
     }
   };
 
@@ -157,6 +164,17 @@ export default function UserProfileModal({ isOpen, onClose }: UserProfileModalPr
               <Trash2 size={14} className="inline mr-2" /> Delete
             </button>
           </div>
+
+          {pendingEmail && (
+            <div className="mb-5 flex items-start gap-3 rounded-2xl border border-amber-400/25 bg-amber-400/10 p-4">
+              <Mail size={16} className="text-amber-400 mt-0.5 shrink-0" />
+              <div className="text-sm">
+                <p className="text-amber-200 font-semibold mb-0.5">Confirm your new email</p>
+                <p className="text-amber-200/70">A verification link was sent to <span className="text-amber-200 font-medium">{pendingEmail}</span>. Your email won't change until you click it.</p>
+                <button onClick={() => setPendingEmail(null)} className="text-amber-400/60 hover:text-amber-400 text-xs mt-2 underline underline-offset-2 transition-colors">Dismiss</button>
+              </div>
+            </div>
+          )}
 
           {mode === "view" && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">

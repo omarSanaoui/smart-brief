@@ -19,6 +19,8 @@ import NewProject from "./pages/client/NewProject";
 import MyBriefs from "./pages/client/MyBriefs";
 import BriefsDashboard from "./pages/shared/BriefsDashboard";
 import BriefDetails from "./pages/shared/BriefDetails";
+import AdminNewProject from "./pages/admin/AdminNewProject";
+import VerifyEmailChange from "./pages/auth/VerifyEmailChange";
 
 export default function SmarBriefApp() {
   const dispatch = useAppDispatch()
@@ -77,6 +79,8 @@ export default function SmarBriefApp() {
           <Route path="/briefs" element={<BriefsDashboard />} />
           <Route path="/assigned-briefs" element={<BriefsDashboard />} />
           <Route path="/briefs/:id" element={<BriefDetails />} />
+          <Route path="/admin/new-project" element={<AdminNewProject />} />
+          <Route path="/verify-email-change" element={<VerifyEmailChange />} />
           <Route path="/register" element={<Register />} />
           <Route path='/verify-code' element={<VerifyCode />} />
           <Route path='/login' element={<Login />} />

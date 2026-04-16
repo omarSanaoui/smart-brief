@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import prisma from "../../db/prisma.js";
 import bcrypt from "bcryptjs";
+import jwt from 'jsonwebtoken';
 import {
     completePasswordReset,
     initiateRegister,
@@ -9,6 +10,9 @@ import {
     resendVerificationCode,
     verifyAndCreateUser
 } from '../../services/authServices.js';
+import { sendEmailChangeVerification, sendEmailChangeNotification } from '../../services/emailServices.js';
+
+const JWT_SECRET = process.env.JWT_SECRET as string;
 import {
     isStrongPassword,
     isValidEmail,
@@ -275,6 +279,8 @@ export async function updateMe(req: Request, res: Response) {
             data.phone = clean || null;
         }
 
+        let pendingEmailChange: string | null = null;
+
         if (typeof email === "string") {
             const clean = normalizeEmail(email);
             if (!isValidEmail(clean)) {
@@ -282,29 +288,50 @@ export async function updateMe(req: Request, res: Response) {
                 return;
             }
 
-            // If changing email, ensure uniqueness.
             if (clean !== requester.email) {
                 const existing = await prisma.user.findUnique({ where: { email: clean } });
                 if (existing) {
                     res.status(400).json({ message: "Email already in use" });
                     return;
                 }
-                data.email = clean;
+                // Don't update email directly — send verification link instead
+                pendingEmailChange = clean;
             }
         }
 
-        if (Object.keys(data).length === 0) {
+        // Save non-email fields immediately
+        if (Object.keys(data).length > 0) {
+            const updated = await prisma.user.update({ where: { id: requester.id }, data });
+            const { password, ...safeUser } = updated as any;
+            if (!pendingEmailChange) {
+                res.status(200).json({ user: safeUser });
+                return;
+            }
+        } else if (!pendingEmailChange) {
             res.status(400).json({ message: "No fields to update" });
             return;
         }
 
-        const updated = await prisma.user.update({
-            where: { id: requester.id },
-            data,
-        });
+        // Handle email change: issue a signed token and send verification
+        if (pendingEmailChange) {
+            const token = jwt.sign(
+                { id: requester.id, newEmail: pendingEmailChange, purpose: "email-change" },
+                JWT_SECRET,
+                { expiresIn: "1h" }
+            );
+            const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+            const confirmLink = `${frontendUrl}/verify-email-change?token=${token}`;
 
-        const { password, ...safeUser } = updated as any;
-        res.status(200).json({ user: safeUser });
+            sendEmailChangeVerification(pendingEmailChange, requester.firstName, confirmLink).catch((err: any) =>
+                console.error("[EMAIL] Failed to send email change verification:", err?.message ?? err)
+            );
+            sendEmailChangeNotification(requester.email, requester.firstName, pendingEmailChange).catch((err: any) =>
+                console.error("[EMAIL] Failed to send email change notification:", err?.message ?? err)
+            );
+
+            res.status(200).json({ pendingEmailChange: true, message: `A confirmation link has been sent to ${pendingEmailChange}` });
+            return;
+        }
     } catch (error: any) {
         res.status(500).json({ message: error.message });
     }
@@ -383,6 +410,151 @@ export async function deleteMe(req: Request, res: Response) {
 
         await prisma.user.delete({ where: { id: requester.id } });
         res.status(204).send();
+    } catch (error: any) {
+        res.status(500).json({ message: error.message });
+    }
+}
+
+export async function adminCreateClient(req: Request, res: Response) {
+    try {
+        const admin = req.user as any;
+        if (!admin?.id) {
+            res.status(401).json({ message: "Unauthorized" });
+            return;
+        }
+
+        const { firstName, lastName, email, phone } = req.body;
+
+        if (!firstName || !lastName) {
+            res.status(400).json({ message: "First name and last name are required" });
+            return;
+        }
+
+        const cleanFirstName = String(firstName).trim();
+        const cleanLastName = String(lastName).trim();
+        const cleanPhone = phone ? String(phone).trim() : undefined;
+
+        if (!isValidName(cleanFirstName) || !isValidName(cleanLastName)) {
+            res.status(400).json({ message: "First and last name must be 2-40 letters" });
+            return;
+        }
+
+        if (cleanPhone && !isValidPhone(cleanPhone)) {
+            res.status(400).json({ message: "Invalid phone number" });
+            return;
+        }
+
+        // Generate placeholder email if not provided
+        const isPlaceholder = !email;
+        let cleanEmail: string;
+        if (email) {
+            cleanEmail = normalizeEmail(String(email));
+            if (!isValidEmail(cleanEmail)) {
+                res.status(400).json({ message: "Invalid email format" });
+                return;
+            }
+        } else {
+            const base = `${cleanFirstName.toLowerCase()}.${cleanLastName.toLowerCase()}`.replace(/[^a-z.]/g, "");
+            cleanEmail = `${base}@client.agence47.ma`;
+            // Ensure uniqueness by appending a number if needed
+            let suffix = 0;
+            let candidate = cleanEmail;
+            while (await prisma.user.findUnique({ where: { email: candidate } })) {
+                suffix++;
+                candidate = `${base}${suffix}@client.agence47.ma`;
+            }
+            cleanEmail = candidate;
+        }
+
+        // Check email uniqueness for provided emails
+        if (!isPlaceholder) {
+            const existing = await prisma.user.findUnique({ where: { email: cleanEmail } });
+            if (existing) {
+                res.status(400).json({ message: "Email already in use" });
+                return;
+            }
+        }
+
+        // Generate a strong random password
+        const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#$%";
+        const randomPassword = Array.from({ length: 12 }, () => chars[Math.floor(Math.random() * chars.length)]).join("");
+        const hashedPassword = await bcrypt.hash(randomPassword, 10);
+
+        const user = await prisma.user.create({
+            data: {
+                firstName: cleanFirstName,
+                lastName: cleanLastName,
+                email: cleanEmail,
+                password: hashedPassword,
+                phone: cleanPhone,
+                role: "CLIENT",
+                provider: "LOCAL",
+                addedByAdminId: admin.id,
+                isPlaceholderEmail: isPlaceholder,
+            },
+        });
+
+        const { password, ...safeUser } = user;
+        res.status(201).json({ user: safeUser, generatedPassword: randomPassword });
+    } catch (error: any) {
+        res.status(500).json({ message: error.message });
+    }
+}
+
+export async function getAdminClients(req: Request, res: Response) {
+    try {
+        const admin = req.user as any;
+        if (!admin?.id) {
+            res.status(401).json({ message: "Unauthorized" });
+            return;
+        }
+
+        const clients = await prisma.user.findMany({
+            where: { addedByAdminId: admin.id, role: "CLIENT" },
+            select: { id: true, firstName: true, lastName: true, email: true, phone: true, isPlaceholderEmail: true, createdAt: true },
+            orderBy: { createdAt: "desc" },
+        });
+
+        res.status(200).json(clients);
+    } catch (error: any) {
+        res.status(500).json({ message: error.message });
+    }
+}
+
+export async function verifyEmailChange(req: Request, res: Response) {
+    try {
+        const { token } = req.query;
+        if (!token || typeof token !== "string") {
+            res.status(400).json({ message: "Token is required" });
+            return;
+        }
+
+        let decoded: any;
+        try {
+            decoded = jwt.verify(token, JWT_SECRET);
+        } catch {
+            res.status(400).json({ message: "Invalid or expired link" });
+            return;
+        }
+
+        if (decoded.purpose !== "email-change" || !decoded.id || !decoded.newEmail) {
+            res.status(400).json({ message: "Invalid token" });
+            return;
+        }
+
+        const existing = await prisma.user.findUnique({ where: { email: decoded.newEmail } });
+        if (existing) {
+            res.status(400).json({ message: "This email is already in use" });
+            return;
+        }
+
+        const updated = await prisma.user.update({
+            where: { id: decoded.id },
+            data: { email: decoded.newEmail },
+        });
+
+        const { password, ...safeUser } = updated;
+        res.status(200).json({ user: safeUser, message: "Email updated successfully" });
     } catch (error: any) {
         res.status(500).json({ message: error.message });
     }

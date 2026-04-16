@@ -244,6 +244,23 @@ export const exportBriefDataHandler = async (req: Request, res: Response) => {
   }
 };
 
+export const adminCreateBriefForClientHandler = async (req: Request, res: Response) => {
+  try {
+    const auth = getAuth(req);
+    if (auth.role !== "ADMIN") return res.status(403).json({ error: "Forbidden" });
+
+    const clientId = req.params.clientId as string;
+    if (!clientId) return res.status(400).json({ error: "clientId is required" });
+
+    const body = createBriefSchema.parse(req.body);
+    const brief = await briefService.adminCreateBriefForClient(auth.userId, clientId, body);
+    res.status(201).json(brief);
+  } catch (error: any) {
+    if (error instanceof z.ZodError) return res.status(400).json({ errors: error.issues });
+    res.status(500).json({ error: error.message });
+  }
+};
+
 export const deleteBriefHandler = async (req: Request, res: Response) => {
   try {
     const auth = getAuth(req);

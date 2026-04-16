@@ -15,6 +15,7 @@ router.patch("/client/:briefId", briefController.updateClientBriefHandler);
 
 // Admin Routes
 router.get("/admin", briefController.getAllBriefsHandler);
+router.post("/admin/for-client/:clientId", briefController.adminCreateBriefForClientHandler);
 router.patch("/admin/:briefId/status", briefController.updateBriefStatusHandler);
 router.patch("/admin/:briefId/assign", briefController.assignBriefHandler);
 

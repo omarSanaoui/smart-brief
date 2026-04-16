@@ -264,15 +264,15 @@ export default function TaskSection({ briefId, userRole }: Props) {
                 <Portal>
                   <DatePicker.Positioner>
                     <DatePicker.Content className="ts-dp-popup z-[9999] rounded-xl border border-[#2E3A5C] bg-[#1a2238] p-3 text-white shadow-2xl">
-                      <DatePicker.View view="day" className="w-[260px]">
+                      <DatePicker.View view="day" className="w-[288px]">
                         <DatePicker.Header className="mb-2" />
                         <DatePicker.DayTable />
                       </DatePicker.View>
-                      <DatePicker.View view="month" className="w-[260px]">
+                      <DatePicker.View view="month" className="w-[288px]">
                         <DatePicker.Header className="mb-2" />
                         <DatePicker.MonthTable />
                       </DatePicker.View>
-                      <DatePicker.View view="year" className="w-[260px]">
+                      <DatePicker.View view="year" className="w-[288px]">
                         <DatePicker.Header className="mb-2" />
                         <DatePicker.YearTable />
                       </DatePicker.View>
@@ -305,15 +305,15 @@ export default function TaskSection({ briefId, userRole }: Props) {
                 <Portal>
                   <DatePicker.Positioner>
                     <DatePicker.Content className="ts-dp-popup z-[9999] rounded-xl border border-[#2E3A5C] bg-[#1a2238] p-3 text-white shadow-2xl">
-                      <DatePicker.View view="day" className="w-[260px]">
+                      <DatePicker.View view="day" className="w-[288px]">
                         <DatePicker.Header className="mb-2" />
                         <DatePicker.DayTable />
                       </DatePicker.View>
-                      <DatePicker.View view="month" className="w-[260px]">
+                      <DatePicker.View view="month" className="w-[288px]">
                         <DatePicker.Header className="mb-2" />
                         <DatePicker.MonthTable />
                       </DatePicker.View>
-                      <DatePicker.View view="year" className="w-[260px]">
+                      <DatePicker.View view="year" className="w-[288px]">
                         <DatePicker.Header className="mb-2" />
                         <DatePicker.YearTable />
                       </DatePicker.View>
@@ -380,13 +380,13 @@ export default function TaskSection({ briefId, userRole }: Props) {
         .ts-dp-input::placeholder { color: rgba(255,255,255,0.3) !important; }
         .ts-dp-input:hover, .ts-dp-input:focus, .ts-dp-input:focus-visible { border: none !important; outline: none !important; box-shadow: none !important; }
 
-        .ts-dp-popup { min-width: 260px; border-radius: 14px; border: 1px solid #2E3A5C; background: #1A2238; box-shadow: 0 24px 60px rgba(0,0,0,0.42); }
+        .ts-dp-popup { min-width: 312px; border-radius: 14px; border: 1px solid #2E3A5C; background: #1A2238; box-shadow: 0 24px 60px rgba(0,0,0,0.42); }
         .ts-dp-popup [data-part="view-control"] { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
         .ts-dp-popup [data-part="prev-trigger"], .ts-dp-popup [data-part="next-trigger"], .ts-dp-popup [data-part="view-trigger"] { border-radius: 8px; color: white !important; transition: background-color 0.2s; }
         .ts-dp-popup [data-part="prev-trigger"]:hover, .ts-dp-popup [data-part="next-trigger"]:hover, .ts-dp-popup [data-part="view-trigger"]:hover { background: rgba(255,255,255,0.08); }
         .ts-dp-popup [data-part="table"] { width: 100%; border-collapse: separate; border-spacing: 4px; }
         .ts-dp-popup [data-part="table-header"] { color: rgba(255,255,255,0.45) !important; font-size: 11px; font-weight: 500; text-align: center; padding-bottom: 4px; }
-        .ts-dp-popup [data-part="table-cell-trigger"] { width: 32px; height: 32px; border: none !important; outline: none !important; border-radius: 8px; color: white !important; font-size: 12px; transition: background-color 0.2s; }
+        .ts-dp-popup [data-part="table-cell-trigger"] { height: 32px; border: none !important; outline: none !important; border-radius: 8px; color: white !important; font-size: 12px; transition: background-color 0.2s; }
         .ts-dp-popup [data-part="table-cell-trigger"]:hover { background: rgba(103,207,177,0.18); }
         .ts-dp-popup [data-part="table-cell-trigger"][data-selected] { background: #414CC4; color: white !important; }
         .ts-dp-popup [data-part="table-cell-trigger"][data-today] { box-shadow: inset 0 0 0 1px rgba(103,207,177,0.55); }

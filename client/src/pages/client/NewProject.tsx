@@ -350,15 +350,15 @@ export default function NewProject() {
               <Portal>
                 <DatePicker.Positioner>
                   <DatePicker.Content className="project-date-picker-popup z-50 rounded-xl border border-[#2E3A5C] bg-[#1a2238] p-3 text-white shadow-2xl">
-                    <DatePicker.View view="day" className="w-[280px]">
+                    <DatePicker.View view="day" className="w-[288px]">
                       <DatePicker.Header className="mb-3" />
                       <DatePicker.DayTable />
                     </DatePicker.View>
-                    <DatePicker.View view="month" className="w-[280px]">
+                    <DatePicker.View view="month" className="w-[288px]">
                       <DatePicker.Header className="mb-3" />
                       <DatePicker.MonthTable />
                     </DatePicker.View>
-                    <DatePicker.View view="year" className="w-[280px]">
+                    <DatePicker.View view="year" className="w-[288px]">
                       <DatePicker.Header className="mb-3" />
                       <DatePicker.YearTable />
                     </DatePicker.View>
@@ -490,7 +490,7 @@ export default function NewProject() {
         }
 
         .project-date-picker-popup {
-          min-width: 280px;
+          min-width: 312px;
           border-radius: 14px;
           border: 1px solid #2E3A5C;
           background: #1A2238;
@@ -538,7 +538,6 @@ export default function NewProject() {
         }
 
         .project-date-picker-popup [data-part="table-cell-trigger"] {
-          width: 34px;
           height: 34px;
           border: none !important;
           outline: none !important;

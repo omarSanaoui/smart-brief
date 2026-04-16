@@ -291,6 +291,9 @@ export default function NewProject() {
               onChange={(val: MultiValue<SelectOption>) => setFeatures([...val])}
               placeholder="Must-Have Features"
               styles={selectStyles}
+              menuPlacement="top"
+              maxMenuHeight={200}
+              classNamePrefix="feat-sel"
             />
 
             <div className="flex justify-between mt-6">
@@ -441,6 +444,22 @@ export default function NewProject() {
       </div>
 
       <style>{`
+        /* ── Global scrollbar styling ── */
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #414CC4; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #67CFB1; }
+
+        /* Features dropdown list scrollbar */
+        .feat-sel__menu-list {
+          scrollbar-width: thin;
+          scrollbar-color: #414CC4 transparent;
+        }
+        .feat-sel__menu-list::-webkit-scrollbar { width: 4px; }
+        .feat-sel__menu-list::-webkit-scrollbar-track { background: transparent; }
+        .feat-sel__menu-list::-webkit-scrollbar-thumb { background: #414CC4; border-radius: 10px; }
+        .feat-sel__menu-list::-webkit-scrollbar-thumb:hover { background: #67CFB1; }
+
         .project-date-picker-input {
           color: white !important;
           caret-color: white;

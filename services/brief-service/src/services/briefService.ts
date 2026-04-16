@@ -1,7 +1,7 @@
 import prisma from "../../db/prisma.js";
 
 export type UserRole = "ADMIN" | "CLIENT" | "EMPLOYEE";
-export type ProjectType = "WEB" | "MOBILE" | "DESKTOP" | "UI_UX" | "BRANDING" | "OTHER";
+export type ProjectType = "SITE_WEB" | "SEO" | "GOOGLE_ADS" | "SOCIAL_MEDIA" | "PHOTO_VIDEO" | "EMAIL_MARKETING" | "COMMUNITY_MANAGER" | "BRANDING" | "OTHER";
 export type BriefStatus = "PENDING" | "ACCEPTED" | "REFUSED" | "IN_PROGRESS" | "COMPLETED";
 
 export interface AuthContext {

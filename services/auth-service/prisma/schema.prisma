@@ -31,6 +31,8 @@ model User {
   provider Provider @default(LOCAL)
   googleId String? @unique
   role Role @default(CLIENT)
+  addedByAdminId String?
+  isPlaceholderEmail Boolean @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

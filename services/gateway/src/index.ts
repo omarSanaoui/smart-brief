@@ -36,6 +36,7 @@ const publicRoutes = [
     { path: "/auth/login", method: "POST" },
     { path: "/auth/forgot-password", method: "POST" },
     { path: "/auth/reset-password", method: "POST" },
+    { path: "/auth/verify-email-change", method: "GET" },
     { path: "/auth/google", method: "GET" },
     { path: "/auth/google/callback", method: "GET" },
     { path: "/api/users/internal", method: "GET" },

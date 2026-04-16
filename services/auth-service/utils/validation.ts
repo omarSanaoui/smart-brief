@@ -19,7 +19,6 @@ export function isStrongPassword(password: string): boolean {
   if (!/[A-Z]/.test(password)) return false;
   if (!/[a-z]/.test(password)) return false;
   if (!/\d/.test(password)) return false;
-  if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) return false;
   return true;
 }
 

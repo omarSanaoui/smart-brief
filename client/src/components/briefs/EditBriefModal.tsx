@@ -306,15 +306,15 @@ export default function EditBriefModal({ brief, isOpen, onClose }: EditBriefModa
                 <Portal>
                   <DatePicker.Positioner>
                     <DatePicker.Content className="edit-dp-popup z-[200] rounded-xl border border-[#2E3A5C] bg-[#1a2238] p-3 text-white shadow-2xl">
-                      <DatePicker.View view="day" className="w-[288px]">
+                      <DatePicker.View view="day" className="w-[320px]">
                         <DatePicker.Header className="mb-3" />
                         <DatePicker.DayTable />
                       </DatePicker.View>
-                      <DatePicker.View view="month" className="w-[288px]">
+                      <DatePicker.View view="month" className="w-[320px]">
                         <DatePicker.Header className="mb-3" />
                         <DatePicker.MonthTable />
                       </DatePicker.View>
-                      <DatePicker.View view="year" className="w-[288px]">
+                      <DatePicker.View view="year" className="w-[320px]">
                         <DatePicker.Header className="mb-3" />
                         <DatePicker.YearTable />
                       </DatePicker.View>
@@ -415,7 +415,7 @@ export default function EditBriefModal({ brief, isOpen, onClose }: EditBriefModa
         .edit-dp-control { border-color: #2E3A5C !important; box-shadow: none !important; }
         .edit-dp-control:focus-within { border-color: #67CFB1 !important; box-shadow: 0 0 0 1px #67CFB1 !important; }
 
-        .edit-dp-popup { min-width: 312px; border-radius: 14px; border: 1px solid #2E3A5C; background: #1A2238; box-shadow: 0 24px 60px rgba(0,0,0,0.42); }
+        .edit-dp-popup { min-width: 344px; border-radius: 14px; border: 1px solid #2E3A5C; background: #1A2238; box-shadow: 0 24px 60px rgba(0,0,0,0.42); }
         .edit-dp-popup [data-part="view-control"] { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
         .edit-dp-popup [data-part="prev-trigger"],
         .edit-dp-popup [data-part="next-trigger"],

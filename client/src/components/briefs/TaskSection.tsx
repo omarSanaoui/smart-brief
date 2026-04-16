@@ -264,15 +264,15 @@ export default function TaskSection({ briefId, userRole }: Props) {
                 <Portal>
                   <DatePicker.Positioner>
                     <DatePicker.Content className="ts-dp-popup z-[9999] rounded-xl border border-[#2E3A5C] bg-[#1a2238] p-3 text-white shadow-2xl">
-                      <DatePicker.View view="day" className="w-[288px]">
+                      <DatePicker.View view="day" className="w-[320px]">
                         <DatePicker.Header className="mb-2" />
                         <DatePicker.DayTable />
                       </DatePicker.View>
-                      <DatePicker.View view="month" className="w-[288px]">
+                      <DatePicker.View view="month" className="w-[320px]">
                         <DatePicker.Header className="mb-2" />
                         <DatePicker.MonthTable />
                       </DatePicker.View>
-                      <DatePicker.View view="year" className="w-[288px]">
+                      <DatePicker.View view="year" className="w-[320px]">
                         <DatePicker.Header className="mb-2" />
                         <DatePicker.YearTable />
                       </DatePicker.View>
@@ -305,15 +305,15 @@ export default function TaskSection({ briefId, userRole }: Props) {
                 <Portal>
                   <DatePicker.Positioner>
                     <DatePicker.Content className="ts-dp-popup z-[9999] rounded-xl border border-[#2E3A5C] bg-[#1a2238] p-3 text-white shadow-2xl">
-                      <DatePicker.View view="day" className="w-[288px]">
+                      <DatePicker.View view="day" className="w-[320px]">
                         <DatePicker.Header className="mb-2" />
                         <DatePicker.DayTable />
                       </DatePicker.View>
-                      <DatePicker.View view="month" className="w-[288px]">
+                      <DatePicker.View view="month" className="w-[320px]">
                         <DatePicker.Header className="mb-2" />
                         <DatePicker.MonthTable />
                       </DatePicker.View>
-                      <DatePicker.View view="year" className="w-[288px]">
+                      <DatePicker.View view="year" className="w-[320px]">
                         <DatePicker.Header className="mb-2" />
                         <DatePicker.YearTable />
                       </DatePicker.View>
@@ -380,7 +380,7 @@ export default function TaskSection({ briefId, userRole }: Props) {
         .ts-dp-input::placeholder { color: rgba(255,255,255,0.3) !important; }
         .ts-dp-input:hover, .ts-dp-input:focus, .ts-dp-input:focus-visible { border: none !important; outline: none !important; box-shadow: none !important; }
 
-        .ts-dp-popup { min-width: 312px; border-radius: 14px; border: 1px solid #2E3A5C; background: #1A2238; box-shadow: 0 24px 60px rgba(0,0,0,0.42); }
+        .ts-dp-popup { min-width: 344px; border-radius: 14px; border: 1px solid #2E3A5C; background: #1A2238; box-shadow: 0 24px 60px rgba(0,0,0,0.42); }
         .ts-dp-popup [data-part="view-control"] { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
         .ts-dp-popup [data-part="prev-trigger"], .ts-dp-popup [data-part="next-trigger"], .ts-dp-popup [data-part="view-trigger"] { border-radius: 8px; color: white !important; transition: background-color 0.2s; }
         .ts-dp-popup [data-part="prev-trigger"]:hover, .ts-dp-popup [data-part="next-trigger"]:hover, .ts-dp-popup [data-part="view-trigger"]:hover { background: rgba(255,255,255,0.08); }

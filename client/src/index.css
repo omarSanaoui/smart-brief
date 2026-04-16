@@ -7,3 +7,13 @@
   --color-sbpurple: #414CC4;
   --color-sbteal: #67CFB1;
 }
+
+/* ── Global scrollbar ── */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #414CC4 transparent;
+}
+*::-webkit-scrollbar { width: 4px; height: 4px; }
+*::-webkit-scrollbar-track { background: transparent; }
+*::-webkit-scrollbar-thumb { background: #414CC4; border-radius: 10px; }
+*::-webkit-scrollbar-thumb:hover { background: #67CFB1; }

@@ -192,8 +192,8 @@ export default function TaskSection({ briefId, userRole }: Props) {
             {editingId ? "Edit Task" : "New Task"}
           </p>
           {formError && <p className="mb-3 text-rose-400 text-xs">{formError}</p>}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div className="sm:col-span-2">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="sm:col-span-3">
               <input
                 value={form.name}
                 onChange={e => setForm(p => ({ ...p, name: e.target.value }))}
@@ -201,7 +201,7 @@ export default function TaskSection({ briefId, userRole }: Props) {
                 className="w-full bg-[#2D3652] border border-[#2E3A5C] rounded-lg px-3 py-2.5 text-white placeholder-white/30 text-sm focus:outline-none focus:border-sbteal transition-colors"
               />
             </div>
-            <div className="sm:col-span-2">
+            <div className="sm:col-span-3">
               <textarea
                 value={form.description}
                 onChange={e => setForm(p => ({ ...p, description: e.target.value }))}

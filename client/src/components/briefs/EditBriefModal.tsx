@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
-import { X, Save, AlertTriangle, Calendar } from "lucide-react";
-import Select from "react-select";
-import type { StylesConfig } from "react-select";
-import { DatePicker, Portal } from "@chakra-ui/react";
+import { X, Save, AlertTriangle, Calendar, ChevronDown } from "lucide-react";
+import { DatePicker, Portal, Select, createListCollection } from "@chakra-ui/react";
 import { fromDate, getLocalTimeZone } from "@internationalized/date";
 import { useAppDispatch } from "../../app/hooks";
 import { updateBriefThunk } from "../../features/briefs/briefSlice/briefThunk";
@@ -20,51 +18,10 @@ type FormState = {
   description: string;
   budgetRange: string;
   deadline: Date | null;
-  featuresText: string; // one per line or comma-separated
+  featuresText: string;
 };
 
-type SelectOption = { value: string; label: string };
-
-const selectStyles = (disabled: boolean): StylesConfig<SelectOption, false> => ({
-  control: (base, state) => ({
-    ...base,
-    backgroundColor: "#2D3652",
-    borderColor: state.isFocused ? "#67CFB1" : "#2E3A5C",
-    borderRadius: "6px",
-    padding: "4px 4px",
-    boxShadow: "none",
-    opacity: disabled ? 0.6 : 1,
-    pointerEvents: disabled ? "none" : "auto",
-    "&:hover": { borderColor: "#67CFB1" },
-  }),
-  menu: (base) => ({
-    ...base,
-    backgroundColor: "#1e2a42",
-    border: "1px solid #2E3A5C",
-    borderRadius: "8px",
-    zIndex: 9999,
-  }),
-  menuPortal: (base) => ({ ...base, zIndex: 9999 }),
-  option: (base, state) => ({
-    ...base,
-    backgroundColor: state.isFocused ? "#414CC4" : "transparent",
-    color: "white",
-    fontSize: "13px",
-    cursor: "pointer",
-    "&:active": { backgroundColor: "#67CFB1" },
-  }),
-  singleValue: (base) => ({ ...base, color: "#fff", fontSize: "13px" }),
-  placeholder: (base) => ({ ...base, color: "rgba(255,255,255,0.4)", fontSize: "13px" }),
-  input: (base) => ({ ...base, color: "#fff" }),
-  indicatorSeparator: () => ({ display: "none" }),
-  dropdownIndicator: (base, state) => ({
-    ...base,
-    color: state.isFocused ? "#67CFB1" : "rgba(255,255,255,0.4)",
-    "&:hover": { color: "#67CFB1" },
-  }),
-});
-
-const projectTypeOptions: Array<{ value: ProjectType; label: string }> = [
+const projectTypeItems = [
   { value: "SITE_WEB", label: "Website Design & Development" },
   { value: "SEO", label: "Natural SEO" },
   { value: "GOOGLE_ADS", label: "Google Paid Ads" },
@@ -75,6 +32,17 @@ const projectTypeOptions: Array<{ value: ProjectType; label: string }> = [
   { value: "BRANDING", label: "Branding & Visual Identity" },
   { value: "OTHER", label: "Other" },
 ];
+
+const budgetItems = [
+  { value: "3 000 – 10 000 MAD", label: "3 000 – 10 000 MAD" },
+  { value: "10 000 – 25 000 MAD", label: "10 000 – 25 000 MAD" },
+  { value: "25 000 – 50 000 MAD", label: "25 000 – 50 000 MAD" },
+  { value: "50 000 – 100 000 MAD", label: "50 000 – 100 000 MAD" },
+  { value: "100 000+ MAD", label: "100 000+ MAD" },
+];
+
+const projectTypeCollection = createListCollection({ items: projectTypeItems });
+const budgetCollection = createListCollection({ items: budgetItems });
 
 const parseFeatures = (text: string) => {
   const split = text
@@ -111,6 +79,7 @@ export default function EditBriefModal({ brief, isOpen, onClose }: EditBriefModa
   if (!canRender || !brief) return null;
 
   const canEdit = brief.status === "PENDING";
+  const disabled = !canEdit || saving;
 
   const handleSave = async () => {
     if (!canEdit) return;
@@ -204,41 +173,94 @@ export default function EditBriefModal({ brief, isOpen, onClose }: EditBriefModa
               <input
                 value={form.title}
                 onChange={(e) => setForm((prev) => ({ ...prev, title: e.target.value }))}
-                disabled={!canEdit || saving}
+                disabled={disabled}
                 className="w-full bg-[#2D3652] border border-[#2E3A5C] rounded-md px-4 py-3 text-white placeholder-white/40 text-sm focus:outline-none focus:border-sbteal transition-colors disabled:opacity-60"
                 placeholder="Project title..."
               />
             </div>
 
-            <div>
+            {/* Project Type */}
+            <div className={disabled ? "opacity-60 pointer-events-none" : ""}>
               <label className="block text-white/60 uppercase tracking-widest text-[10px] font-bold mb-2">
                 Project Type
               </label>
-              <Select
-                options={projectTypeOptions}
-                value={projectTypeOptions.find(o => o.value === form.projectType) ?? null}
-                onChange={(opt) => opt && setForm((prev) => ({ ...prev, projectType: opt.value as ProjectType }))}
-                isDisabled={!canEdit || saving}
-                styles={selectStyles(!canEdit || saving)}
-                placeholder="Select project type..."
-                menuPortalTarget={document.body}
-              />
+              <Select.Root
+                collection={projectTypeCollection}
+                value={[form.projectType]}
+                onValueChange={({ value }) =>
+                  setForm((prev) => ({ ...prev, projectType: value[0] as ProjectType }))
+                }
+                positioning={{ placement: "bottom-start", sameWidth: true }}
+              >
+                <Select.HiddenSelect />
+                <Select.Control className="eb-select-control w-full rounded-md border border-[#2E3A5C] bg-[#2D3652] transition-colors">
+                  <Select.Trigger className="eb-select-trigger flex w-full items-center justify-between px-4 py-3 text-sm text-white focus:outline-none">
+                    <Select.ValueText placeholder="Select project type..." className="text-sm text-white" />
+                    <Select.IndicatorGroup>
+                      <Select.Indicator><ChevronDown size={14} className="text-white/40" /></Select.Indicator>
+                    </Select.IndicatorGroup>
+                  </Select.Trigger>
+                </Select.Control>
+                <Portal>
+                  <Select.Positioner>
+                    <Select.Content className="eb-select-content z-[9999] rounded-lg border border-[#2E3A5C] bg-[#1e2a42] py-1 shadow-2xl">
+                      {projectTypeCollection.items.map((item) => (
+                        <Select.Item
+                          key={item.value}
+                          item={item}
+                          className="eb-select-item flex cursor-pointer items-center px-4 py-2.5 text-sm text-white transition-colors"
+                        >
+                          <Select.ItemText>{item.label}</Select.ItemText>
+                        </Select.Item>
+                      ))}
+                    </Select.Content>
+                  </Select.Positioner>
+                </Portal>
+              </Select.Root>
             </div>
 
-            <div>
+            {/* Budget Range */}
+            <div className={disabled ? "opacity-60 pointer-events-none" : ""}>
               <label className="block text-white/60 uppercase tracking-widest text-[10px] font-bold mb-2">
                 Budget Range
               </label>
-              <input
-                value={form.budgetRange}
-                onChange={(e) => setForm((prev) => ({ ...prev, budgetRange: e.target.value }))}
-                disabled={!canEdit || saving}
-                className="w-full bg-[#2D3652] border border-[#2E3A5C] rounded-md px-4 py-3 text-white placeholder-white/40 text-sm focus:outline-none focus:border-sbteal transition-colors disabled:opacity-60"
-                placeholder="ex: 25 000 – 50 000 MAD"
-              />
+              <Select.Root
+                collection={budgetCollection}
+                value={form.budgetRange ? [form.budgetRange] : []}
+                onValueChange={({ value }) =>
+                  setForm((prev) => ({ ...prev, budgetRange: value[0] ?? "" }))
+                }
+                positioning={{ placement: "bottom-start", sameWidth: true }}
+              >
+                <Select.HiddenSelect />
+                <Select.Control className="eb-select-control w-full rounded-md border border-[#2E3A5C] bg-[#2D3652] transition-colors">
+                  <Select.Trigger className="eb-select-trigger flex w-full items-center justify-between px-4 py-3 text-sm text-white focus:outline-none">
+                    <Select.ValueText placeholder="Select budget range..." className="text-sm text-white" />
+                    <Select.IndicatorGroup>
+                      <Select.Indicator><ChevronDown size={14} className="text-white/40" /></Select.Indicator>
+                    </Select.IndicatorGroup>
+                  </Select.Trigger>
+                </Select.Control>
+                <Portal>
+                  <Select.Positioner>
+                    <Select.Content className="eb-select-content z-[9999] rounded-lg border border-[#2E3A5C] bg-[#1e2a42] py-1 shadow-2xl">
+                      {budgetCollection.items.map((item) => (
+                        <Select.Item
+                          key={item.value}
+                          item={item}
+                          className="eb-select-item flex cursor-pointer items-center px-4 py-2.5 text-sm text-white transition-colors"
+                        >
+                          <Select.ItemText>{item.label}</Select.ItemText>
+                        </Select.Item>
+                      ))}
+                    </Select.Content>
+                  </Select.Positioner>
+                </Portal>
+              </Select.Root>
             </div>
 
-            <div className={!canEdit || saving ? "opacity-60 pointer-events-none" : ""}>
+            {/* Deadline */}
+            <div className={disabled ? "opacity-60 pointer-events-none" : ""}>
               <label className="block text-white/60 uppercase tracking-widest text-[10px] font-bold mb-2">
                 Deadline
               </label>
@@ -293,7 +315,7 @@ export default function EditBriefModal({ brief, isOpen, onClose }: EditBriefModa
               <textarea
                 value={form.description}
                 onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
-                disabled={!canEdit || saving}
+                disabled={disabled}
                 rows={5}
                 className="w-full bg-[#2D3652] border border-[#2E3A5C] rounded-md px-4 py-3 text-white placeholder-white/40 text-sm focus:outline-none focus:border-sbteal transition-colors resize-none disabled:opacity-60"
                 placeholder="Describe the project scope and goals..."
@@ -307,7 +329,7 @@ export default function EditBriefModal({ brief, isOpen, onClose }: EditBriefModa
               <textarea
                 value={form.featuresText}
                 onChange={(e) => setForm((prev) => ({ ...prev, featuresText: e.target.value }))}
-                disabled={!canEdit || saving}
+                disabled={disabled}
                 rows={4}
                 className="w-full bg-[#2D3652] border border-[#2E3A5C] rounded-md px-4 py-3 text-white placeholder-white/40 text-sm focus:outline-none focus:border-sbteal transition-colors resize-none disabled:opacity-60"
                 placeholder={"One per line, or comma-separated.\nExample:\nLogin\nPayments\nDashboard"}
@@ -329,7 +351,7 @@ export default function EditBriefModal({ brief, isOpen, onClose }: EditBriefModa
             <button
               type="button"
               onClick={handleSave}
-              disabled={!canEdit || saving}
+              disabled={disabled}
               className="px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest bg-sbpurple hover:bg-[#3a44b0] disabled:opacity-50 disabled:cursor-not-allowed text-white border border-sbpurple/30 transition-all flex items-center gap-2"
             >
               <Save size={16} /> {saving ? "Saving..." : "Save Changes"}
@@ -344,13 +366,16 @@ export default function EditBriefModal({ brief, isOpen, onClose }: EditBriefModa
         .thin-scrollbar::-webkit-scrollbar-thumb { background: #2E3A5C; border-radius: 10px; }
         .thin-scrollbar::-webkit-scrollbar-thumb:hover { background: #414CC4; }
 
+        .eb-select-control { border-color: #2E3A5C !important; box-shadow: none !important; }
+        .eb-select-trigger:focus, .eb-select-trigger:focus-visible { outline: none !important; box-shadow: none !important; }
+        .eb-select-control:focus-within { border-color: #67CFB1 !important; box-shadow: 0 0 0 1px #67CFB1 !important; }
+        .eb-select-item:hover { background: #414CC4; }
+        .eb-select-item[data-highlighted] { background: #414CC4; }
+        .eb-select-item[data-selected] { background: #414CC4cc; }
+
         .edit-dp-input {
-          color: white !important;
-          caret-color: white;
-          border: none !important;
-          outline: none !important;
-          box-shadow: none !important;
-          background: transparent !important;
+          color: white !important; caret-color: white;
+          border: none !important; outline: none !important; box-shadow: none !important; background: transparent !important;
         }
         .edit-dp-input::placeholder { color: rgba(255,255,255,0.4) !important; }
         .edit-dp-input:hover, .edit-dp-input:focus, .edit-dp-input:focus-visible {

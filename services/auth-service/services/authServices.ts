@@ -135,7 +135,7 @@ export async function requestPasswordReset(email: string) {
         return { message: "If this email is registered, a reset link has been sent" };
     }
 
-    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+    const frontendUrl = process.env.FRONTEND_URL || "https://smart-brief-six.vercel.app";
     const resetToken = jwt.sign(
         { id: user.id, purpose: "reset-password" },
         JWT_SECRET,

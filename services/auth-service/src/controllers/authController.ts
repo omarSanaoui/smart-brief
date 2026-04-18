@@ -186,7 +186,7 @@ export async function resendCode(req: Request, res: Response) {
 export async function googleCallback(req: Request, res: Response) {
     try {
         const { token } = req.user as any
-        const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+        const frontendUrl = process.env.FRONTEND_URL || "https://smart-brief-six.vercel.app";
         res.redirect(`${frontendUrl}?token=${token}`);
     } catch (error: any) {
         res.status(500).json({ message: error.message });
@@ -319,7 +319,7 @@ export async function updateMe(req: Request, res: Response) {
                 JWT_SECRET,
                 { expiresIn: "1h" }
             );
-            const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+            const frontendUrl = process.env.FRONTEND_URL || "https://smart-brief-six.vercel.app";
             const confirmLink = `${frontendUrl}/verify-email-change?token=${token}`;
 
             sendEmailChangeVerification(pendingEmailChange, requester.firstName, confirmLink).catch((err: any) =>

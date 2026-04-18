@@ -475,9 +475,16 @@ export async function adminCreateClient(req: Request, res: Response) {
             }
         }
 
-        // Generate a strong random password
-        const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#$%";
-        const randomPassword = Array.from({ length: 12 }, () => chars[Math.floor(Math.random() * chars.length)]).join("");
+        // Generate a password matching validation rules: uppercase + lowercase + number, no special chars
+        const upper = "ABCDEFGHJKLMNPQRSTUVWXYZ";
+        const lower = "abcdefghjkmnpqrstuvwxyz";
+        const digits = "23456789";
+        const all = upper + lower + digits;
+        const rand = (pool: string) => pool[Math.floor(Math.random() * pool.length)];
+        const randomPassword = [
+            rand(upper), rand(lower), rand(digits),
+            ...Array.from({ length: 9 }, () => rand(all))
+        ].sort(() => Math.random() - 0.5).join("");
         const hashedPassword = await bcrypt.hash(randomPassword, 10);
 
         const user = await prisma.user.create({

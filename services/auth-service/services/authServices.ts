@@ -142,7 +142,7 @@ export async function requestPasswordReset(email: string) {
         { expiresIn: "30m" }
     );
 
-    const resetLink = `${frontendUrl}/reset-password?token=${resetToken}`;
+    const resetLink = `${frontendUrl}/reset-password/${resetToken}`;
     await sendPasswordResetEmail(email, resetLink);
 
     return { message: "If this email is registered, a reset link has been sent" };

@@ -80,12 +80,12 @@ export default function SmarBriefApp() {
           <Route path="/assigned-briefs" element={<BriefsDashboard />} />
           <Route path="/briefs/:id" element={<BriefDetails />} />
           <Route path="/admin/new-project" element={<AdminNewProject />} />
-          <Route path="/verify-email-change" element={<VerifyEmailChange />} />
+          <Route path="/verify-email-change/:token" element={<VerifyEmailChange />} />
           <Route path="/register" element={<Register />} />
           <Route path='/verify-code' element={<VerifyCode />} />
           <Route path='/login' element={<Login />} />
           <Route path='/forgot-password' element={<ForgotPassword />} />
-          <Route path='/reset-password' element={<ResetPassword />} />
+          <Route path='/reset-password/:token' element={<ResetPassword />} />
         </Routes>
         </div>
         <Footer />

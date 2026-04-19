@@ -320,7 +320,7 @@ export async function updateMe(req: Request, res: Response) {
                 { expiresIn: "1h" }
             );
             const frontendUrl = process.env.FRONTEND_URL || "https://smart-brief-six.vercel.app";
-            const confirmLink = `${frontendUrl}/verify-email-change?token=${token}`;
+            const confirmLink = `${frontendUrl}/verify-email-change/${token}`;
 
             sendEmailChangeVerification(pendingEmailChange, requester.firstName, confirmLink).catch((err: any) =>
                 console.error("[EMAIL] Failed to send email change verification:", err?.message ?? err)

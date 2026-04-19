@@ -1,13 +1,12 @@
-import { useMemo, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { useState } from "react";
+import { Link, useParams } from "react-router-dom";
 import api from "../../features/auth/api/authAxios";
 import axios from "axios";
 import { getPasswordRules, isPasswordStrong } from "../../utils/validators";
 import { Eye, EyeOff } from "lucide-react";
 
 export default function ResetPassword() {
-  const [searchParams] = useSearchParams();
-  const token = useMemo(() => searchParams.get("token")?.trim() || "", [searchParams]);
+  const { token = "" } = useParams<{ token: string }>();
 
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");

@@ -1,19 +1,18 @@
 import { useEffect, useState } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { CheckCircle, XCircle, Loader } from "lucide-react";
 import authApi from "../../features/auth/api/authAxios";
 import { useAppDispatch } from "../../app/hooks";
 import { getMeThunk } from "../../features/auth/authSlice/authThunk";
 
 export default function VerifyEmailChange() {
-    const [searchParams] = useSearchParams();
+    const { token } = useParams<{ token: string }>();
     const navigate = useNavigate();
     const dispatch = useAppDispatch();
     const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
     const [message, setMessage] = useState("");
 
     useEffect(() => {
-        const token = searchParams.get("token");
         if (!token) {
             setStatus("error");
             setMessage("No token found in the link.");
@@ -30,7 +29,7 @@ export default function VerifyEmailChange() {
                 setStatus("error");
                 setMessage(err.response?.data?.message || "This link is invalid or has expired.");
             });
-    }, []);
+    }, [token]);
 
     return (
         <div className="min-h-[calc(100vh-80px)] flex flex-col items-center justify-center px-4">

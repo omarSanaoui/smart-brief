@@ -6,10 +6,12 @@ import { logout } from "../features/auth/authSlice/authSlice";
 import { LogOut } from "lucide-react";
 import { useMemo, useState } from "react";
 import UserProfileModal from "./UserProfileModal";
+import { useTranslation } from "react-i18next";
 
 export default function Navbar() {
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
+    const { t, i18n } = useTranslation();
     const [isProfileOpen, setIsProfileOpen] = useState(false);
 
     const isLoggedIn = useAppSelector(selectIsLoggedIn);
@@ -29,27 +31,43 @@ export default function Navbar() {
         navigate("/");
     }
 
+    function toggleLanguage() {
+        const next = i18n.language === "en" ? "fr" : "en";
+        i18n.changeLanguage(next);
+        localStorage.setItem("sb-lang", next);
+    }
+
     const activeLink = "text-sbteal border-b-2 border-sbteal pb-0.5";
     const inactiveLink = "text-white/80 hover:text-sbteal transition-colors";
 
+    const LangToggle = () => (
+        <button
+            type="button"
+            onClick={toggleLanguage}
+            className="text-white/60 hover:text-sbteal transition-colors text-[12px] font-black uppercase tracking-widest border border-[#2E3A5C] hover:border-sbteal px-2.5 py-1 rounded-md"
+        >
+            {i18n.language === "en" ? "FR" : "EN"}
+        </button>
+    );
+
     const navLinks = (
         <>
-            <NavLink to="/" className={({ isActive }) => isActive ? activeLink : inactiveLink}>Home</NavLink>
-            <a href="https://agence47.ma/" className={inactiveLink} target="_blank" rel="noopener noreferrer">Agency</a>
+            <NavLink to="/" className={({ isActive }) => isActive ? activeLink : inactiveLink}>{t("nav.home")}</NavLink>
+            <a href="https://agence47.ma/" className={inactiveLink} target="_blank" rel="noopener noreferrer">{t("nav.agency")}</a>
             {isClient && (
                 <>
-                    <NavLink to="/new-project" className={({ isActive }) => isActive ? activeLink : inactiveLink}>Create Project</NavLink>
-                    <NavLink to="/my-briefs" className={({ isActive }) => isActive ? activeLink : inactiveLink}>My Briefs</NavLink>
+                    <NavLink to="/new-project" className={({ isActive }) => isActive ? activeLink : inactiveLink}>{t("nav.createProject")}</NavLink>
+                    <NavLink to="/my-briefs" className={({ isActive }) => isActive ? activeLink : inactiveLink}>{t("nav.myBriefs")}</NavLink>
                 </>
             )}
             {isAdmin && (
                 <>
-                    <NavLink to="/briefs" className={({ isActive }) => isActive ? activeLink : inactiveLink}>Briefs</NavLink>
-                    <NavLink to="/admin/new-project" className={({ isActive }) => isActive ? activeLink : inactiveLink}>New Project</NavLink>
+                    <NavLink to="/briefs" className={({ isActive }) => isActive ? activeLink : inactiveLink}>{t("nav.briefs")}</NavLink>
+                    <NavLink to="/admin/new-project" className={({ isActive }) => isActive ? activeLink : inactiveLink}>{t("nav.newProject")}</NavLink>
                 </>
             )}
             {isEmployee && (
-                <NavLink to="/assigned-briefs" className={({ isActive }) => isActive ? activeLink : inactiveLink}>Assigned Briefs</NavLink>
+                <NavLink to="/assigned-briefs" className={({ isActive }) => isActive ? activeLink : inactiveLink}>{t("nav.assignedBriefs")}</NavLink>
             )}
         </>
     );
@@ -69,13 +87,13 @@ export default function Navbar() {
                 </div>
 
                 <div className="flex items-center gap-3">
+                    <LangToggle />
                     {!isLoggedIn ? (
                         <>
-                            <Link to="/login" className="text-white/80 hover:text-sbteal transition-colors uppercase font-medium text-[14px] tracking-wide">Log In</Link>
-                            <Link to="/register" className="bg-sbpurple px-6 py-2 rounded-full hover:bg-[#3a44b0] transition-colors uppercase font-medium text-[14px]">Register</Link>
+                            <Link to="/login" className="text-white/80 hover:text-sbteal transition-colors uppercase font-medium text-[14px] tracking-wide">{t("nav.login")}</Link>
+                            <Link to="/register" className="bg-sbpurple px-6 py-2 rounded-full hover:bg-[#3a44b0] transition-colors uppercase font-medium text-[14px]">{t("nav.register")}</Link>
                         </>
                     ) : (
-                        /* Split pill: [avatar + name] | [signout] */
                         <div className="flex items-stretch rounded-full border border-[#2E3A5C] bg-[#2D3652]/40 overflow-hidden">
                             <button
                                 type="button"
@@ -105,20 +123,19 @@ export default function Navbar() {
 
             {/* ── Mobile bar ── */}
             <div className="md:hidden">
-                {/* Row 1: logo left, auth right */}
                 <div className="flex items-center justify-between px-4 py-3">
                     <Link to="/" className="shrink-0">
                         <Logo className="w-32" />
                     </Link>
 
                     <div className="flex items-center gap-2">
+                        <LangToggle />
                         {!isLoggedIn ? (
                             <>
-                                <Link to="/login" className="text-white/80 hover:text-sbteal transition-colors text-xs font-bold uppercase tracking-widest">Log In</Link>
-                                <Link to="/register" className="bg-sbpurple hover:bg-[#3a44b0] transition-colors text-xs font-bold uppercase tracking-widest px-4 py-2 rounded-full">Register</Link>
+                                <Link to="/login" className="text-white/80 hover:text-sbteal transition-colors text-xs font-bold uppercase tracking-widest">{t("nav.login")}</Link>
+                                <Link to="/register" className="bg-sbpurple hover:bg-[#3a44b0] transition-colors text-xs font-bold uppercase tracking-widest px-4 py-2 rounded-full">{t("nav.register")}</Link>
                             </>
                         ) : (
-                            /* Same split pill, compact */
                             <div className="flex items-stretch rounded-full border border-[#2E3A5C] bg-[#2D3652]/40 overflow-hidden">
                                 <button
                                     type="button"
@@ -145,10 +162,8 @@ export default function Navbar() {
                     </div>
                 </div>
 
-                {/* Thin border separator */}
                 <div className="border-t border-[#2E3A5C]/50" />
 
-                {/* Row 2: nav links centered */}
                 <div className="flex items-center justify-center gap-5 px-4 py-2.5 uppercase font-medium text-white text-[12px] flex-wrap">
                     {navLinks}
                 </div>

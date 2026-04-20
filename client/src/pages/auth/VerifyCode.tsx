@@ -4,11 +4,13 @@ import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import { verifyCodeThunk, resendCodeThunk } from "../../features/auth/authSlice/authThunk";
 import { selectAuthLoading, selectAuthError } from "../../features/auth/authSlice/authSelectors";
 import { isEmailValid, isVerificationCodeValid } from "../../utils/validators";
+import { useTranslation } from "react-i18next";
 
 export default function VerifyCode() {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const location = useLocation();
+  const { t } = useTranslation();
   const loading = useAppSelector(selectAuthLoading);
   const error = useAppSelector(selectAuthError);
   const [fieldErrors, setFieldErrors] = useState({ code: "" });
@@ -53,9 +55,7 @@ export default function VerifyCode() {
   };
 
   const handleKeyDown = (i: number, e: React.KeyboardEvent) => {
-    if (e.key === "Backspace" && !digits[i] && i > 0) {
-      inputs.current[i - 1]?.focus();
-    }
+    if (e.key === "Backspace" && !digits[i] && i > 0) inputs.current[i - 1]?.focus();
   };
 
   const handlePaste = (e: React.ClipboardEvent) => {
@@ -71,17 +71,13 @@ export default function VerifyCode() {
     e.preventDefault();
     const cleanEmail = email.trim().toLowerCase();
     const code = digits.join("");
-    let codeError = "";
 
     if (!isEmailValid(cleanEmail)) {
-      codeError = "Invalid email address. Please register again.";
-      setFieldErrors({ code: codeError });
+      setFieldErrors({ code: t("auth.verify.errors.invalidEmail") });
       return;
     }
-
     if (!isVerificationCodeValid(code)) {
-      codeError = "Please enter a valid 6-digit code.";
-      setFieldErrors({ code: codeError });
+      setFieldErrors({ code: t("auth.verify.errors.invalidCode") });
       return;
     }
 
@@ -96,27 +92,18 @@ export default function VerifyCode() {
 
   return (
     <section className="font-poppins text-white sm:min-h-[calc(100vh-80px)] flex flex-col items-center pt-10 sm:pt-16 pb-10 sm:pb-20 relative overflow-hidden px-4">
-
-      {/* Blobs */}
-      <div className="absolute right-0 top-0 bottom-0 w-1/2 pointer-events-none">
-        {/* Drop your blob SVGs/divs here */}
-      </div>
+      <div className="absolute right-0 top-0 bottom-0 w-1/2 pointer-events-none" />
 
       <h1 className="text-white text-3xl sm:text-5xl font-bold tracking-widest uppercase mb-6 z-10 text-center">
-        VERIFY EMAIL
+        {t("auth.verify.title")}
       </h1>
 
-      <p className="text-white/50 text-sm mb-2 z-10">We sent a 6-digit code to</p>
+      <p className="text-white/50 text-sm mb-2 z-10">{t("auth.verify.sentCode")}</p>
       <p className="text-[#00C9B1] text-sm font-mono mb-10 z-10">{email}</p>
 
-      {/* Error */}
-      {error && (
-        <p className="text-red-400 text-sm mb-4 z-10">{error}</p>
-      )}
+      {error && <p className="text-red-400 text-sm mb-4 z-10">{error}</p>}
 
       <form onSubmit={handleSubmit} className="flex flex-col items-center gap-6 z-10 w-full" onPaste={handlePaste}>
-
-        {/* 6 digit inputs */}
         <div className="flex gap-2 sm:gap-3 justify-center w-full">
           {digits.map((d, i) => (
             <input
@@ -134,33 +121,27 @@ export default function VerifyCode() {
         </div>
         {fieldErrors.code && <p className="text-red-400 text-xs -mt-4">{fieldErrors.code}</p>}
 
-        <button
-          type="submit"
-          disabled={loading || digits.join("").length < 6}
-          className="w-full max-w-[460px] bg-[#414CC4] hover:bg-[#3a44b0] disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 rounded-md tracking-widest transition-colors"
-        >
-          {loading ? "VERIFYING..." : "VERIFY"}
+        <button type="submit" disabled={loading || digits.join("").length < 6}
+          className="w-full max-w-[460px] bg-[#414CC4] hover:bg-[#3a44b0] disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 rounded-md tracking-widest transition-colors">
+          {loading ? t("auth.verify.submitting") : t("auth.verify.submit")}
         </button>
 
         <p className="text-white/30 text-sm text-center">
-          Didn't receive the code?{" "}
-          <button
-            type="button"
-            onClick={handleResend}
+          {t("auth.verify.noCode")}{" "}
+          <button type="button" onClick={handleResend}
             disabled={resendCooldown > 0 || resendStatus === "sending"}
-            className="text-[#00C9B1] hover:underline disabled:opacity-40 disabled:cursor-not-allowed"
-          >
+            className="text-[#00C9B1] hover:underline disabled:opacity-40 disabled:cursor-not-allowed">
             {resendStatus === "sending"
-              ? "Sending..."
+              ? t("auth.verify.resending")
               : resendCooldown > 0
-              ? `Resend in ${resendCooldown}s`
-              : "Resend"}
+              ? t("auth.verify.resendIn", { count: resendCooldown })
+              : t("auth.verify.resend")}
           </button>
           {resendStatus === "sent" && resendCooldown > 0 && (
-            <span className="ml-2 text-[#00C9B1] text-xs">Code sent!</span>
+            <span className="ml-2 text-[#00C9B1] text-xs">{t("auth.verify.codeSent")}</span>
           )}
           {resendStatus === "error" && (
-            <span className="ml-2 text-red-400 text-xs">Failed to resend.</span>
+            <span className="ml-2 text-red-400 text-xs">{t("auth.verify.resendFailed")}</span>
           )}
         </p>
       </form>

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { X, Calendar, DollarSign, Download, Users, Trash2, Edit, CheckCircle, User } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import type { Brief, BriefStatus } from "../../features/briefs/briefSlice/briefTypes";
 import StatusBadge from "./StatusBadge";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
@@ -19,6 +20,7 @@ interface BriefModalProps {
 
 export default function BriefModal({ brief, isOpen, onClose, userRole }: BriefModalProps) {
   const dispatch = useAppDispatch();
+  const { t } = useTranslation();
   const employees = useAppSelector(selectEmployees);
   const [selectedEmployees, setSelectedEmployees] = useState<string[]>([]);
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
@@ -109,7 +111,7 @@ export default function BriefModal({ brief, isOpen, onClose, userRole }: BriefMo
       )}
       {confirmDeleteOpen && (
         <ConfirmDialog
-          message="Are you sure you want to delete this brief? This action cannot be undone."
+          message={t("briefModal.deleteConfirm")}
           onConfirm={confirmDelete}
           onCancel={() => setConfirmDeleteOpen(false)}
         />
@@ -165,14 +167,14 @@ export default function BriefModal({ brief, isOpen, onClose, userRole }: BriefMo
               <div className="flex items-center gap-3">
                 <div className="bg-[#2D3652] p-2 sm:p-2.5 rounded-xl text-sbteal border border-[#2E3A5C] shrink-0"><DollarSign size={16} /></div>
                 <div>
-                  <p className="text-[9px] text-[#64748B] uppercase font-bold tracking-widest leading-none mb-1">Budget</p>
+                  <p className="text-[9px] text-[#64748B] uppercase font-bold tracking-widest leading-none mb-1">{t("briefModal.budget")}</p>
                   <p className="text-xs sm:text-sm font-bold text-white/90 leading-tight">{brief.budgetRange || "N/A"}</p>
                 </div>
               </div>
               <div className="flex items-center gap-3 sm:pt-4 sm:border-t border-[#2E3A5C]/20">
                 <div className="bg-[#2D3652] p-2 sm:p-2.5 rounded-xl text-sbpurple border border-[#2E3A5C] shrink-0"><Calendar size={16} /></div>
                 <div>
-                  <p className="text-[9px] text-[#64748B] uppercase font-bold tracking-widest leading-none mb-1">Launch Target</p>
+                  <p className="text-[9px] text-[#64748B] uppercase font-bold tracking-widest leading-none mb-1">{t("briefModal.launchTarget")}</p>
                   <p className="text-xs sm:text-sm font-bold text-white/90 leading-tight">
                     {new Date(brief.deadline).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                   </p>
@@ -185,41 +187,41 @@ export default function BriefModal({ brief, isOpen, onClose, userRole }: BriefMo
                {isAdmin && brief.status === 'PENDING' && (
                  <>
                    <button onClick={() => handleUpdateStatus('ACCEPTED')} className="w-full bg-sbteal hover:bg-[#52a68e] text-[#0F1528] font-black uppercase text-xs tracking-widest py-3.5 rounded-xl transition-all hover:scale-[1.02] active:scale-95 shadow-lg shadow-sbteal/20">
-                     Accept Project
+                     {t("briefModal.acceptProject")}
                    </button>
                    <button onClick={() => handleUpdateStatus('REFUSED')} className="w-full bg-transparent border border-rose-500/40 text-rose-400 hover:bg-rose-500/10 font-bold uppercase text-xs tracking-widest py-3.5 rounded-xl transition-all active:scale-95">
-                     Refuse Project
+                     {t("briefModal.refuseProject")}
                    </button>
                  </>
                )}
                 {isAdmin && (brief.status === 'ACCEPTED' || brief.status === 'IN_PROGRESS') && (
                   <button onClick={() => setIsAssignModalOpen(!isAssignModalOpen)} className="w-full bg-sbpurple hover:bg-[#3a44b0] text-white font-bold uppercase text-xs tracking-widest py-3.5 rounded-xl transition-all flex items-center justify-center gap-2">
-                    <Users size={16} /> {isAssignModalOpen ? "Cancel Assign" : "Manage Team"}
+                    <Users size={16} /> {isAssignModalOpen ? t("briefModal.cancelAssign") : t("briefModal.manageTeam")}
                   </button>
                 )}
                {isEmployee && brief.status === 'ACCEPTED' && (
                  <button onClick={() => handleUpdateStatus('IN_PROGRESS')} className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold uppercase text-xs tracking-widest py-3.5 rounded-xl transition-all shadow-lg shadow-blue-500/20">
-                   Start Production
+                   {t("briefModal.startProduction")}
                  </button>
                )}
                {isEmployee && brief.status === 'IN_PROGRESS' && (
                  <button onClick={() => handleUpdateStatus('COMPLETED')} className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold uppercase text-xs tracking-widest py-3.5 rounded-xl transition-all shadow-lg shadow-emerald-500/20">
-                   Mark Completed
+                   {t("briefModal.markCompleted")}
                  </button>
                )}
                {isClient && brief.status === "PENDING" && (
                  <button onClick={handleEdit} className="w-full bg-sbpurple hover:bg-[#3a44b0] text-white font-bold uppercase text-xs tracking-widest py-3.5 rounded-xl transition-all flex items-center justify-center gap-2">
-                   <Edit size={16} /> Edit Brief
+                   <Edit size={16} /> {t("briefModal.editBrief")}
                  </button>
                )}
                {isAdmin && (
                  <button onClick={handleDelete} className="w-full text-rose-500/50 hover:text-rose-400 text-[10px] font-bold uppercase tracking-widest flex items-center justify-center px-4 py-2 hover:bg-rose-500/5 rounded-lg transition-all mt-4">
-                   <Trash2 size={12} className="mr-2" /> Permanently Delete
+                   <Trash2 size={12} className="mr-2" /> {t("briefModal.permanentlyDelete")}
                  </button>
                )}
                {isClient && brief.status === "PENDING" && (
                  <button onClick={handleDelete} className="w-full text-rose-500/50 hover:text-rose-400 text-[10px] font-bold uppercase tracking-widest flex items-center justify-center px-4 py-2 hover:bg-rose-500/5 rounded-lg transition-all mt-2">
-                   <Trash2 size={12} className="mr-2" /> Delete Brief
+                   <Trash2 size={12} className="mr-2" /> {t("briefModal.deleteBrief")}
                  </button>
                )}
             </div>
@@ -231,20 +233,20 @@ export default function BriefModal({ brief, isOpen, onClose, userRole }: BriefMo
            {/* Fixed Header on top of scroll */}
             <div className="flex justify-between items-center px-4 sm:px-6 md:px-8 py-4 sm:py-5 border-b border-[#2E3A5C]/40 bg-[#141B2D]/80 backdrop-blur-sm sticky top-0 z-20">
                <h3 className="text-[#64748B] font-bold uppercase tracking-widest text-xs flex items-center gap-2">
-                 <FileText size={14} className="text-sbteal"/> Brief Documentation
+                 <FileText size={14} className="text-sbteal"/> {t("briefModal.briefDocumentation")}
                </h3>
                <div className="flex items-center gap-3">
                  <button 
                   onClick={handleExport}
                   className="flex items-center gap-2 text-sbteal hover:text-white transition-all bg-sbteal/10 hover:bg-sbteal px-4 py-2 rounded-xl text-xs font-bold border border-sbteal/20"
                  >
-                   Export PDF <Download size={16} />
+                   {t("briefModal.exportPdf")} <Download size={16} />
                  </button>
                  <button 
                    onClick={onClose} 
                    className="hidden md:flex items-center gap-2 text-white/30 hover:text-white transition-all bg-[#2D3652]/40 hover:bg-[#2D3652] px-4 py-2 rounded-xl text-xs font-bold border border-[#2E3A5C]/40"
                  >
-                   Close <X size={16} />
+                   {t("briefModal.close")} <X size={16} />
                  </button>
                </div>
             </div>
@@ -254,7 +256,7 @@ export default function BriefModal({ brief, isOpen, onClose, userRole }: BriefMo
               <div className="bg-[#1A2238]/30 border border-[#2E3A5C]/40 p-6 rounded-2xl relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-sbpurple/5 blur-3xl rounded-full"></div>
                 <h4 className={`font-black text-xs uppercase tracking-widest ${isAdmin ? 'text-sbpurple' : 'text-[#64748B]'} mb-4 flex items-center gap-2 relative z-10`}>
-                  <Users size={14}/> {isAdmin ? "Resource Allocation" : "Assigned Team"}
+                  <Users size={14}/> {isAdmin ? t("briefModal.resourceAllocation") : t("briefModal.assignedTeam")}
                 </h4>
                 
                 <div className="flex flex-wrap gap-2 mb-4 relative z-10">
@@ -275,7 +277,7 @@ export default function BriefModal({ brief, isOpen, onClose, userRole }: BriefMo
                       );
                     })
                   ) : (
-                    <p className="text-[10px] text-white/20 uppercase tracking-widest font-bold">No team members assigned</p>
+                    <p className="text-[10px] text-white/20 uppercase tracking-widest font-bold">{t("briefModal.noTeamAssigned")}</p>
                   )}
                 </div>
 
@@ -287,14 +289,14 @@ export default function BriefModal({ brief, isOpen, onClose, userRole }: BriefMo
                     }}
                     className="bg-sbpurple hover:bg-sbpurple/80 text-white font-black uppercase text-[10px] tracking-widest px-8 py-3.5 rounded-xl transition-all hover:shadow-lg hover:shadow-sbpurple/20 w-full relative z-10"
                   >
-                    {brief.assignedToIds?.length > 0 ? "Edit Team Allocation" : "Assign Resources"}
+                    {brief.assignedToIds?.length > 0 ? t("briefModal.editTeam") : t("briefModal.assignResources")}
                   </button>
                 )}
               </div>
 
               <section>
                  <h4 className="text-sbteal font-black text-[10px] uppercase tracking-widest mb-4 flex items-center gap-2">
-                   <Edit size={12}/> Vision & Project Scope
+                   <Edit size={12}/> {t("briefModal.visionScope")}
                  </h4>
                  <div className="bg-[#1A2238]/30 border border-[#2E3A5C]/30 p-6 rounded-2xl relative">
                     <div className="absolute top-0 right-0 w-32 h-32 bg-sbteal/5 blur-2xl rounded-full"></div>
@@ -306,7 +308,7 @@ export default function BriefModal({ brief, isOpen, onClose, userRole }: BriefMo
 
               <section>
                  <h4 className="text-sbpurple font-black text-[10px] uppercase tracking-widest mb-4 flex items-center gap-2 text-glow">
-                   <CheckCircle size={12}/> Critical Feature Set
+                   <CheckCircle size={12}/> {t("briefModal.criticalFeatures")}
                  </h4>
                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                    {brief.features.map((feature, i) => (
@@ -324,7 +326,7 @@ export default function BriefModal({ brief, isOpen, onClose, userRole }: BriefMo
 
               <section className="pb-8">
                  <h4 className="text-[#64748B] font-black text-[10px] uppercase tracking-widest mb-4 flex items-center gap-2">
-                   <Download size={12}/> Assets & Attachments
+                   <Download size={12}/> {t("briefModal.assetsAttachments")}
                  </h4>
                  <div className="grid grid-cols-1 gap-3">
                    {brief.attachments.length > 0 ? (
@@ -341,7 +343,7 @@ export default function BriefModal({ brief, isOpen, onClose, userRole }: BriefMo
                      ))
                    ) : (
                      <div className="text-center py-8 border-2 border-dashed border-[#2E3A5C]/30 rounded-2xl text-white/20 text-xs font-bold uppercase tracking-widest">
-                       No Assets Linked
+                       {t("briefModal.noAssets")}
                      </div>
                    )}
                  </div>
@@ -351,34 +353,34 @@ export default function BriefModal({ brief, isOpen, onClose, userRole }: BriefMo
               <div className="flex md:hidden flex-col gap-3 border-t border-[#2E3A5C]/40 mt-8 pt-6 pb-4">
                 {isAdmin && brief.status === 'PENDING' && (
                   <>
-                    <button onClick={() => handleUpdateStatus('ACCEPTED')} className="w-full bg-sbteal hover:bg-[#52a68e] text-[#0F1528] font-black uppercase text-xs tracking-widest py-3.5 rounded-xl transition-all">Accept Project</button>
-                    <button onClick={() => handleUpdateStatus('REFUSED')} className="w-full bg-transparent border border-rose-500/40 text-rose-400 hover:bg-rose-500/10 font-bold uppercase text-xs tracking-widest py-3.5 rounded-xl transition-all">Refuse Project</button>
+                    <button onClick={() => handleUpdateStatus('ACCEPTED')} className="w-full bg-sbteal hover:bg-[#52a68e] text-[#0F1528] font-black uppercase text-xs tracking-widest py-3.5 rounded-xl transition-all">{t("briefModal.acceptProject")}</button>
+                    <button onClick={() => handleUpdateStatus('REFUSED')} className="w-full bg-transparent border border-rose-500/40 text-rose-400 hover:bg-rose-500/10 font-bold uppercase text-xs tracking-widest py-3.5 rounded-xl transition-all">{t("briefModal.refuseProject")}</button>
                   </>
                 )}
                 {isAdmin && (brief.status === 'ACCEPTED' || brief.status === 'IN_PROGRESS') && (
                   <button onClick={() => setIsAssignModalOpen(!isAssignModalOpen)} className="w-full bg-sbpurple hover:bg-[#3a44b0] text-white font-bold uppercase text-xs tracking-widest py-3.5 rounded-xl transition-all flex items-center justify-center gap-2">
-                    <Users size={16} /> {isAssignModalOpen ? "Cancel Assign" : "Manage Team"}
+                    <Users size={16} /> {isAssignModalOpen ? t("briefModal.cancelAssign") : t("briefModal.manageTeam")}
                   </button>
                 )}
                 {isEmployee && brief.status === 'ACCEPTED' && (
-                  <button onClick={() => handleUpdateStatus('IN_PROGRESS')} className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold uppercase text-xs tracking-widest py-3.5 rounded-xl transition-all">Start Production</button>
+                  <button onClick={() => handleUpdateStatus('IN_PROGRESS')} className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold uppercase text-xs tracking-widest py-3.5 rounded-xl transition-all">{t("briefModal.startProduction")}</button>
                 )}
                 {isEmployee && brief.status === 'IN_PROGRESS' && (
-                  <button onClick={() => handleUpdateStatus('COMPLETED')} className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold uppercase text-xs tracking-widest py-3.5 rounded-xl transition-all">Mark Completed</button>
+                  <button onClick={() => handleUpdateStatus('COMPLETED')} className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold uppercase text-xs tracking-widest py-3.5 rounded-xl transition-all">{t("briefModal.markCompleted")}</button>
                 )}
                 {isClient && brief.status === 'PENDING' && (
                   <button onClick={handleEdit} className="w-full bg-sbpurple hover:bg-[#3a44b0] text-white font-bold uppercase text-xs tracking-widest py-3.5 rounded-xl transition-all flex items-center justify-center gap-2">
-                    <Edit size={16} /> Edit Brief
+                    <Edit size={16} /> {t("briefModal.editBrief")}
                   </button>
                 )}
                 {isAdmin && (
                   <button onClick={handleDelete} className="w-full text-rose-500/50 hover:text-rose-400 text-[10px] font-bold uppercase tracking-widest flex items-center justify-center px-4 py-2 hover:bg-rose-500/5 rounded-lg transition-all mt-2">
-                    <Trash2 size={12} className="mr-2" /> Permanently Delete
+                    <Trash2 size={12} className="mr-2" /> {t("briefModal.permanentlyDelete")}
                   </button>
                 )}
                 {isClient && brief.status === 'PENDING' && (
                   <button onClick={handleDelete} className="w-full text-rose-500/50 hover:text-rose-400 text-[10px] font-bold uppercase tracking-widest flex items-center justify-center px-4 py-2 hover:bg-rose-500/5 rounded-lg transition-all mt-2">
-                    <Trash2 size={12} className="mr-2" /> Delete Brief
+                    <Trash2 size={12} className="mr-2" /> {t("briefModal.deleteBrief")}
                   </button>
                 )}
               </div>
@@ -392,7 +394,7 @@ export default function BriefModal({ brief, isOpen, onClose, userRole }: BriefMo
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-[#141B2D] border border-[#2E3A5C] rounded-2xl p-8 max-w-md w-full">
             <h3 className="text-white font-black text-lg mb-6 flex items-center gap-2">
-              <Users size={20} className="text-sbpurple"/> Assign Team Members
+              <Users size={20} className="text-sbpurple"/> {t("briefModal.assignTeamMembers")}
             </h3>
             <div className="space-y-3 max-h-64 overflow-y-auto thin-scrollbar pr-2">
               {employees.map(employee => (
@@ -421,14 +423,14 @@ export default function BriefModal({ brief, isOpen, onClose, userRole }: BriefMo
                 onClick={() => setIsAssignModalOpen(false)}
                 className="flex-1 bg-[#2E3A5C] text-white font-bold py-3 rounded-xl hover:bg-[#3A4A6C] transition-all"
               >
-                Cancel
+                {t("briefModal.cancel")}
               </button>
               <button
                 onClick={handleAssign}
                 disabled={!selectedEmployees.length}
                 className="flex-1 bg-sbpurple text-white font-bold py-3 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg hover:shadow-sbpurple/20 transition-all"
               >
-                Assign
+                {t("briefModal.assign")}
               </button>
             </div>
           </div>

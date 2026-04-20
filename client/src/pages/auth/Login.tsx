@@ -6,10 +6,12 @@ import { clearError } from "../../features/auth/authSlice/authSlice";
 import { selectAuthLoading, selectAuthError } from "../../features/auth/authSlice/authSelectors";
 import { getPasswordRules, isPasswordStrong, isEmailValid } from "../../utils/validators";
 import { Eye, EyeOff } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export default function Login() {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const loading = useAppSelector(selectAuthLoading);
   const error = useAppSelector(selectAuthError);
   const [fieldErrors, setFieldErrors] = useState({ email: "", password: "" });
@@ -35,11 +37,11 @@ export default function Login() {
     const nextErrors = { email: "", password: "" };
 
     if (!isEmailValid(email)) {
-      nextErrors.email = "Please enter a valid email address.";
+      nextErrors.email = t("auth.login.errors.invalidEmail");
     }
 
     if (!isPasswordStrong(password)) {
-      nextErrors.password = "Password format is invalid.";
+      nextErrors.password = t("auth.login.errors.invalidPassword");
     }
 
     const hasError = Object.values(nextErrors).some(Boolean);
@@ -57,16 +59,12 @@ export default function Login() {
   return (
     <section className="font-poppins text-white sm:min-h-[calc(100vh-80px)] flex flex-col items-center pt-10 sm:pt-16 pb-10 sm:pb-20 relative overflow-hidden px-4">
 
-      {/* Blobs */}
-      <div className="absolute right-0 top-0 bottom-0 w-1/2 pointer-events-none">
-        {/* Drop your blob SVGs/divs here */}
-      </div>
+      <div className="absolute right-0 top-0 bottom-0 w-1/2 pointer-events-none" />
 
       <h1 className="text-white text-3xl sm:text-5xl font-bold tracking-widest uppercase mb-8 z-10 text-center">
-        LOG IN
+        {t("auth.login.title")}
       </h1>
 
-      {/* Server error */}
       {error && (
         <p className="text-red-400 text-sm mb-4 z-10">{error}</p>
       )}
@@ -74,7 +72,7 @@ export default function Login() {
       <form onSubmit={handleSubmit} className="flex flex-col gap-4 w-full max-w-[460px] z-10">
         <input
           name="email" type="email" value={form.email} onChange={handleChange}
-          placeholder="Enter your email adresse..." required
+          placeholder={t("auth.login.emailPlaceholder")} required
           className={`bg-[#2D3652] border rounded-md px-4 py-3 text-white placeholder-white/40 text-sm focus:outline-none transition-colors ${fieldErrors.email ? "border-red-400 focus:border-red-400" : "border-[#2E3A5C] focus:border-[#414CC4]"}`}
         />
         {fieldErrors.email && <p className="text-red-400 text-xs -mt-2">{fieldErrors.email}</p>}
@@ -82,7 +80,7 @@ export default function Login() {
         <div className="relative">
           <input
             name="password" type={showPassword ? "text" : "password"} value={form.password} onChange={handleChange}
-            placeholder="Enter your Password..." required
+            placeholder={t("auth.login.passwordPlaceholder")} required
             className={`w-full bg-[#2D3652] border rounded-md px-4 py-3 pr-11 text-white placeholder-white/40 text-sm focus:outline-none transition-colors ${fieldErrors.password ? "border-red-400 focus:border-red-400" : "border-[#2E3A5C] focus:border-[#414CC4]"}`}
           />
           <button
@@ -106,38 +104,34 @@ export default function Login() {
           </ul>
         )}
 
-        {/* Remember me */}
         <label className="flex items-center gap-2 text-white/60 text-sm cursor-pointer">
           <input
             name="rememberMe" type="checkbox"
             checked={form.rememberMe} onChange={handleChange}
             className="accent-[#414CC4]"
           />
-          Remember me
+          {t("auth.login.rememberMe")}
         </label>
 
         <button
           type="submit" disabled={loading}
           className="mt-2 bg-[#414CC4] hover:bg-[#3a44b0] disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 rounded-md tracking-widest transition-colors"
         >
-          {loading ? "LOGGING IN..." : "LOG IN"}
+          {loading ? t("auth.login.submitting") : t("auth.login.submit")}
         </button>
 
-        {/* Forgot password */}
         <div className="text-center">
           <Link to="/forgot-password" className="text-white/40 text-sm hover:text-[#414CC4] transition-colors">
-            Forgot password?
+            {t("auth.login.forgotPassword")}
           </Link>
         </div>
 
-        {/* Divider */}
         <div className="flex items-center gap-3">
           <div className="flex-1 h-px bg-[#2E3A5C]" />
-          <span className="text-white/30 text-xs">OR</span>
+          <span className="text-white/30 text-xs">{t("auth.login.or")}</span>
           <div className="flex-1 h-px bg-[#2E3A5C]" />
         </div>
 
-        {/* Google */}
         <a
           href={`${import.meta.env.VITE_API_URL || "http://localhost:8080"}/auth/google`}
           className="flex items-center justify-center gap-3 bg-white hover:bg-gray-100 text-gray-800 font-semibold py-3 rounded-md transition-colors text-sm"
@@ -148,14 +142,13 @@ export default function Login() {
             <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" />
             <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
           </svg>
-          Continue with Google
+          {t("auth.login.continueGoogle")}
         </a>
 
-        {/* Switch to Register */}
         <p className="text-center text-white/40 text-sm">
-          Don't have an account?{" "}
+          {t("auth.login.noAccount")}{" "}
           <Link to="/register" className="text-[#414CC4] hover:underline font-medium">
-            Register
+            {t("auth.login.registerLink")}
           </Link>
         </p>
       </form>

@@ -5,6 +5,7 @@ import { fromDate, getLocalTimeZone } from "@internationalized/date";
 import Select from "react-select";
 import type { MultiValue, StylesConfig } from "react-select";
 import { CheckCircle, UserPlus, ArrowRight, ArrowLeft, Calendar, UploadCloud, X, User } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import authApi from "../../features/auth/api/authAxios";
 import briefApi from "../../features/briefs/api/briefAxios";
 import AddClientModal, { type AdminClient } from "../../components/admin/AddClientModal";
@@ -94,6 +95,7 @@ type View = "clients" | "form";
 
 export default function AdminNewProject() {
     const navigate = useNavigate();
+    const { t } = useTranslation();
     const timeZone = getLocalTimeZone();
     const attachmentInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -174,8 +176,8 @@ export default function AdminNewProject() {
         return (
             <div className="min-h-[calc(100vh-80px)] flex flex-col items-center justify-center">
                 <CheckCircle className="text-sbteal w-24 h-24 mb-6 animate-bounce" />
-                <h1 className="text-4xl font-bold uppercase tracking-widest text-center text-white mb-4">Brief Created!</h1>
-                <p className="text-white/60">Brief submitted on behalf of {selectedClient?.firstName} {selectedClient?.lastName}.</p>
+                <h1 className="text-4xl font-bold uppercase tracking-widest text-center text-white mb-4">{t("adminProject.briefCreated")}</h1>
+                <p className="text-white/60">{t("adminProject.briefCreatedFor")} {selectedClient?.firstName} {selectedClient?.lastName}.</p>
             </div>
         );
     }
@@ -187,13 +189,14 @@ export default function AdminNewProject() {
                 <div className="max-w-3xl mx-auto">
                     <div className="mb-8">
                         <h1 className="text-[30px] sm:text-[40px] font-bold tracking-widest uppercase leading-tight">
-                            SELECT <span className="text-sbteal">CLIENT</span>
+                            {t("adminProject.selectClientTitle").split(" ").slice(0, -1).join(" ")}{" "}
+                            <span className="text-sbteal">{t("adminProject.selectClientTitle").split(" ").slice(-1)}</span>
                         </h1>
-                        <p className="text-white/50 text-sm mt-2">Choose a client to create a brief for, or add a new one.</p>
+                        <p className="text-white/50 text-sm mt-2">{t("adminProject.selectClientSubtitle")}</p>
                     </div>
 
                     {clientsLoading ? (
-                        <div className="text-white/40 text-sm">Loading clients...</div>
+                        <div className="text-white/40 text-sm">{t("adminProject.loadingClients")}</div>
                     ) : (
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                             {/* Add new client card */}
@@ -202,7 +205,7 @@ export default function AdminNewProject() {
                                 className="flex flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-[#2E3A5C] hover:border-sbpurple/60 bg-transparent hover:bg-sbpurple/5 transition-all p-8 text-white/40 hover:text-white/70 min-h-[140px]"
                             >
                                 <UserPlus size={28} />
-                                <span className="text-sm font-medium">Add Client</span>
+                                <span className="text-sm font-medium">{t("adminProject.addClient")}</span>
                             </button>
 
                             {clients.map((client) => (
@@ -228,7 +231,7 @@ export default function AdminNewProject() {
                                         <p className="text-white/35 text-xs">{client.phone}</p>
                                     )}
                                     <div className="mt-auto flex items-center gap-1.5 text-sbpurple/70 text-xs font-medium">
-                                        Create Brief <ArrowRight size={12} />
+                                        {t("adminProject.createBrief")} <ArrowRight size={12} />
                                     </div>
                                 </button>
                             ))}
@@ -256,13 +259,13 @@ export default function AdminNewProject() {
                         <User size={13} className="text-sbpurple" />
                     </div>
                     <p className="text-white/60 text-xs">
-                        Creating brief for <span className="text-white font-semibold">{selectedClient?.firstName} {selectedClient?.lastName}</span>
+                        {t("adminProject.creatingFor")} <span className="text-white font-semibold">{selectedClient?.firstName} {selectedClient?.lastName}</span>
                     </p>
                     <button
                         onClick={() => setView("clients")}
                         className="ml-auto text-white/30 hover:text-white/70 transition-colors text-[11px] underline underline-offset-2"
                     >
-                        Change
+                        {t("adminProject.change")}
                     </button>
                 </div>
             </div>
@@ -271,11 +274,13 @@ export default function AdminNewProject() {
             <div className="w-full max-w-[500px] mb-[32px]">
                 {step === 1 ? (
                     <h1 className="text-white text-[30px] sm:text-[40px] md:text-[50px] font-bold tracking-widest uppercase leading-tight">
-                        PROJECT <span className="text-sbteal">IDENTITY</span>
+                        {t("newProject.projectIdentityTitle").split(" ").slice(0, -1).join(" ")}{" "}
+                        <span className="text-sbteal">{t("newProject.projectIdentityTitle").split(" ").slice(-1)}</span>
                     </h1>
                 ) : (
                     <h1 className="text-white text-[28px] sm:text-[36px] md:text-[44px] font-bold tracking-widest uppercase leading-tight">
-                        ADDITIONAL <span className="text-sbteal">INFORMATIONS</span>
+                        {t("newProject.additionalInfoTitle").split(" ").slice(0, -1).join(" ")}{" "}
+                        <span className="text-sbteal">{t("newProject.additionalInfoTitle").split(" ").slice(-1)}</span>
                     </h1>
                 )}
             </div>
@@ -285,20 +290,20 @@ export default function AdminNewProject() {
                     <div className="animate-in fade-in slide-in-from-right-4 duration-500 flex flex-col gap-5">
                         <input
                             type="text"
-                            placeholder="Project Name..."
+                            placeholder={t("newProject.projectNamePlaceholder")}
                             value={projectName}
                             onChange={(e) => setProjectName(e.target.value)}
                             className="w-full bg-[#2D3652] border border-[#2E3A5C] rounded-md px-4 py-3 text-white placeholder-white/40 text-sm focus:outline-none focus:border-sbteal transition-colors"
                         />
                         <input
                             type="text"
-                            placeholder="Company/Brand Name..."
+                            placeholder={t("newProject.brandNamePlaceholder")}
                             value={brandName}
                             onChange={(e) => setBrandName(e.target.value)}
                             className="w-full bg-[#2D3652] border border-[#2E3A5C] rounded-md px-4 py-3 text-white placeholder-white/40 text-sm focus:outline-none focus:border-sbteal transition-colors"
                         />
                         <textarea
-                            placeholder="Core Goal..."
+                            placeholder={t("newProject.coreGoalPlaceholder")}
                             value={coreGoal}
                             onChange={(e) => setCoreGoal(e.target.value)}
                             rows={4}
@@ -308,7 +313,7 @@ export default function AdminNewProject() {
                             options={serviceOptions}
                             value={serviceType}
                             onChange={(val) => setServiceType(val)}
-                            placeholder="Service Type"
+                            placeholder={t("newProject.serviceTypePlaceholder")}
                             styles={selectStyles}
                         />
                         <Select<SelectOption, true>
@@ -316,7 +321,7 @@ export default function AdminNewProject() {
                             options={featureOptions}
                             value={features}
                             onChange={(val: MultiValue<SelectOption>) => setFeatures([...val])}
-                            placeholder="Must-Have Features"
+                            placeholder={t("newProject.featuresPlaceholder")}
                             styles={selectStyles}
                             menuPlacement="top"
                             maxMenuHeight={200}
@@ -326,14 +331,14 @@ export default function AdminNewProject() {
                                 onClick={() => setView("clients")}
                                 className="bg-[#2D3652] hover:bg-[#3b466b] text-white px-8 py-2 rounded-full transition-colors text-sm font-medium flex items-center gap-2"
                             >
-                                <ArrowLeft className="w-4 h-4" /> Back
+                                <ArrowLeft className="w-4 h-4" /> {t("briefDetails.back")}
                             </button>
                             <button
                                 disabled={!isStep1Valid}
                                 onClick={() => setStep(2)}
                                 className="bg-sbpurple hover:bg-[#3a44b0] disabled:opacity-50 disabled:cursor-not-allowed text-white px-10 py-2 rounded-full transition-colors text-sm font-medium flex items-center gap-2"
                             >
-                                Next <ArrowRight className="w-4 h-4" />
+                                {t("newProject.next")} <ArrowRight className="w-4 h-4" />
                             </button>
                         </div>
                     </div>
@@ -345,7 +350,7 @@ export default function AdminNewProject() {
                             options={budgetOptions}
                             value={budget}
                             onChange={(val) => setBudget(val)}
-                            placeholder="Budget Range"
+                            placeholder={t("newProject.budgetPlaceholder")}
                             styles={selectStyles}
                         />
 
@@ -358,7 +363,7 @@ export default function AdminNewProject() {
                         >
                             <DatePicker.Control className="anp-dp-control group flex w-full items-center rounded-md border border-[#2E3A5C] bg-[#2D3652] transition-colors focus-within:border-sbteal focus-within:ring-1 focus-within:ring-sbteal">
                                 <DatePicker.Input
-                                    placeholder="Desired Launch Date"
+                                    placeholder={t("newProject.launchDatePlaceholder")}
                                     className="anp-dp-input border border-[#2E3A5C] w-full bg-transparent px-4 py-3 text-sm text-white placeholder-white/40 focus:outline-none"
                                 />
                                 <DatePicker.IndicatorGroup className="pr-3">
@@ -390,15 +395,15 @@ export default function AdminNewProject() {
                         <div className="rounded-md border border-[#2E3A5C] bg-[#2D3652] p-4">
                             <div className="mb-4 flex items-center justify-between gap-4">
                                 <div>
-                                    <p className="text-sm text-white">Attachments</p>
-                                    <p className="text-xs text-white/50">Brand files, references, or notes.</p>
+                                    <p className="text-sm text-white">{t("newProject.attachments")}</p>
+                                    <p className="text-xs text-white/50">{t("newProject.attachmentsSubtitle")}</p>
                                 </div>
                                 <button
                                     type="button"
                                     onClick={() => attachmentInputRef.current?.click()}
                                     className="bg-sbpurple hover:bg-[#3a44b0] px-4 py-2 rounded-md text-xs font-medium transition-colors shrink-0"
                                 >
-                                    {attachments.length > 0 ? "Add More" : "Add Files"}
+                                    {attachments.length > 0 ? t("newProject.addMore") : t("newProject.addFiles")}
                                 </button>
                                 <input ref={attachmentInputRef} type="file" multiple className="hidden" onChange={handleFileChange} />
                             </div>
@@ -425,7 +430,7 @@ export default function AdminNewProject() {
                                         ))}
                                     </div>
                                 ) : (
-                                    <div className="flex min-h-24 items-center justify-center text-sm text-white/45">No attachment added</div>
+                                    <div className="flex min-h-24 items-center justify-center text-sm text-white/45">{t("newProject.noAttachment")}</div>
                                 )}
                             </div>
                         </div>
@@ -435,14 +440,14 @@ export default function AdminNewProject() {
                                 onClick={() => setStep(1)}
                                 className="bg-[#2D3652] hover:bg-[#3b466b] text-white px-8 py-2 rounded-full transition-colors text-sm font-medium flex items-center gap-2"
                             >
-                                <ArrowLeft className="w-4 h-4" /> Previous
+                                <ArrowLeft className="w-4 h-4" /> {t("newProject.previous")}
                             </button>
                             <button
                                 disabled={!isStep2Valid || submitting}
                                 onClick={handleCreate}
                                 className="bg-sbpurple hover:bg-[#3a44b0] disabled:opacity-50 disabled:cursor-not-allowed text-white px-10 py-2 rounded-full transition-colors text-sm font-medium"
                             >
-                                {submitting ? "Creating..." : "Create Brief"}
+                                {submitting ? t("adminProject.creatingBrief") : t("adminProject.createBriefBtn")}
                             </button>
                         </div>
                     </div>

@@ -1,4 +1,4 @@
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { FileText, Clock, CheckCircle, TrendingUp, ArrowRight, AlertCircle } from "lucide-react"
 import { useAppSelector, useAppDispatch } from "../app/hooks"
@@ -6,6 +6,7 @@ import { selectUser } from "../features/auth/authSlice/authSelectors"
 import { selectAllBriefs, selectBriefsLoading } from "../features/briefs/briefSlice/briefSelectors"
 import { fetchBriefsThunk } from "../features/briefs/briefSlice/briefThunk"
 import { useTranslation } from "react-i18next"
+import BriefModal from "../components/briefs/BriefModal"
 
 export default function Home() {
     const navigate = useNavigate()
@@ -14,6 +15,9 @@ export default function Home() {
     const user = useAppSelector(selectUser)
     const briefs = useAppSelector(selectAllBriefs)
     const loading = useAppSelector(selectBriefsLoading)
+
+    const [selectedBriefId, setSelectedBriefId] = useState<string | null>(null)
+    const selectedBrief = briefs.find(b => b.id === selectedBriefId) ?? null
 
     const isAdmin = user?.role === "ADMIN"
     const isClient = user?.role === "CLIENT"
@@ -47,6 +51,7 @@ export default function Home() {
     }
 
     return (
+        <>
         <section className="relative max-w-300 mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 min-h-[calc(100vh-80px)]">
             {/* Header */}
             <div className="mb-10 sm:mb-14">
@@ -111,7 +116,7 @@ export default function Home() {
                 ) : (
                     <div className="flex flex-col gap-3">
                         {recentBriefs.map(brief => (
-                            <div key={brief.id} className="flex items-center justify-between rounded-2xl border border-[#2E3A5C]/40 bg-[#1A2238]/30 px-5 py-4 hover:bg-[#1A2238]/60 transition-all group">
+                            <div key={brief.id} onClick={() => setSelectedBriefId(brief.id)} className="cursor-pointer flex items-center justify-between rounded-2xl border border-[#2E3A5C]/40 bg-[#1A2238]/30 px-5 py-4 hover:bg-[#1A2238]/60 transition-all group">
                                 <div className="flex items-center gap-4 min-w-0">
                                     <div className="h-9 w-9 shrink-0 rounded-xl bg-sbpurple/20 border border-sbpurple/20 flex items-center justify-center">
                                         <FileText size={15} className="text-sbpurple" />
@@ -133,5 +138,13 @@ export default function Home() {
                 )}
             </div>
         </section>
+
+        <BriefModal
+            brief={selectedBrief}
+            isOpen={!!selectedBriefId}
+            onClose={() => setSelectedBriefId(null)}
+            userRole={user?.role}
+        />
+        </>
     )
 }

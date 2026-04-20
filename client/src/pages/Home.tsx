@@ -23,15 +23,12 @@ export default function Home() {
     const isClient = user?.role === "CLIENT"
     const isEmployee = user?.role === "EMPLOYEE"
 
+
     useEffect(() => {
         dispatch(fetchBriefsThunk())
     }, [dispatch])
 
-    const myBriefs = isClient
-        ? briefs.filter(b => b.clientId === user?.id)
-        : isEmployee
-        ? briefs.filter(b => b.assignedToIds?.includes(user?.id ?? ""))
-        : briefs
+    const myBriefs = briefs
 
     const pending = myBriefs.filter(b => b.status === "PENDING").length
     const inProgress = myBriefs.filter(b => b.status === "IN_PROGRESS").length

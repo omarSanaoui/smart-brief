@@ -308,6 +308,13 @@
     "pendingEmailDesc": "Un lien de vérification a été envoyé à {{email}}. Votre email ne changera pas tant que vous ne l'aurez pas cliqué.",
     "dismiss": "Ignorer"
   },
+  "home": {
+    "welcomeBack": "Bienvenue",
+    "createProject": "Créer un projet",
+    "checkMyBriefs": "Mes briefs",
+    "checkBriefs": "Voir les briefs",
+    "checkAssignedBriefs": "Briefs assignés"
+  },
   "status": {
     "PENDING": "EN ATTENTE",
     "ACCEPTED": "ACCEPTÉ",

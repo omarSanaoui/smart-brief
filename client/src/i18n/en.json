@@ -308,6 +308,13 @@
     "pendingEmailDesc": "A verification link was sent to {{email}}. Your email won't change until you click it.",
     "dismiss": "Dismiss"
   },
+  "home": {
+    "welcomeBack": "Welcome Back",
+    "createProject": "Create a Project",
+    "checkMyBriefs": "Check My Briefs",
+    "checkBriefs": "Check Briefs",
+    "checkAssignedBriefs": "Check Assigned Briefs"
+  },
   "status": {
     "PENDING": "PENDING REVIEW",
     "ACCEPTED": "ACCEPTED",

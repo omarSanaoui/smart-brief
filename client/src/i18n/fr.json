@@ -313,7 +313,13 @@
     "createProject": "Créer un projet",
     "checkMyBriefs": "Mes briefs",
     "checkBriefs": "Voir les briefs",
-    "checkAssignedBriefs": "Briefs assignés"
+    "checkAssignedBriefs": "Briefs assignés",
+    "statTotal": "Total",
+    "statPending": "En attente",
+    "statInProgress": "En cours",
+    "statCompleted": "Terminés",
+    "recentBriefs": "Briefs récents",
+    "noBriefs": "Aucun brief trouvé."
   },
   "status": {
     "PENDING": "EN ATTENTE",

@@ -10,6 +10,7 @@ import type { Brief, ProjectType } from "../../features/briefs/briefSlice/briefT
 import { UploadCloud, CheckCircle, ArrowRight, ArrowLeft, Calendar, X } from "lucide-react";
 import type { MultiValue, StylesConfig } from "react-select";
 import { useTranslation } from "react-i18next";
+import api from "../../features/briefs/api/briefAxios";
 
 const serviceOptions = [
   { value: "SITE_WEB", label: "Website Design & Development" },
@@ -113,12 +114,26 @@ export default function NewProject() {
   };
 
   const handleCreate = async () => {
+    // Upload any new File objects first, keep existing server filenames as-is
+    const newFiles = attachments.filter(a => a.file);
+    const existingNames = attachments.filter(a => !a.file).map(a => a.name);
+
+    let uploadedNames: string[] = [];
+    if (newFiles.length > 0) {
+      const formData = new FormData();
+      newFiles.forEach(a => formData.append("files", a.file!));
+      const res = await api.post("/briefs/upload", formData, {
+        headers: { "Content-Type": undefined },
+      });
+      uploadedNames = res.data.filenames;
+    }
+
     const payload = {
       title: projectName, projectType: serviceType?.value as ProjectType || "OTHER",
       description: `Brand: ${brandName}\n\nCore Goal: ${coreGoal}`,
       features: features.map(f => f.value), budgetRange: budget?.value || "",
       deadline: deadline ? deadline.toISOString() : new Date().toISOString(),
-      attachments: attachments.map(a => a.name),
+      attachments: [...existingNames, ...uploadedNames],
     };
     const result = isEditing && editingBrief
       ? await dispatch(updateBriefThunk({ id: editingBrief.id, data: payload }))
@@ -178,7 +193,7 @@ export default function NewProject() {
           <div className="animate-in fade-in slide-in-from-right-4 duration-500 flex flex-col gap-5">
             <Select<SelectOption, false> options={budgetOptions} value={budget} onChange={val => setBudget(val)} placeholder={t("newProject.budgetPlaceholder")} styles={selectStyles} />
 
-            <DatePicker.Root value={deadlineValue} onValueChange={({ value }) => setDeadline(value[0]?.toDate(timeZone) ?? null)} min={fromDate(new Date(), timeZone)} closeOnSelect positioning={{ placement: "bottom-start" }}>
+            <DatePicker.Root value={deadlineValue} onValueChange={({ value }) => setDeadline(value[0] ? new Date(Date.UTC(value[0].year, value[0].month - 1, value[0].day, 12, 0, 0)) : null)} min={fromDate(new Date(), timeZone)} closeOnSelect positioning={{ placement: "bottom-start" }}>
               <DatePicker.Control className="project-date-picker-control group flex w-full items-center rounded-md border border-[#2E3A5C] bg-[#2D3652] transition-colors focus-within:border-sbteal focus-within:ring-1 focus-within:ring-sbteal">
                 <DatePicker.Input placeholder={t("newProject.launchDatePlaceholder")} className="project-date-picker-input border border-[#2E3A5C] w-full bg-transparent px-4 py-3 text-sm text-white placeholder-white/40 focus:outline-none" />
                 <DatePicker.IndicatorGroup className="pr-3">

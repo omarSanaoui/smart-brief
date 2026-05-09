@@ -22,37 +22,29 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 const STATUS_COLORS: Record<string, string> = {
-  PENDING: "#F59E0B",
-  ACCEPTED: "#67CFB1",
-  REFUSED: "#EF4444",
-  IN_PROGRESS: "#414CC4",
-  COMPLETED: "#10B981",
+  PENDING:     "#F59E0B",
+  ACCEPTED:    "#67CFB1",
+  REFUSED:     "#EF4444",
+  IN_PROGRESS: "#60A5FA",
+  COMPLETED:   "#10B981",
 };
 
-const PURPLE = "#414CC4";
-const TEAL = "#67CFB1";
-const DARK = "#141824";
-const GRAY = "#64748B";
-const TEXT = "#334155";
+// Website colour palette
+const BG_PAGE  = "#0D1321";   // page background
+const BG_CARD  = "#1A2238";   // card / section bg
+const BG_HEAD  = "#12192B";   // header bar bg
+const BORDER   = "#2E3A5C";   // dividers & borders
+const PURPLE   = "#6C63FF";   // sbpurple
+const TEAL     = "#67CFB1";   // sbteal
+const WHITE    = "#FFFFFF";
+const WHITE60  = "#99A3B8";   // white/60
+const WHITE30  = "#4A5468";   // white/30
 
-function sectionHeader(doc: PDFKit.PDFDocument, title: string, margin: number) {
-  doc.moveDown(0.8);
-  doc.fillColor(TEAL).fontSize(9).font("Helvetica-Bold")
-    .text(title.toUpperCase(), margin, doc.y, { characterSpacing: 1.5 });
-  const lineY = doc.y + 3;
-  doc.moveTo(margin, lineY).lineTo(margin + 50, lineY)
-    .strokeColor(TEAL).lineWidth(2).stroke();
-  doc.moveDown(0.6);
+function hex(color: string): [number, number, number] {
+  const c = color.replace("#", "");
+  return [parseInt(c.slice(0, 2), 16), parseInt(c.slice(2, 4), 16), parseInt(c.slice(4, 6), 16)];
 }
 
-function infoRow(doc: PDFKit.PDFDocument, label: string, value: string, margin: number, contentWidth: number) {
-  const y = doc.y;
-  doc.fillColor(GRAY).fontSize(9).font("Helvetica")
-    .text(label, margin, y, { width: 110, continued: false });
-  doc.fillColor(TEXT).font("Helvetica-Bold").fontSize(9)
-    .text(value, margin + 115, y, { width: contentWidth - 115 });
-  doc.moveDown(0.4);
-}
 
 export async function createBriefPdf(
   brief: any,
@@ -61,118 +53,182 @@ export async function createBriefPdf(
   role: string
 ): Promise<Buffer> {
   return new Promise((resolve, reject) => {
-    const doc = new PDFDocument({ margin: 50, size: "A4" });
+    const doc = new PDFDocument({ margin: 0, size: "A4" });
     const chunks: Buffer[] = [];
 
     doc.on("data", (chunk) => chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk)));
-    doc.on("end", () => resolve(Buffer.concat(chunks)));
+    doc.on("end",  () => resolve(Buffer.concat(chunks)));
     doc.on("error", reject);
 
-    const pageWidth = doc.page.width;
-    const margin = 50;
-    const contentWidth = pageWidth - margin * 2;
+    const W  = doc.page.width;   // 595
+    const H  = doc.page.height;  // 842
+    const M  = 36;               // outer margin
 
-    // ── HEADER BAR ──────────────────────────────────────────────
-    doc.rect(0, 0, pageWidth, 72).fill(DARK);
-    doc.rect(0, 69, pageWidth, 3).fill(PURPLE);
+    // ── FULL PAGE DARK BACKGROUND ──────────────────────────────────
+    doc.rect(0, 0, W, H).fill(BG_PAGE);
 
-    doc.fillColor(TEAL).fontSize(18).font("Helvetica-Bold")
-      .text("SMART", margin, 22, { continued: true, characterSpacing: 3 });
-    doc.fillColor("#ffffff").text(" BRIEF", { continued: false, characterSpacing: 3 });
+    // ── HEADER BAR ─────────────────────────────────────────────────
+    doc.rect(0, 0, W, 64).fill(BG_HEAD);
+    // purple accent line at bottom of header
+    doc.rect(0, 61, W, 3).fill(PURPLE);
 
-    doc.fillColor("rgba(255,255,255,0.35)").fontSize(8).font("Helvetica")
-      .text("BY AGENCE 47  ·  PLATEFORME DE GESTION DE PROJETS", margin, 46, { characterSpacing: 1 });
+    // Logo text
+    doc.fillColor(TEAL).fontSize(16).font("Helvetica-Bold")
+      .text("SMART", M, 20, { continued: true, characterSpacing: 3 });
+    doc.fillColor(WHITE).text(" BRIEF", { continued: false, characterSpacing: 3 });
 
-    // ── BRIEF TITLE + STATUS ─────────────────────────────────────
-    const titleY = 90;
-    doc.fillColor(DARK).fontSize(20).font("Helvetica-Bold")
-      .text(brief.title, margin, titleY, { width: contentWidth - 100 });
+    doc.fillColor(WHITE30).fontSize(7).font("Helvetica")
+      .text("BY AGENCE 47  ·  PLATEFORME DE GESTION DE PROJETS", M, 42, { characterSpacing: 1.2 });
 
+    // Export date top-right
+    doc.fillColor(WHITE30).fontSize(7).font("Helvetica")
+      .text(`Exporté le ${new Date().toLocaleDateString("fr-FR")}`, 0, 42, { width: W - M, align: "right" });
+
+    // ── TITLE + STATUS ROW ─────────────────────────────────────────
+    const titleY = 82;
     const statusLabel = STATUS_LABELS[brief.status] || brief.status;
     const statusColor = STATUS_COLORS[brief.status] || PURPLE;
-    const statusX = pageWidth - margin - 90;
+    const badgeW = 88;
+    const badgeH = 20;
+    const badgeX = W - M - badgeW;
 
-    doc.roundedRect(statusX, titleY, 90, 22, 11).fill(statusColor + "22");
-    doc.fillColor(statusColor).fontSize(8).font("Helvetica-Bold")
-      .text(statusLabel.toUpperCase(), statusX, titleY + 7, { width: 90, align: "center", characterSpacing: 1 });
+    // Status badge background
+    const [sr, sg, sb] = hex(statusColor);
+    doc.roundedRect(badgeX, titleY, badgeW, badgeH, 10)
+      .fillOpacity(0.15).fill(`rgb(${sr},${sg},${sb})`);
+    doc.fillOpacity(1);
+    // Badge border
+    doc.roundedRect(badgeX, titleY, badgeW, badgeH, 10)
+      .strokeColor(statusColor).lineWidth(0.8).stroke();
+    doc.fillColor(statusColor).fontSize(7.5).font("Helvetica-Bold")
+      .text(statusLabel.toUpperCase(), badgeX, titleY + 6, { width: badgeW, align: "center", characterSpacing: 1 });
 
-    doc.moveDown(0.3);
-    doc.fillColor(GRAY).fontSize(8).font("Helvetica")
-      .text(`Soumis le ${new Date(brief.createdAt).toLocaleDateString("fr-FR", { year: "numeric", month: "long", day: "numeric" })}`, margin);
+    // Brief title
+    doc.fillColor(WHITE).fontSize(17).font("Helvetica-Bold")
+      .text(brief.title, M, titleY, { width: W - M * 2 - badgeW - 16 });
 
-    doc.moveTo(margin, doc.y + 6).lineTo(pageWidth - margin, doc.y + 6)
-      .strokeColor("#E2E8F0").lineWidth(0.5).stroke();
+    // Submitted date
+    const submittedStr = `Soumis le ${new Date(brief.createdAt).toLocaleDateString("fr-FR", { year: "numeric", month: "long", day: "numeric" })}`;
+    doc.fillColor(WHITE60).fontSize(8).font("Helvetica")
+      .text(submittedStr, M, doc.y + 4);
 
-    // ── CLIENT INFO ───────────────────────────────────────────────
-    sectionHeader(doc, "Informations Client", margin);
-    if (client) {
-      infoRow(doc, "Nom complet", `${client.firstName} ${client.lastName}`, margin, contentWidth);
-      if (role !== "CLIENT") infoRow(doc, "Email", client.email, margin, contentWidth);
-    } else {
-      infoRow(doc, "Nom complet", "Inconnu", margin, contentWidth);
+    // Divider
+    const divY1 = doc.y + 10;
+    doc.moveTo(M, divY1).lineTo(W - M, divY1).strokeColor(BORDER).lineWidth(0.5).stroke();
+
+    // ── TWO-COLUMN LAYOUT ──────────────────────────────────────────
+    const colY      = divY1 + 14;
+    const leftW     = 148;
+    const leftX     = M;
+    const rightX    = M + leftW + 16;
+    const rightW    = W - rightX - M;
+
+    // ── LEFT COLUMN — meta cards ───────────────────────────────────
+    let ly = colY;
+
+    const metaCard = (label: string, value: string, color: string = WHITE) => {
+      const cardH = 46;
+      doc.roundedRect(leftX, ly, leftW, cardH, 6)
+        .fillOpacity(1).fill(BG_CARD);
+      doc.roundedRect(leftX, ly, leftW, cardH, 6)
+        .strokeColor(BORDER).lineWidth(0.5).stroke();
+      doc.fillColor(WHITE30).fontSize(7).font("Helvetica-Bold")
+        .text(label.toUpperCase(), leftX + 10, ly + 9, { characterSpacing: 1.2, width: leftW - 20 });
+      doc.fillColor(color).fontSize(9.5).font("Helvetica-Bold")
+        .text(value, leftX + 10, ly + 22, { width: leftW - 20 });
+      ly += cardH + 7;
+    };
+
+    const clientName = client ? `${client.firstName} ${client.lastName}` : "—";
+    metaCard("Client", clientName, WHITE);
+    metaCard("Type de service", PROJECT_TYPE_LABELS[brief.projectType] || brief.projectType, TEAL);
+    metaCard("Budget estimé", brief.budgetRange, WHITE);
+    metaCard("Date limite",
+      new Date(brief.deadline).toLocaleDateString("fr-FR", { year: "numeric", month: "short", day: "numeric" }),
+      WHITE);
+
+    // Client email (admin/employee only)
+    if (role !== "CLIENT" && client?.email) {
+      metaCard("Email client", client.email, WHITE60);
     }
 
-    // ── PROJECT DETAILS ───────────────────────────────────────────
-    sectionHeader(doc, "Détails du Projet", margin);
-    infoRow(doc, "Type de service", PROJECT_TYPE_LABELS[brief.projectType] || brief.projectType, margin, contentWidth);
-    infoRow(doc, "Budget estimé", brief.budgetRange, margin, contentWidth);
-    infoRow(doc, "Date limite", new Date(brief.deadline).toLocaleDateString("fr-FR", { year: "numeric", month: "long", day: "numeric" }), margin, contentWidth);
-    if (brief.statusReason) infoRow(doc, "Motif du statut", brief.statusReason, margin, contentWidth);
-
-    // ── DESCRIPTION ───────────────────────────────────────────────
-    sectionHeader(doc, "Description du Projet", margin);
-    doc.fillColor(TEXT).fontSize(10).font("Helvetica")
-      .text(brief.description, margin, doc.y, { width: contentWidth, align: "justify", lineGap: 3 });
-
-    // ── FEATURES ─────────────────────────────────────────────────
-    if (brief.features?.length) {
-      sectionHeader(doc, "Caractéristiques demandées", margin);
-      brief.features.forEach((f: string) => {
-        const y = doc.y;
-        doc.circle(margin + 4, y + 5, 3).fill(TEAL);
-        doc.fillColor(TEXT).font("Helvetica").fontSize(10)
-          .text(f, margin + 14, y, { width: contentWidth - 14, lineGap: 2 });
-      });
-      doc.moveDown(0.3);
-    }
-
-    // ── ATTACHMENTS ───────────────────────────────────────────────
-    if (brief.attachments?.length) {
-      sectionHeader(doc, "Pièces jointes", margin);
-      brief.attachments.forEach((name: string) => {
-        const y = doc.y;
-        doc.circle(margin + 4, y + 5, 3).fill(PURPLE);
-        doc.fillColor(TEXT).font("Helvetica").fontSize(10)
-          .text(name, margin + 14, y, { width: contentWidth - 14, lineGap: 2 });
-      });
-      doc.moveDown(0.3);
-    }
-
-    // ── TEAM (admin/employee only) ────────────────────────────────
+    // Team card
     if (role !== "CLIENT") {
-      sectionHeader(doc, "Équipe Assignée", margin);
+      const teamH = Math.max(46, 28 + (assignees.length || 1) * 16);
+      doc.roundedRect(leftX, ly, leftW, teamH, 6).fill(BG_CARD);
+      doc.roundedRect(leftX, ly, leftW, teamH, 6).strokeColor(BORDER).lineWidth(0.5).stroke();
+      doc.fillColor(WHITE30).fontSize(7).font("Helvetica-Bold")
+        .text("ÉQUIPE ASSIGNÉE", leftX + 10, ly + 9, { characterSpacing: 1.2, width: leftW - 20 });
       if (assignees.length) {
-        assignees.forEach(emp => {
-          const y = doc.y;
-          doc.circle(margin + 4, y + 5, 3).fill(TEAL);
-          doc.fillColor(TEXT).font("Helvetica").fontSize(10)
-            .text(`${emp.firstName} ${emp.lastName}  ·  ${emp.email}`, margin + 14, y, { width: contentWidth - 14 });
+        assignees.forEach((emp, i) => {
+          doc.fillColor(TEAL).fontSize(8).font("Helvetica-Bold")
+            .text(`${emp.firstName} ${emp.lastName}`, leftX + 10, ly + 24 + i * 16, { width: leftW - 20 });
         });
       } else {
-        doc.fillColor(GRAY).fontSize(10).text("Non assigné", margin);
+        doc.fillColor(WHITE30).fontSize(8).font("Helvetica")
+          .text("Non assigné", leftX + 10, ly + 24, { width: leftW - 20 });
       }
-      doc.moveDown(0.3);
+      ly += teamH + 7;
+    }
+
+    // ── RIGHT COLUMN — description + features ─────────────────────
+    let ry = colY;
+
+    // Description card
+    const descText = brief.description || "Aucune description fournie.";
+    const descLines = doc.fontSize(9).heightOfString(descText, { width: rightW - 24, lineGap: 3 });
+    const descCardH = descLines + 36;
+
+    doc.roundedRect(rightX, ry, rightW, descCardH, 6).fill(BG_CARD);
+    doc.roundedRect(rightX, ry, rightW, descCardH, 6).strokeColor(BORDER).lineWidth(0.5).stroke();
+
+    doc.fillColor(WHITE30).fontSize(7).font("Helvetica-Bold")
+      .text("DESCRIPTION DU PROJET", rightX + 12, ry + 10, { characterSpacing: 1.2 });
+    doc.fillColor(WHITE60).fontSize(9).font("Helvetica")
+      .text(descText, rightX + 12, ry + 24, { width: rightW - 24, lineGap: 3, align: "justify" });
+
+    ry += descCardH + 10;
+
+    // Features card
+    if (brief.features?.length) {
+      const featH = 26 + brief.features.length * 18;
+      doc.roundedRect(rightX, ry, rightW, featH, 6).fill(BG_CARD);
+      doc.roundedRect(rightX, ry, rightW, featH, 6).strokeColor(BORDER).lineWidth(0.5).stroke();
+
+      doc.fillColor(WHITE30).fontSize(7).font("Helvetica-Bold")
+        .text("FONCTIONNALITÉS DEMANDÉES", rightX + 12, ry + 10, { characterSpacing: 1.2 });
+
+      brief.features.forEach((f: string, i: number) => {
+        const fy = ry + 24 + i * 18;
+        // dot
+        doc.circle(rightX + 18, fy + 5, 2.5).fill(TEAL);
+        doc.fillColor(WHITE).fontSize(9).font("Helvetica")
+          .text(f, rightX + 28, fy, { width: rightW - 40 });
+      });
+      ry += featH + 10;
+    }
+
+    // Status reason card (refused)
+    if (brief.statusReason) {
+      const reasonH = doc.fontSize(9).heightOfString(brief.statusReason, { width: rightW - 24, lineGap: 3 }) + 36;
+      const refuseColor = STATUS_COLORS["REFUSED"];
+      doc.roundedRect(rightX, ry, rightW, reasonH, 6).fill(BG_CARD);
+      doc.roundedRect(rightX, ry, rightW, reasonH, 6).strokeColor(refuseColor).lineWidth(0.8).stroke();
+      doc.fillColor(refuseColor).fontSize(7).font("Helvetica-Bold")
+        .text("MOTIF DU REFUS", rightX + 12, ry + 10, { characterSpacing: 1.2 });
+      doc.fillColor(WHITE60).fontSize(9).font("Helvetica")
+        .text(brief.statusReason, rightX + 12, ry + 24, { width: rightW - 24, lineGap: 3 });
+      ry += reasonH + 10;
     }
 
     // ── FOOTER ────────────────────────────────────────────────────
-    const footerY = doc.page.height - 44;
-    doc.moveTo(margin, footerY).lineTo(pageWidth - margin, footerY)
-      .strokeColor("#E2E8F0").lineWidth(0.5).stroke();
-    doc.fillColor(GRAY).fontSize(8).font("Helvetica")
+    const footerY = H - 32;
+    doc.rect(0, footerY - 1, W, 1).fill(BORDER);
+    doc.fillColor(WHITE30).fontSize(7.5).font("Helvetica")
       .text(
-        `Généré le ${new Date().toLocaleDateString("fr-FR")}  ·  Smart Brief by Agence 47  ·  contact@agence47.ma`,
-        margin, footerY + 8,
-        { width: contentWidth, align: "center" }
+        `Smart Brief by Agence 47  ·  contact@agence47.ma  ·  Généré le ${new Date().toLocaleDateString("fr-FR")}`,
+        M, footerY + 8,
+        { width: W - M * 2, align: "center" }
       );
 
     doc.end();

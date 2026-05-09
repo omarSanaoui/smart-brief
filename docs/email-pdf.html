@@ -1,0 +1,1126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Email & PDFKit — Smart Brief Docs</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #222536;
+    --border: #2e3249;
+    --accent: #7c6af7;
+    --accent2: #56cfb2;
+    --accent3: #f7c06a;
+    --accent4: #f76a8a;
+    --text: #e2e4f0;
+    --muted: #8b8fa8;
+    --code-bg: #13151f;
+    --sidebar-w: 270px;
+    --resend: #000000;
+    --pdf: #e74c3c;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; font-size: 15px; line-height: 1.7; display: flex; }
+
+  nav {
+    width: var(--sidebar-w); min-height: 100vh; background: var(--surface);
+    border-right: 1px solid var(--border); padding: 24px 0;
+    position: fixed; top: 0; left: 0; overflow-y: auto;
+    display: flex; flex-direction: column; gap: 2px;
+  }
+  nav .logo { padding: 0 20px 20px; font-size: 17px; font-weight: 700; color: var(--accent); border-bottom: 1px solid var(--border); margin-bottom: 10px; }
+  nav .logo span { color: var(--accent2); }
+  nav a { display: block; padding: 7px 20px; color: var(--muted); text-decoration: none; font-size: 13px; border-left: 3px solid transparent; transition: all .15s; }
+  nav a:hover { color: var(--text); background: rgba(124,106,247,.08); }
+  nav a.active { color: var(--accent); border-left-color: var(--accent); background: rgba(124,106,247,.12); }
+  nav .section-title { padding: 14px 20px 4px; font-size: 10px; text-transform: uppercase; letter-spacing: 1.2px; color: var(--muted); font-weight: 600; }
+
+  main { margin-left: var(--sidebar-w); padding: 48px 56px; max-width: 980px; width: 100%; }
+  h1 { font-size: 38px; font-weight: 800; color: #fff; margin-bottom: 12px; }
+  h2 { font-size: 26px; font-weight: 700; color: #fff; margin: 56px 0 18px; padding-top: 16px; border-top: 1px solid var(--border); }
+  h2:first-of-type { border-top: none; }
+  h3 { font-size: 18px; font-weight: 600; color: var(--accent2); margin: 32px 0 12px; }
+  h4 { font-size: 15px; font-weight: 600; color: var(--accent3); margin: 22px 0 8px; }
+  p { color: var(--text); margin-bottom: 14px; }
+  ul, ol { padding-left: 22px; margin-bottom: 14px; }
+  li { margin-bottom: 5px; color: var(--text); }
+  strong { color: #fff; }
+  code { background: var(--code-bg); padding: 2px 7px; border-radius: 4px; font-family: 'Cascadia Code', 'Fira Code', monospace; font-size: 13px; color: var(--accent2); }
+
+  pre {
+    background: var(--code-bg); border: 1px solid var(--border); border-radius: 10px;
+    padding: 20px 22px; overflow-x: auto; margin: 16px 0 24px;
+    font-family: 'Cascadia Code', 'Fira Code', monospace; font-size: 13.5px; line-height: 1.65;
+  }
+  pre .c   { color: #4a5568; }
+  pre .k   { color: #c792ea; }
+  pre .s   { color: #c3e88d; }
+  pre .n   { color: var(--accent2); }
+  pre .t   { color: var(--accent3); }
+  pre .f   { color: #82aaff; }
+  pre .num { color: #f78c6c; }
+  pre .attr{ color: #ffcb6b; }
+  pre .html{ color: #f76a8a; }
+
+  .callout { border-radius: 10px; padding: 16px 20px; margin: 20px 0; border-left: 4px solid; }
+  .callout.info  { background: rgba(86,207,178,.08); border-color: var(--accent2); }
+  .callout.warn  { background: rgba(247,192,106,.08); border-color: var(--accent3); }
+  .callout.error { background: rgba(247,106,138,.08); border-color: var(--accent4); }
+  .callout.tip   { background: rgba(124,106,247,.08); border-color: var(--accent); }
+  .callout strong { display: block; margin-bottom: 6px; font-size: 13px; text-transform: uppercase; letter-spacing: .5px; }
+  .callout.info strong  { color: var(--accent2); }
+  .callout.warn strong  { color: var(--accent3); }
+  .callout.error strong { color: var(--accent4); }
+  .callout.tip strong   { color: var(--accent); }
+
+  .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0; }
+  .compare > div { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 18px; }
+  .compare > div h4 { margin-top: 0; margin-bottom: 10px; }
+
+  table { width: 100%; border-collapse: collapse; margin: 20px 0 28px; }
+  th { background: var(--surface2); color: var(--accent2); font-size: 12px; text-transform: uppercase; letter-spacing: .5px; padding: 10px 14px; text-align: left; border-bottom: 2px solid var(--border); }
+  td { padding: 10px 14px; border-bottom: 1px solid var(--border); font-size: 14px; }
+  tr:hover td { background: rgba(255,255,255,.02); }
+  td code { font-size: 12.5px; }
+
+  /* Email preview mock */
+  .email-preview {
+    background: #0F1528; border-radius: 14px; padding: 0; overflow: hidden;
+    margin: 20px 0; border: 1px solid #2e3249; max-width: 560px;
+  }
+  .email-preview .ep-header {
+    background: #141824; padding: 18px 28px; border-bottom: 3px solid #414CC4;
+    font-size: 16px; font-weight: 900; letter-spacing: 3px;
+  }
+  .email-preview .ep-header .smart { color: #67CFB1; }
+  .email-preview .ep-header .brief { color: #fff; }
+  .email-preview .ep-header .agency { color: rgba(255,255,255,.3); font-size: 10px; margin-left: 8px; letter-spacing: 1px; font-weight: 400; }
+  .email-preview .ep-body { padding: 28px; background: #1A2238; }
+  .email-preview .ep-footer { padding: 14px; text-align: center; font-size: 10px; color: rgba(255,255,255,.2); }
+
+  /* PDF mock */
+  .pdf-preview {
+    background: #fff; border-radius: 8px; padding: 0; overflow: hidden;
+    margin: 20px 0; border: 1px solid var(--border); max-width: 560px; font-family: Helvetica, Arial, sans-serif;
+    box-shadow: 0 8px 32px rgba(0,0,0,.4);
+  }
+  .pdf-preview .pp-header { background: #141824; padding: 14px 28px; border-bottom: 3px solid #414CC4; }
+  .pdf-preview .pp-header .smart { color: #67CFB1; font-weight: 900; font-size: 15px; letter-spacing: 2px; }
+  .pdf-preview .pp-header .brief { color: #fff; font-weight: 900; font-size: 15px; letter-spacing: 2px; }
+  .pdf-preview .pp-header .sub { color: rgba(255,255,255,.3); font-size: 8px; letter-spacing: 1px; display: block; margin-top: 2px; }
+  .pdf-preview .pp-body { padding: 20px 28px; }
+  .pdf-preview .pp-title { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+  .pdf-preview .pp-title h3 { color: #141824; font-size: 17px; margin: 0; }
+  .pdf-preview .pp-badge { background: rgba(65,76,196,.12); color: #414CC4; font-size: 9px; font-weight: 700; padding: 4px 10px; border-radius: 12px; letter-spacing: 1px; white-space: nowrap; }
+  .pdf-preview .pp-date { color: #64748B; font-size: 9px; margin-bottom: 16px; }
+  .pdf-preview .pp-section-title { color: #67CFB1; font-size: 9px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; border-bottom: 2px solid #67CFB1; display: inline-block; padding-bottom: 1px; margin: 14px 0 8px; }
+  .pdf-preview .pp-row { display: flex; margin-bottom: 4px; }
+  .pdf-preview .pp-label { color: #64748B; font-size: 9px; min-width: 110px; }
+  .pdf-preview .pp-value { color: #334155; font-size: 9px; font-weight: 700; }
+  .pdf-preview .pp-footer { border-top: 1px solid #E2E8F0; padding: 8px 28px; text-align: center; color: #64748B; font-size: 8px; }
+
+  /* Flow */
+  .flow { display: flex; align-items: center; gap: 0; margin: 20px 0; flex-wrap: wrap; }
+  .flow-box { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 8px 16px; font-size: 13px; font-weight: 600; color: var(--text); }
+  .flow-arrow { color: var(--muted); padding: 0 8px; font-size: 18px; }
+
+  .coord-grid {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    padding: 20px; margin: 20px 0; display: inline-block; position: relative;
+    font-family: monospace; font-size: 12px; color: var(--muted);
+  }
+</style>
+</head>
+<body>
+
+<nav id="sidebar">
+  <div class="logo">Smart Brief <span>Docs</span></div>
+
+  <div class="section-title">Email — Resend</div>
+  <a href="#why-resend">Why Resend?</a>
+  <a href="#resend-setup">Installation & Setup</a>
+  <a href="#lazy-init">Lazy init pattern</a>
+  <a href="#send-basic">Sending a basic email</a>
+  <a href="#html-emails">HTML emails</a>
+  <a href="#email-layout">Layout wrapper</a>
+  <a href="#email-gotchas">Email HTML rules</a>
+  <a href="#all-emails">All Smart Brief emails</a>
+  <a href="#email-error">Error handling</a>
+
+  <div class="section-title">PDFKit</div>
+  <a href="#why-pdfkit">What is PDFKit?</a>
+  <a href="#pdfkit-setup">Installation</a>
+  <a href="#how-it-works">How it works</a>
+  <a href="#promise-pattern">Promise + Buffer pattern</a>
+  <a href="#coordinates">Coordinate system</a>
+  <a href="#text">Drawing text</a>
+  <a href="#shapes">Drawing shapes</a>
+  <a href="#layout-helpers">Layout helpers</a>
+  <a href="#fonts">Fonts</a>
+  <a href="#pages">Multiple pages</a>
+  <a href="#pdf-response">Sending PDF as HTTP response</a>
+
+  <div class="section-title">Smart Brief PDF</div>
+  <a href="#pdf-breakdown">Full PDF breakdown</a>
+  <a href="#helper-functions">Helper functions</a>
+  <a href="#role-based">Role-based content</a>
+</nav>
+
+<main>
+
+<h1>Email & PDF Generation</h1>
+<p style="color:var(--muted);font-size:17px;">Sending transactional emails with Resend and generating PDF documents with PDFKit — the complete guide with every Smart Brief example.</p>
+
+<!-- ============================================================ WHY RESEND -->
+<h2 id="why-resend">Why Resend?</h2>
+
+<p>
+  To send emails from Node.js you need an <strong>email delivery service</strong>.
+  You can't just call <code>sendEmail()</code> — emails sent directly from a server almost always land in spam because they're not coming from a trusted sender with proper DNS records (SPF, DKIM, DMARC).
+</p>
+
+<div class="compare">
+  <div>
+    <h4 style="color:var(--muted)">Nodemailer + SMTP</h4>
+    <ul style="font-size:13px;">
+      <li>Send through Gmail, Outlook, or any SMTP server</li>
+      <li>Free with personal Gmail account</li>
+      <li>Gmail limits: 500 emails/day</li>
+      <li>Need to configure SMTP host, port, auth</li>
+      <li>Often lands in spam for cold recipients</li>
+      <li>Google forces "App Passwords" (confusing)</li>
+    </ul>
+  </div>
+  <div>
+    <h4 style="color:var(--accent2)">Resend</h4>
+    <ul style="font-size:13px;">
+      <li>Purpose-built developer email API</li>
+      <li>Free tier: 3,000 emails/month, 100/day</li>
+      <li>One function call to send</li>
+      <li>Handles deliverability (SPF, DKIM)</li>
+      <li>Dashboard to see sent emails, opens, bounces</li>
+      <li>React Email integration for templates</li>
+    </ul>
+  </div>
+</div>
+
+<p>Smart Brief uses Resend. The free tier is enough for a real project.</p>
+
+<!-- ============================================================ SETUP -->
+<h2 id="resend-setup">Installation & Setup</h2>
+
+<pre><span class="c"># Install the Resend SDK</span>
+npm install resend</pre>
+
+<h3>Get your API key</h3>
+
+<ol>
+  <li>Go to <strong>resend.com</strong> and create a free account</li>
+  <li>In the dashboard → API Keys → Create API Key</li>
+  <li>Copy the key (starts with <code>re_...</code>)</li>
+  <li>Add to your <code>.env</code> file:</li>
+</ol>
+
+<pre>RESEND_API_KEY=re_yourKeyHere_abc123</pre>
+
+<h3>The FROM address</h3>
+
+<p>
+  By default (free plan, no domain), Resend gives you a sandbox sender:
+  <code>onboarding@resend.dev</code> — this only works for sending to your own verified email.
+</p>
+
+<pre><span class="c">// This is what Smart Brief uses on the free plan</span>
+<span class="k">const</span> FROM = <span class="s">'Smart Brief &lt;onboarding@resend.dev&gt;'</span></pre>
+
+<p>To send to <em>anyone</em>, you need to add and verify your own domain in the Resend dashboard, then use <code>noreply@yourdomain.com</code> as the FROM.</p>
+
+<div class="callout info">
+  <strong>Free plan limitation</strong>
+  With <code>onboarding@resend.dev</code>, you can only send to email addresses you've added and verified in your Resend account. For a real production app, add your domain and use your own FROM address.
+</div>
+
+<!-- ============================================================ LAZY INIT -->
+<h2 id="lazy-init">Lazy Init Pattern</h2>
+
+<p>Smart Brief creates the Resend client lazily — only when a function is called — instead of at module load time:</p>
+
+<pre><span class="c">// ❌ Created at module load — crashes if RESEND_API_KEY is missing</span>
+<span class="k">const</span> resend = <span class="k">new</span> <span class="t">Resend</span>(process.env.RESEND_API_KEY)
+
+<span class="c">// ✅ Created on first use — safe even if env var is missing in some envs</span>
+<span class="k">const</span> <span class="f">getResend</span> = () => <span class="k">new</span> <span class="t">Resend</span>(process.env.RESEND_API_KEY)
+
+<span class="c">// Usage: call getResend() inside each send function</span>
+<span class="k">await</span> <span class="f">getResend</span>().emails.<span class="f">send</span>({ ... })</pre>
+
+<div class="callout tip">
+  <strong>Why lazy init matters</strong>
+  If you create <code>new Resend(undefined)</code> at module load, the Resend SDK throws immediately when the module is imported — even in environments where you're not actually sending emails (like tests). Lazy init defers that crash to the moment you actually try to send.
+</div>
+
+<!-- ============================================================ SEND BASIC -->
+<h2 id="send-basic">Sending a Basic Email</h2>
+
+<pre><span class="k">import</span> { Resend } <span class="k">from</span> <span class="s">"resend"</span>
+
+<span class="k">const</span> resend = <span class="k">new</span> <span class="t">Resend</span>(process.env.RESEND_API_KEY)
+
+<span class="k">await</span> resend.emails.<span class="f">send</span>({
+  from:    <span class="s">"Acme &lt;onboarding@resend.dev&gt;"</span>,   <span class="c">// sender</span>
+  to:      <span class="s">"user@example.com"</span>,               <span class="c">// recipient (string or string[])</span>
+  subject: <span class="s">"Hello!"</span>,                         <span class="c">// email subject</span>
+  html:    <span class="s">"&lt;p&gt;Your message here&lt;/p&gt;"</span>,        <span class="c">// HTML body</span>
+  text:    <span class="s">"Your message here"</span>,               <span class="c">// plain text fallback (optional)</span>
+})</pre>
+
+<h3>The send() return value</h3>
+
+<pre><span class="k">const</span> { data, error } = <span class="k">await</span> resend.emails.<span class="f">send</span>({ ... })
+
+<span class="k">if</span> (error) {
+  console.<span class="f">error</span>(<span class="s">"Resend error:"</span>, error)
+  <span class="k">return</span>
+}
+
+console.<span class="f">log</span>(<span class="s">"Email sent, id:"</span>, data.id)  <span class="c">// unique email ID</span></pre>
+
+<h3>Multiple recipients</h3>
+
+<pre><span class="k">await</span> resend.emails.<span class="f">send</span>({
+  from:    FROM,
+  to:      [<span class="s">"alice@example.com"</span>, <span class="s">"bob@example.com"</span>],
+  cc:      [<span class="s">"manager@example.com"</span>],
+  bcc:     [<span class="s">"archive@example.com"</span>],
+  replyTo: <span class="s">"support@example.com"</span>,
+  subject: <span class="s">"Team update"</span>,
+  html:    <span class="s">"..."</span>,
+})</pre>
+
+<!-- ============================================================ HTML EMAILS -->
+<h2 id="html-emails">HTML Emails</h2>
+
+<p>
+  Email clients (Gmail, Outlook, Apple Mail) are very limited in what CSS they support.
+  Modern CSS like flexbox, grid, <code>var()</code>, or external stylesheets often don't work.
+  The industry standard is to write emails like it's 1999 — <strong>HTML tables and inline styles</strong>.
+</p>
+
+<div class="callout error">
+  <strong>What doesn't work in emails</strong>
+  CSS classes (<code>class="btn"</code> with a stylesheet), CSS variables (<code>var(--color)</code>), flexbox, grid, <code>position: absolute</code>, web fonts (sometimes), <code>&lt;link&gt;</code> stylesheets, JavaScript (always blocked).
+</div>
+
+<div class="callout info">
+  <strong>What DOES work</strong>
+  Inline styles (<code>style="color:red;"</code>), HTML tables for layout, <code>&lt;td&gt;</code> for columns, basic CSS like <code>color</code>, <code>font-size</code>, <code>background-color</code>, <code>padding</code>, <code>border-radius</code>.
+</div>
+
+<h3>Basic HTML email structure</h3>
+
+<pre><span class="k">const</span> html = <span class="s">`
+&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;&lt;meta charset="utf-8"&gt;&lt;/head&gt;
+&lt;body style="margin:0;padding:0;background:#f4f4f4;font-family:Arial,sans-serif;"&gt;
+
+  &lt;!-- Outer container table --&gt;
+  &lt;table width="100%" cellpadding="0" cellspacing="0"&gt;
+    &lt;tr&gt;&lt;td align="center" style="padding:40px 16px;"&gt;
+
+      &lt;!-- Content card --&gt;
+      &lt;table width="600" cellpadding="0" cellspacing="0"
+             style="background:#ffffff;border-radius:8px;max-width:600px;"&gt;
+        &lt;tr&gt;
+          &lt;td style="padding:32px 40px;"&gt;
+            &lt;h1 style="color:#1a1a1a;font-size:24px;margin:0 0 16px;"&gt;
+              Hello!
+            &lt;/h1&gt;
+            &lt;p style="color:#555;font-size:15px;line-height:1.6;margin:0 0 24px;"&gt;
+              Your email content here.
+            &lt;/p&gt;
+            &lt;a href="https://example.com"
+               style="background:#6366f1;color:#fff;padding:12px 28px;
+                      border-radius:6px;text-decoration:none;font-weight:700;"&gt;
+              Click here
+            &lt;/a&gt;
+          &lt;/td&gt;
+        &lt;/tr&gt;
+      &lt;/table&gt;
+
+    &lt;/td&gt;&lt;/tr&gt;
+  &lt;/table&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+`</span></pre>
+
+<!-- ============================================================ LAYOUT WRAPPER -->
+<h2 id="email-layout">The Layout Wrapper Pattern</h2>
+
+<p>
+  Smart Brief defines a <code>layout(content)</code> function that wraps any content in the
+  branded shell. Every email function just writes the inner content and calls <code>layout()</code>.
+  This avoids repeating the header/footer HTML in every email.
+</p>
+
+<pre><span class="c">// services/auth-service/services/emailServices.ts</span>
+<span class="k">function</span> <span class="f">layout</span>(content: <span class="t">string</span>): <span class="t">string</span> {
+  <span class="k">return</span> <span class="s">`&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;body style="margin:0;padding:0;background:#0F1528;font-family:Arial,sans-serif;"&gt;
+  &lt;table width="100%" cellpadding="0" cellspacing="0"&gt;
+    &lt;tr&gt;&lt;td align="center"&gt;
+      &lt;table width="600" style="max-width:600px;"&gt;
+
+        &lt;!-- HEADER --&gt;
+        &lt;tr&gt;
+          &lt;td style="background:#141824;border-radius:16px 16px 0 0;
+                     padding:24px 36px;border-bottom:3px solid #414CC4;"&gt;
+            &lt;span style="color:#67CFB1;font-size:20px;font-weight:900;
+                         letter-spacing:4px;"&gt;SMART&lt;/span&gt;
+            &lt;span style="color:#fff;font-size:20px;font-weight:900;
+                         letter-spacing:4px;"&gt; BRIEF&lt;/span&gt;
+          &lt;/td&gt;
+        &lt;/tr&gt;
+
+        &lt;!-- DYNAMIC CONTENT --&gt;
+        &lt;tr&gt;
+          &lt;td style="background:#1A2238;padding:36px;border-radius:0 0 16px 16px;"&gt;
+            ${content}
+          &lt;/td&gt;
+        &lt;/tr&gt;
+
+        &lt;!-- FOOTER --&gt;
+        &lt;tr&gt;
+          &lt;td style="padding:20px 0;text-align:center;"&gt;
+            &lt;p style="color:rgba(255,255,255,0.2);font-size:11px;"&gt;
+              ©2026 Agence 47 · Smart Brief
+            &lt;/p&gt;
+          &lt;/td&gt;
+        &lt;/tr&gt;
+      &lt;/table&gt;
+    &lt;/td&gt;&lt;/tr&gt;
+  &lt;/table&gt;
+&lt;/body&gt;
+&lt;/html&gt;`</span>
+}</pre>
+
+<p>Each email function builds the inner HTML and calls <code>layout()</code>:</p>
+
+<pre><span class="k">export async function</span> <span class="f">sendVerificationEmail</span>(email: <span class="t">string</span>, code: <span class="t">string</span>) {
+  <span class="k">const</span> content = <span class="s">`
+    &lt;h2 style="color:#fff;..."&gt;Vérification&lt;/h2&gt;
+    &lt;p style="color:rgba(255,255,255,.6);..."&gt;...&lt;/p&gt;
+    ... code digits HTML ...
+  `</span>
+
+  <span class="k">await</span> <span class="f">getResend</span>().emails.<span class="f">send</span>({
+    from:    FROM,
+    to:      email,
+    subject: <span class="s">`</span>${code}<span class="s"> — Code de vérification Smart Brief`</span>,
+    html:    <span class="f">layout</span>(content),   <span class="c">// ← wrap in branded shell</span>
+  })
+}</pre>
+
+<!-- ============================================================ EMAIL HTML RULES -->
+<h2 id="email-gotchas">Email HTML Rules</h2>
+
+<table>
+  <tr><th>Rule</th><th>Why</th><th>Example</th></tr>
+  <tr><td>Use <code>style=""</code> inline on every element</td><td>Email clients strip <code>&lt;style&gt;</code> tags</td><td><code>&lt;p style="color:red;"&gt;</code></td></tr>
+  <tr><td>Use <code>&lt;table&gt;</code> for layout</td><td>Flexbox/grid not supported</td><td>2-column layout = 2 <code>&lt;td&gt;</code></td></tr>
+  <tr><td>Set <code>cellpadding="0" cellspacing="0"</code></td><td>Default table spacing breaks designs</td><td>On every <code>&lt;table&gt;</code></td></tr>
+  <tr><td>Set widths with <code>width="600"</code> attribute</td><td>CSS <code>width</code> unreliable in tables</td><td><code>&lt;table width="600"&gt;</code></td></tr>
+  <tr><td>No web fonts — use system fonts</td><td>Custom fonts often stripped</td><td><code>Arial, Helvetica, sans-serif</code></td></tr>
+  <tr><td>Images need absolute URLs</td><td>Relative paths don't work in emails</td><td><code>&lt;img src="https://..."&gt;</code></td></tr>
+  <tr><td>Always include <code>alt</code> on images</td><td>Many clients block images by default</td><td><code>&lt;img alt="Logo"&gt;</code></td></tr>
+  <tr><td>Use <code>border-radius</code> carefully</td><td>Outlook on Windows ignores it</td><td>OK for most clients</td></tr>
+  <tr><td>Keep max-width 600px</td><td>Standard email width</td><td><code>max-width:600px</code></td></tr>
+  <tr><td>Escape user input</td><td>Prevent XSS if content goes into HTML</td><td>Never put raw user strings in email HTML</td></tr>
+</table>
+
+<!-- ============================================================ ALL EMAILS -->
+<h2 id="all-emails">All Smart Brief Emails</h2>
+
+<h3>1. Verification code email</h3>
+
+<p>Sent when a user registers. Shows a 6-digit code as individual styled boxes.</p>
+
+<div class="email-preview">
+  <div class="ep-header">
+    <span class="smart">SMART</span><span class="brief"> BRIEF</span>
+    <span class="agency">by Agence 47</span>
+  </div>
+  <div class="ep-body">
+    <p style="color:#fff;font-size:17px;font-weight:900;margin:0 0 6px;">Vérification de votre email</p>
+    <p style="color:rgba(255,255,255,.5);font-size:12px;margin:0 0 20px;">Utilisez le code ci-dessous. Il expire dans <strong style="color:#fff;">10 minutes</strong>.</p>
+    <div style="text-align:center;margin:0 0 16px;">
+      <span style="display:inline-block;width:36px;height:44px;line-height:44px;text-align:center;background:#0F1528;border:1px solid #2E3A5C;border-radius:8px;color:#fff;font-size:22px;font-weight:900;margin:0 2px;">4</span>
+      <span style="display:inline-block;width:36px;height:44px;line-height:44px;text-align:center;background:#0F1528;border:1px solid #2E3A5C;border-radius:8px;color:#fff;font-size:22px;font-weight:900;margin:0 2px;">8</span>
+      <span style="display:inline-block;width:36px;height:44px;line-height:44px;text-align:center;background:#0F1528;border:1px solid #2E3A5C;border-radius:8px;color:#fff;font-size:22px;font-weight:900;margin:0 2px;">3</span>
+      <span style="display:inline-block;width:36px;height:44px;line-height:44px;text-align:center;background:#0F1528;border:1px solid #2E3A5C;border-radius:8px;color:#fff;font-size:22px;font-weight:900;margin:0 2px;">7</span>
+      <span style="display:inline-block;width:36px;height:44px;line-height:44px;text-align:center;background:#0F1528;border:1px solid #2E3A5C;border-radius:8px;color:#fff;font-size:22px;font-weight:900;margin:0 2px;">2</span>
+      <span style="display:inline-block;width:36px;height:44px;line-height:44px;text-align:center;background:#0F1528;border:1px solid #2E3A5C;border-radius:8px;color:#fff;font-size:22px;font-weight:900;margin:0 2px;">1</span>
+    </div>
+    <p style="color:rgba(255,255,255,.3);font-size:11px;text-align:center;">Ne partagez ce code avec personne.</p>
+  </div>
+  <div class="ep-footer">©2026 Agence 47 · Smart Brief</div>
+</div>
+
+<pre><span class="k">export async function</span> <span class="f">sendVerificationEmail</span>(email: <span class="t">string</span>, code: <span class="t">string</span>) {
+  <span class="c">// Split "483721" into individual digit boxes</span>
+  <span class="k">const</span> digits = code.<span class="f">split</span>(<span class="s">""</span>).<span class="f">map</span>(d =>
+    <span class="s">`&lt;span style="display:inline-block;width:44px;height:52px;line-height:52px;
+      text-align:center;background:#0F1528;border:1px solid #2E3A5C;
+      border-radius:10px;color:#ffffff;font-size:26px;font-weight:900;
+      font-family:monospace;margin:0 3px;"&gt;</span>${d}<span class="s">&lt;/span&gt;`</span>
+  ).<span class="f">join</span>(<span class="s">""</span>)
+
+  <span class="k">const</span> content = <span class="s">`
+    &lt;h2 style="color:#fff;font-size:22px;font-weight:900;margin:0 0 8px;"&gt;
+      Vérification de votre email
+    &lt;/h2&gt;
+    &lt;p style="color:rgba(255,255,255,.6);font-size:14px;margin:0 0 28px;"&gt;
+      Il expire dans &lt;strong style="color:#fff;"&gt;10 minutes&lt;/strong&gt;.
+    &lt;/p&gt;
+    &lt;div style="text-align:center;margin:0 0 28px;"&gt;</span>${digits}<span class="s">&lt;/div&gt;
+  `</span>
+
+  <span class="k">await</span> <span class="f">getResend</span>().emails.<span class="f">send</span>({
+    from: FROM, to: email,
+    subject: <span class="s">`</span>${code}<span class="s"> — Code de vérification Smart Brief`</span>,
+    html: <span class="f">layout</span>(content),
+  })
+}</pre>
+
+<h3>2. Password reset email</h3>
+
+<p>Sent when a user requests a password reset. Contains a styled button with the reset link.</p>
+
+<pre><span class="k">export async function</span> <span class="f">sendPasswordResetEmail</span>(email: <span class="t">string</span>, resetLink: <span class="t">string</span>) {
+  <span class="k">const</span> content = <span class="s">`
+    &lt;h2 style="color:#fff;..."&gt;Réinitialisation du mot de passe&lt;/h2&gt;
+    &lt;p style="..."&gt;Ce lien expire dans &lt;strong&gt;30 minutes&lt;/strong&gt;.&lt;/p&gt;
+
+    &lt;div style="text-align:center;margin:32px 0;"&gt;
+      &lt;a href="</span>${resetLink}<span class="s">"
+         style="display:inline-block;background:#414CC4;color:#fff;
+                padding:14px 36px;border-radius:10px;font-weight:700;
+                text-decoration:none;letter-spacing:2px;text-transform:uppercase;"&gt;
+        Réinitialiser le mot de passe
+      &lt;/a&gt;
+    &lt;/div&gt;
+
+    &lt;!-- Fallback plain URL if button doesn't work --&gt;
+    &lt;p style="text-align:center;font-size:11px;"&gt;
+      &lt;a href="</span>${resetLink}<span class="s">" style="color:#67CFB1;"&gt;</span>${resetLink}<span class="s">&lt;/a&gt;
+    &lt;/p&gt;
+  `</span>
+
+  <span class="k">await</span> <span class="f">getResend</span>().emails.<span class="f">send</span>({
+    from: FROM, to: email,
+    subject: <span class="s">`🔐 Réinitialisation de votre mot de passe Smart Brief`</span>,
+    html: <span class="f">layout</span>(content),
+  })
+}</pre>
+
+<h3>3. Brief status update email (to client)</h3>
+
+<p>Sent to the client when admin changes brief status (ACCEPTED, REFUSED, COMPLETED). Uses dynamic color badges.</p>
+
+<pre><span class="c">// Status → label + color maps</span>
+<span class="k">const</span> STATUS_LABELS = {
+  PENDING:     <span class="s">"En attente"</span>,
+  ACCEPTED:    <span class="s">"Accepté"</span>,
+  REFUSED:     <span class="s">"Refusé"</span>,
+  IN_PROGRESS: <span class="s">"En cours de production"</span>,
+  COMPLETED:   <span class="s">"Terminé"</span>,
+}
+<span class="k">const</span> STATUS_COLORS = {
+  PENDING:     <span class="s">"#F59E0B"</span>,
+  ACCEPTED:    <span class="s">"#67CFB1"</span>,
+  REFUSED:     <span class="s">"#EF4444"</span>,
+  IN_PROGRESS: <span class="s">"#414CC4"</span>,
+  COMPLETED:   <span class="s">"#10B981"</span>,
+}
+
+<span class="k">export async function</span> <span class="f">sendBriefStatusEmail</span>(
+  to: <span class="t">string</span>,
+  clientName: <span class="t">string</span>,
+  briefTitle: <span class="t">string</span>,
+  status: <span class="t">string</span>,
+  reason?: <span class="t">string</span>
+) {
+  <span class="k">if</span> (!process.env.RESEND_API_KEY) <span class="k">return</span>  <span class="c">// silent skip if no key</span>
+
+  <span class="k">const</span> statusLabel = STATUS_LABELS[status] || status
+  <span class="k">const</span> statusColor = STATUS_COLORS[status] || <span class="s">"#414CC4"</span>
+
+  <span class="k">const</span> content = <span class="s">`
+    &lt;h2 style="..."&gt;Mise à jour de votre brief&lt;/h2&gt;
+    &lt;p&gt;Bonjour &lt;strong&gt;</span>${clientName}<span class="s">&lt;/strong&gt;&lt;/p&gt;
+
+    &lt;!-- Brief info card --&gt;
+    &lt;table style="background:#0F1528;border-radius:12px;padding:20px;"&gt;
+      &lt;tr&gt;&lt;td&gt;
+        &lt;p style="color:rgba(255,255,255,.4);font-size:11px;"&gt;PROJET&lt;/p&gt;
+        &lt;p style="color:#fff;font-size:16px;font-weight:700;"&gt;</span>${briefTitle}<span class="s">&lt;/p&gt;
+        &lt;p style="color:rgba(255,255,255,.4);font-size:11px;"&gt;STATUT&lt;/p&gt;
+        &lt;span style="background:</span>${statusColor}<span class="s">22;color:</span>${statusColor}<span class="s">;
+               padding:6px 14px;border-radius:20px;font-weight:700;"&gt;
+          </span>${statusLabel}<span class="s">
+        &lt;/span&gt;
+      &lt;/td&gt;&lt;/tr&gt;
+    &lt;/table&gt;
+
+    &lt;!-- Optional admin comment --&gt;
+    </span>${reason ? <span class="s">`&lt;table style="border-left:3px solid </span>${statusColor}<span class="s">;padding:16px;"&gt;
+      &lt;tr&gt;&lt;td&gt;
+        &lt;p style="..."&gt;COMMENTAIRE&lt;/p&gt;
+        &lt;p&gt;</span>${reason}<span class="s">&lt;/p&gt;
+      &lt;/td&gt;&lt;/tr&gt;
+    &lt;/table&gt;`</span> : <span class="s">""</span>}
+  `</span>
+
+  <span class="k">await</span> <span class="f">getResend</span>().emails.<span class="f">send</span>({
+    from: FROM, to,
+    subject: <span class="s">`</span>${status === <span class="s">"ACCEPTED"</span> ? <span class="s">"✅"</span> : status === <span class="s">"REFUSED"</span> ? <span class="s">"❌"</span> : <span class="s">"📋"</span>} Votre brief "${briefTitle}" — ${statusLabel}<span class="s">`</span>,
+    html: <span class="f">layout</span>(content),
+  })
+}</pre>
+
+<h3>4. Employee assignment email</h3>
+
+<pre><span class="k">export async function</span> <span class="f">sendEmployeeAssignmentEmail</span>(
+  to: <span class="t">string</span>,
+  employeeName: <span class="t">string</span>,
+  briefTitle: <span class="t">string</span>
+) {
+  <span class="k">if</span> (!process.env.RESEND_API_KEY) <span class="k">return</span>
+
+  <span class="k">const</span> content = <span class="s">`
+    &lt;h2 style="..."&gt;Nouveau projet assigné&lt;/h2&gt;
+    &lt;p&gt;Bonjour &lt;strong&gt;</span>${employeeName}<span class="s">&lt;/strong&gt;&lt;/p&gt;
+    &lt;p&gt;Vous avez été assigné(e) à un nouveau projet.&lt;/p&gt;
+    &lt;table style="background:#0F1528;border-radius:12px;padding:20px;"&gt;
+      &lt;tr&gt;&lt;td&gt;
+        &lt;p style="color:rgba(255,255,255,.4);font-size:11px;"&gt;PROJET&lt;/p&gt;
+        &lt;p style="color:#fff;font-weight:700;"&gt;</span>${briefTitle}<span class="s">&lt;/p&gt;
+      &lt;/td&gt;&lt;/tr&gt;
+    &lt;/table&gt;
+  `</span>
+
+  <span class="k">await</span> <span class="f">getResend</span>().emails.<span class="f">send</span>({
+    from: FROM, to,
+    subject: <span class="s">`🚀 Nouveau projet assigné : </span>${briefTitle}<span class="s">`</span>,
+    html: <span class="f">layout</span>(content),
+  })
+}</pre>
+
+<h3>5. Admin new brief notification</h3>
+
+<pre><span class="k">export async function</span> <span class="f">sendAdminNewBriefEmail</span>(
+  to: <span class="t">string</span>,      <span class="c">// admin email from env</span>
+  clientName: <span class="t">string</span>,
+  briefTitle: <span class="t">string</span>
+) {
+  <span class="k">if</span> (!process.env.RESEND_API_KEY) <span class="k">return</span>
+
+  <span class="k">const</span> content = <span class="s">`
+    &lt;h2&gt;Nouveau brief soumis&lt;/h2&gt;
+    &lt;table style="background:#0F1528;border-radius:12px;padding:20px;"&gt;
+      &lt;tr&gt;&lt;td&gt;
+        &lt;p style="..."&gt;CLIENT&lt;/p&gt;
+        &lt;p&gt;</span>${clientName}<span class="s">&lt;/p&gt;
+        &lt;p style="..."&gt;PROJET&lt;/p&gt;
+        &lt;p&gt;</span>${briefTitle}<span class="s">&lt;/p&gt;
+        &lt;span style="..."&gt;En attente de validation&lt;/span&gt;
+      &lt;/td&gt;&lt;/tr&gt;
+    &lt;/table&gt;
+  `</span>
+
+  <span class="k">await</span> <span class="f">getResend</span>().emails.<span class="f">send</span>({
+    from: FROM, to,
+    subject: <span class="s">`📬 Nouveau brief : </span>${briefTitle} — ${clientName}<span class="s">`</span>,
+    html: <span class="f">layout</span>(content),
+  })
+}</pre>
+
+<!-- ============================================================ EMAIL ERROR -->
+<h2 id="email-error">Error Handling</h2>
+
+<p>
+  Email sending is a <strong>side effect</strong> — it should never make the main operation fail.
+  If you accept a brief and the email crashes, the brief should still be accepted.
+  Always wrap email calls in a try/catch that doesn't re-throw:
+</p>
+
+<pre><span class="c">// In brief.controller.ts — this is the pattern everywhere</span>
+<span class="k">const</span> updated = <span class="k">await</span> briefService.<span class="f">updateBriefStatus</span>(briefId, status, adminId)
+<span class="c">// ↑ The real work — must succeed</span>
+
+<span class="k">try</span> {
+  <span class="k">const</span> usersMap = <span class="k">await</span> <span class="f">fetchUsersFromAuthService</span>([updated.clientId])
+  <span class="k">const</span> client = usersMap.<span class="f">get</span>(updated.clientId)
+  <span class="k">if</span> (client?.email) {
+    <span class="k">await</span> <span class="f">sendBriefStatusEmail</span>(client.email, ...)
+  }
+} <span class="k">catch</span> (err) {
+  console.<span class="f">error</span>(<span class="s">"Could not send email:"</span>, err)
+  <span class="c">// ← do NOT throw. Brief update already succeeded.</span>
+}
+
+res.<span class="f">status</span>(<span class="num">200</span>).<span class="f">json</span>(updated)  <span class="c">// always respond</span></pre>
+
+<p>Also guard against missing API key to avoid crashes in test/dev environments:</p>
+
+<pre><span class="k">export async function</span> <span class="f">sendBriefStatusEmail</span>(...) {
+  <span class="k">if</span> (!process.env.RESEND_API_KEY) <span class="k">return</span>  <span class="c">// silent skip</span>
+  <span class="c">// proceed with send...</span>
+}</pre>
+
+<!-- ============================================================ WHY PDFKIT -->
+<h2 id="why-pdfkit">What is PDFKit?</h2>
+
+<p>
+  <strong>PDFKit</strong> is a Node.js library for creating PDF documents programmatically.
+  You describe what to draw — text, shapes, lines, images — using an API, and PDFKit produces
+  a binary PDF file.
+</p>
+
+<p>Think of it like a canvas: you pick coordinates and draw things. PDFKit also has a text flow mode where it handles line wrapping and cursor movement automatically.</p>
+
+<!-- ============================================================ PDFKIT SETUP -->
+<h2 id="pdfkit-setup">Installation</h2>
+
+<pre>npm install pdfkit
+npm install --save-dev @types/pdfkit   <span class="c"># TypeScript types</span></pre>
+
+<!-- ============================================================ HOW IT WORKS -->
+<h2 id="how-it-works">How PDFKit Works</h2>
+
+<p>PDFKit is a <strong>stream</strong>. You create a document, add content to it, then call <code>doc.end()</code> to finalize it. The data comes out as a series of chunks through the <code>'data'</code> event.</p>
+
+<div class="flow">
+  <div class="flow-box">new PDFDocument()</div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-box">add text/shapes</div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-box">doc.end()</div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-box">'data' events<br/><small>chunks of bytes</small></div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-box">Buffer.concat()<br/><small>= complete PDF</small></div>
+</div>
+
+<!-- ============================================================ PROMISE PATTERN -->
+<h2 id="promise-pattern">Promise + Buffer Pattern</h2>
+
+<p>
+  PDFKit is event-based, but we want to use <code>async/await</code>.
+  The solution is to wrap the stream events in a <code>Promise</code> and collect all chunks into a <code>Buffer</code>:
+</p>
+
+<pre><span class="k">import</span> PDFDocument <span class="k">from</span> <span class="s">"pdfkit"</span>
+
+<span class="k">async function</span> <span class="f">generatePDF</span>(): <span class="t">Promise</span>&lt;<span class="t">Buffer</span>&gt; {
+  <span class="k">return new</span> <span class="t">Promise</span>((resolve, reject) => {
+    <span class="k">const</span> doc = <span class="k">new</span> <span class="t">PDFDocument</span>({ margin: <span class="num">50</span>, size: <span class="s">"A4"</span> })
+    <span class="k">const</span> chunks: <span class="t">Buffer</span>[] = []
+
+    <span class="c">// Collect every chunk of PDF data</span>
+    doc.<span class="f">on</span>(<span class="s">"data"</span>, (chunk) => chunks.<span class="f">push</span>(<span class="t">Buffer</span>.<span class="f">isBuffer</span>(chunk) ? chunk : <span class="t">Buffer</span>.<span class="f">from</span>(chunk)))
+
+    <span class="c">// When done — merge all chunks and resolve</span>
+    doc.<span class="f">on</span>(<span class="s">"end"</span>, () => <span class="f">resolve</span>(<span class="t">Buffer</span>.<span class="f">concat</span>(chunks)))
+
+    <span class="c">// If error — reject the promise</span>
+    doc.<span class="f">on</span>(<span class="s">"error"</span>, reject)
+
+    <span class="c">// ─── Draw your content here ───────────────────────</span>
+    doc.<span class="f">fontSize</span>(<span class="num">24</span>).<span class="f">text</span>(<span class="s">"Hello World"</span>)
+    doc.<span class="f">moveDown</span>()
+    doc.<span class="f">fontSize</span>(<span class="num">14</span>).<span class="f">text</span>(<span class="s">"This is a PDF"</span>)
+    <span class="c">// ──────────────────────────────────────────────────</span>
+
+    doc.<span class="f">end</span>()  <span class="c">// ← must call this to trigger 'end' event</span>
+  })
+}
+
+<span class="c">// Usage:</span>
+<span class="k">const</span> pdfBuffer = <span class="k">await</span> <span class="f">generatePDF</span>()
+<span class="c">// pdfBuffer is a Buffer containing the complete PDF binary</span></pre>
+
+<div class="callout warn">
+  <strong>Always call doc.end()</strong>
+  If you forget <code>doc.end()</code>, the Promise will hang forever — the <code>'end'</code> event never fires.
+</div>
+
+<!-- ============================================================ COORDINATES -->
+<h2 id="coordinates">Coordinate System</h2>
+
+<p>
+  PDFKit uses a coordinate system where <strong>(0, 0) is the top-left corner</strong> of the page.
+  X increases to the right, Y increases downward.
+</p>
+
+<pre><span class="c">// A4 page is 595 × 842 points (1 point = 1/72 inch)</span>
+<span class="k">const</span> pageWidth   = doc.page.width    <span class="c">// 595</span>
+<span class="k">const</span> pageHeight  = doc.page.height   <span class="c">// 842</span>
+<span class="k">const</span> margin      = <span class="num">50</span>
+<span class="k">const</span> contentWidth = pageWidth - margin * <span class="num">2</span>  <span class="c">// 495</span>
+
+<span class="c">// Draw text at specific (x, y) coordinates</span>
+doc.<span class="f">text</span>(<span class="s">"Hello"</span>, <span class="num">50</span>, <span class="num">100</span>)   <span class="c">// x=50, y=100 from top-left</span>
+
+<span class="c">// Or use the current cursor position (doc.y tracks it)</span>
+doc.<span class="f">text</span>(<span class="s">"Hello"</span>)             <span class="c">// at current cursor position</span>
+doc.<span class="f">moveDown</span>()               <span class="c">// move cursor down one line</span>
+doc.<span class="f">text</span>(<span class="s">"World"</span>)             <span class="c">// below Hello</span></pre>
+
+<!-- ============================================================ TEXT -->
+<h2 id="text">Drawing Text</h2>
+
+<pre><span class="c">// Chain: fillColor → fontSize → font → text</span>
+doc.<span class="f">fillColor</span>(<span class="s">"#333"</span>).<span class="f">fontSize</span>(<span class="num">12</span>).<span class="f">font</span>(<span class="s">"Helvetica"</span>).<span class="f">text</span>(<span class="s">"Hello"</span>)
+
+<span class="c">// Settings persist until changed</span>
+doc.<span class="f">fillColor</span>(<span class="s">"red"</span>).<span class="f">fontSize</span>(<span class="num">24</span>)
+doc.<span class="f">text</span>(<span class="s">"Big Red Title"</span>)
+doc.<span class="f">text</span>(<span class="s">"Still red and 24"</span>)    <span class="c">// same settings</span>
+doc.<span class="f">fillColor</span>(<span class="s">"black"</span>).<span class="f">fontSize</span>(<span class="num">12</span>)
+doc.<span class="f">text</span>(<span class="s">"Back to normal"</span>)</pre>
+
+<h3>text() options</h3>
+
+<pre><span class="c">// Text with explicit position and width</span>
+doc.<span class="f">text</span>(<span class="s">"Wrap me"</span>, x, y, {
+  <span class="n">width</span>:     <span class="num">300</span>,           <span class="c">// wrap text at 300 points wide</span>
+  <span class="n">align</span>:     <span class="s">"justify"</span>,    <span class="c">// "left" | "center" | "right" | "justify"</span>
+  <span class="n">lineGap</span>:   <span class="num">4</span>,             <span class="c">// extra space between lines</span>
+  <span class="n">continued</span>: <span class="k">true</span>,          <span class="c">// don't move to next line after this</span>
+  <span class="n">characterSpacing</span>: <span class="num">1.5</span>,   <span class="c">// letter spacing</span>
+})
+
+<span class="c">// "continued: true" lets you mix styles on the same line</span>
+doc.<span class="f">fillColor</span>(<span class="s">"#67CFB1"</span>).<span class="f">font</span>(<span class="s">"Helvetica-Bold"</span>)
+   .<span class="f">text</span>(<span class="s">"SMART"</span>, margin, <span class="num">22</span>, { continued: <span class="k">true</span>, characterSpacing: <span class="num">3</span> })
+doc.<span class="f">fillColor</span>(<span class="s">"#ffffff"</span>)
+   .<span class="f">text</span>(<span class="s">" BRIEF"</span>, { continued: <span class="k">false</span>, characterSpacing: <span class="num">3</span> })</pre>
+
+<h3>All font options</h3>
+
+<table>
+  <tr><th>Font name</th><th>Style</th></tr>
+  <tr><td><code>"Helvetica"</code></td><td>Normal</td></tr>
+  <tr><td><code>"Helvetica-Bold"</code></td><td>Bold</td></tr>
+  <tr><td><code>"Helvetica-Oblique"</code></td><td>Italic</td></tr>
+  <tr><td><code>"Helvetica-BoldOblique"</code></td><td>Bold Italic</td></tr>
+  <tr><td><code>"Times-Roman"</code></td><td>Serif normal</td></tr>
+  <tr><td><code>"Times-Bold"</code></td><td>Serif bold</td></tr>
+  <tr><td><code>"Courier"</code></td><td>Monospace</td></tr>
+  <tr><td><code>"path/to/font.ttf"</code></td><td>Custom font file</td></tr>
+</table>
+
+<!-- ============================================================ SHAPES -->
+<h2 id="shapes">Drawing Shapes</h2>
+
+<pre><span class="c">// ── Rectangle ────────────────────────────────────────────────</span>
+doc.<span class="f">rect</span>(x, y, width, height).<span class="f">fill</span>(<span class="s">"#141824"</span>)
+doc.<span class="f">rect</span>(x, y, width, height).<span class="f">stroke</span>(<span class="s">"#414CC4"</span>)  <span class="c">// outline only</span>
+doc.<span class="f">rect</span>(x, y, width, height).<span class="f">fillAndStroke</span>(<span class="s">"#fff"</span>, <span class="s">"#000"</span>)
+
+<span class="c">// ── Rounded Rectangle ────────────────────────────────────────</span>
+doc.<span class="f">roundedRect</span>(x, y, width, height, cornerRadius).<span class="f">fill</span>(<span class="s">"#414CC4"</span> + <span class="s">"22"</span>)
+
+<span class="c">// ── Circle ───────────────────────────────────────────────────</span>
+doc.<span class="f">circle</span>(centerX, centerY, radius).<span class="f">fill</span>(<span class="s">"#67CFB1"</span>)
+
+<span class="c">// ── Line ─────────────────────────────────────────────────────</span>
+doc.<span class="f">moveTo</span>(x1, y1)
+   .<span class="f">lineTo</span>(x2, y2)
+   .<span class="f">strokeColor</span>(<span class="s">"#E2E8F0"</span>)
+   .<span class="f">lineWidth</span>(<span class="num">0.5</span>)
+   .<span class="f">stroke</span>()
+
+<span class="c">// ── Full-page color bar ───────────────────────────────────────</span>
+doc.<span class="f">rect</span>(<span class="num">0</span>, <span class="num">0</span>, pageWidth, <span class="num">72</span>).<span class="f">fill</span>(<span class="s">"#141824"</span>)  <span class="c">// header background</span>
+doc.<span class="f">rect</span>(<span class="num">0</span>, <span class="num">69</span>, pageWidth, <span class="num">3</span>).<span class="f">fill</span>(<span class="s">"#414CC4"</span>)   <span class="c">// accent line</span></pre>
+
+<div class="callout info">
+  <strong>Color hex with alpha</strong>
+  PDFKit accepts colors as <code>"#RRGGBBAA"</code> — the last two hex digits are opacity. <code>"#414CC422"</code> = purple at ~13% opacity. This is how the status badge backgrounds are done.
+</div>
+
+<!-- ============================================================ LAYOUT HELPERS -->
+<h2 id="layout-helpers">Layout Helpers</h2>
+
+<pre><span class="c">// doc.y — the current cursor Y position</span>
+<span class="c">// After text() calls, doc.y is updated to below the last line</span>
+doc.<span class="f">text</span>(<span class="s">"Some text"</span>)
+console.<span class="f">log</span>(doc.y)  <span class="c">// prints current cursor position</span>
+
+<span class="c">// moveDown — move cursor down N lines (default 1)</span>
+doc.<span class="f">moveDown</span>()       <span class="c">// down one line</span>
+doc.<span class="f">moveDown</span>(<span class="num">2</span>)      <span class="c">// down two lines</span>
+doc.<span class="f">moveDown</span>(<span class="num">0.5</span>)   <span class="c">// down half a line</span>
+
+<span class="c">// moveUp — move cursor up</span>
+doc.<span class="f">moveUp</span>()
+
+<span class="c">// Capture y before drawing, use it to align things horizontally</span>
+<span class="k">const</span> y = doc.y
+doc.<span class="f">circle</span>(margin + <span class="num">4</span>, y + <span class="num">5</span>, <span class="num">3</span>).<span class="f">fill</span>(<span class="s">"#67CFB1"</span>)   <span class="c">// bullet</span>
+doc.<span class="f">text</span>(featureText, margin + <span class="num">14</span>, y)                  <span class="c">// text same y</span></pre>
+
+<!-- ============================================================ FONTS -->
+<h2 id="fonts">Fonts</h2>
+
+<pre><span class="c">// Built-in fonts (always available, no file needed)</span>
+doc.<span class="f">font</span>(<span class="s">"Helvetica"</span>)
+doc.<span class="f">font</span>(<span class="s">"Helvetica-Bold"</span>)
+doc.<span class="f">font</span>(<span class="s">"Times-Roman"</span>)
+doc.<span class="f">font</span>(<span class="s">"Courier"</span>)
+
+<span class="c">// Custom font from file</span>
+doc.<span class="f">font</span>(<span class="s">"./fonts/Inter-Regular.ttf"</span>)
+doc.<span class="f">font</span>(<span class="s">"./fonts/Inter-Bold.ttf"</span>)
+
+<span class="c">// Register with a name for easy reuse</span>
+doc.<span class="f">registerFont</span>(<span class="s">"Inter"</span>,      <span class="s">"./fonts/Inter-Regular.ttf"</span>)
+doc.<span class="f">registerFont</span>(<span class="s">"Inter-Bold"</span>, <span class="s">"./fonts/Inter-Bold.ttf"</span>)
+doc.<span class="f">font</span>(<span class="s">"Inter"</span>).<span class="f">text</span>(<span class="s">"Hello"</span>)</pre>
+
+<div class="callout warn">
+  <strong>Smart Brief uses built-in fonts only</strong>
+  The PDF uses <code>Helvetica</code> and <code>Helvetica-Bold</code> — no external font files needed. This makes the service portable and avoids missing file errors.
+</div>
+
+<!-- ============================================================ PAGES -->
+<h2 id="pages">Multiple Pages</h2>
+
+<pre><span class="c">// PDFKit auto-adds pages when content overflows</span>
+<span class="c">// You can also add a page manually:</span>
+doc.<span class="f">addPage</span>()
+
+<span class="c">// Add page with specific size</span>
+doc.<span class="f">addPage</span>({ size: <span class="s">"A4"</span>, margin: <span class="num">50</span> })
+
+<span class="c">// Check current page number</span>
+doc.bufferedPageRange()  <span class="c">// { start, count }</span>
+
+<span class="c">// Draw footer on every page (after content):</span>
+<span class="k">const</span> range = doc.<span class="f">bufferedPageRange</span>()
+<span class="k">for</span> (<span class="k">let</span> i = range.start; i &lt; range.start + range.count; i++) {
+  doc.<span class="f">switchToPage</span>(i)
+  doc.<span class="f">text</span>(<span class="s">`Page </span>${i + <span class="num">1</span>}<span class="s"> of </span>${range.count}<span class="s">`</span>, ...)
+}</pre>
+
+<!-- ============================================================ PDF RESPONSE -->
+<h2 id="pdf-response">Sending PDF as HTTP Response</h2>
+
+<pre><span class="c">// In brief.controller.ts</span>
+<span class="k">export const</span> <span class="f">exportBriefDataHandler</span> = <span class="k">async</span> (req, res) => {
+  <span class="k">const</span> brief    = <span class="k">await</span> briefService.<span class="f">getBriefById</span>(briefId, auth)
+  <span class="k">const</span> usersMap = <span class="k">await</span> <span class="f">fetchUsersFromAuthService</span>([brief.clientId, ...brief.assignedToIds])
+  <span class="k">const</span> client   = usersMap.<span class="f">get</span>(brief.clientId) || <span class="k">null</span>
+  <span class="k">const</span> assignees = brief.assignedToIds.<span class="f">map</span>(id => usersMap.<span class="f">get</span>(id)).<span class="f">filter</span>(Boolean)
+
+  <span class="c">// Generate the PDF buffer</span>
+  <span class="k">const</span> pdfBuffer = <span class="k">await</span> <span class="f">createBriefPdf</span>(brief, client, assignees, auth.role)
+
+  <span class="c">// Send as PDF response</span>
+  res.<span class="f">setHeader</span>(<span class="s">"Content-Type"</span>, <span class="s">"application/pdf"</span>)
+  res.<span class="f">setHeader</span>(<span class="s">"Content-Disposition"</span>, <span class="s">`inline; filename="brief-</span>${brief.id}<span class="s">.pdf"`</span>)
+  <span class="c">//                                      ↑ "inline" = open in browser</span>
+  <span class="c">//                                      "attachment" = force download</span>
+  res.<span class="f">status</span>(<span class="num">200</span>).<span class="f">send</span>(pdfBuffer)
+}</pre>
+
+<p>On the frontend, open the PDF in a new browser tab:</p>
+
+<pre><span class="c">// React — opens PDF in new tab</span>
+<span class="k">const</span> <span class="f">handleExport</span> = <span class="k">async</span> () => {
+  <span class="k">const</span> response = <span class="k">await</span> briefAxios.<span class="f">get</span>(<span class="s">`/briefs/</span>${briefId}<span class="s">/export`</span>, {
+    responseType: <span class="s">"blob"</span>         <span class="c">// receive as binary blob</span>
+  })
+  <span class="k">const</span> url = URL.<span class="f">createObjectURL</span>(
+    <span class="k">new</span> <span class="t">Blob</span>([response.data], { type: <span class="s">"application/pdf"</span> })
+  )
+  window.<span class="f">open</span>(url, <span class="s">"_blank"</span>)
+}</pre>
+
+<!-- ============================================================ PDF BREAKDOWN -->
+<h2 id="pdf-breakdown">Full Smart Brief PDF Breakdown</h2>
+
+<div class="pdf-preview">
+  <div class="pp-header">
+    <span class="smart">SMART</span><span class="brief"> BRIEF</span>
+    <span class="sub">BY AGENCE 47 · PLATEFORME DE GESTION DE PROJETS</span>
+  </div>
+  <div class="pp-body">
+    <div class="pp-title">
+      <h3>Site web e-commerce Boutique Zahra</h3>
+      <span class="pp-badge">EN COURS</span>
+    </div>
+    <div class="pp-date">Soumis le 1 janvier 2026</div>
+    <div style="border-top:1px solid #E2E8F0;margin:8px 0;"></div>
+
+    <div class="pp-section-title">Informations Client</div>
+    <div class="pp-row"><span class="pp-label">Nom complet</span><span class="pp-value">Omar Ben Ali</span></div>
+
+    <div class="pp-section-title">Détails du Projet</div>
+    <div class="pp-row"><span class="pp-label">Type de service</span><span class="pp-value">Création & Conception Site Web</span></div>
+    <div class="pp-row"><span class="pp-label">Budget estimé</span><span class="pp-value">10 000 – 15 000 MAD</span></div>
+    <div class="pp-row"><span class="pp-label">Date limite</span><span class="pp-value">1 mars 2026</span></div>
+
+    <div class="pp-section-title">Description du Projet</div>
+    <p style="color:#334155;font-size:9px;margin:0 0 8px;line-height:1.5;">Création d'une boutique en ligne complète avec système de paiement intégré...</p>
+
+    <div class="pp-section-title">Caractéristiques demandées</div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;"><div style="width:6px;height:6px;background:#67CFB1;border-radius:50%;flex-shrink:0;"></div><span style="color:#334155;font-size:9px;">Panier d'achat</span></div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;"><div style="width:6px;height:6px;background:#67CFB1;border-radius:50%;flex-shrink:0;"></div><span style="color:#334155;font-size:9px;">Paiement en ligne</span></div>
+
+    <div class="pp-section-title">Équipe Assignée</div>
+    <div style="display:flex;align-items:center;gap:8px;"><div style="width:6px;height:6px;background:#67CFB1;border-radius:50%;flex-shrink:0;"></div><span style="color:#334155;font-size:9px;">Youssef Tazi · youssef@agence47.ma</span></div>
+  </div>
+  <div class="pp-footer">Généré le 13/04/2026 · Smart Brief by Agence 47 · contact@agence47.ma</div>
+</div>
+
+<p>The PDF is built in sections, top to bottom. Here's how each part is drawn:</p>
+
+<pre><span class="c">// ── 1. DARK HEADER BAR ───────────────────────────────────────</span>
+doc.<span class="f">rect</span>(<span class="num">0</span>, <span class="num">0</span>, pageWidth, <span class="num">72</span>).<span class="f">fill</span>(<span class="s">"#141824"</span>)
+doc.<span class="f">rect</span>(<span class="num">0</span>, <span class="num">69</span>, pageWidth, <span class="num">3</span>).<span class="f">fill</span>(<span class="s">"#414CC4"</span>)   <span class="c">// accent line</span>
+
+doc.<span class="f">fillColor</span>(<span class="s">"#67CFB1"</span>).<span class="f">fontSize</span>(<span class="num">18</span>).<span class="f">font</span>(<span class="s">"Helvetica-Bold"</span>)
+   .<span class="f">text</span>(<span class="s">"SMART"</span>, margin, <span class="num">22</span>, { continued: <span class="k">true</span>, characterSpacing: <span class="num">3</span> })
+doc.<span class="f">fillColor</span>(<span class="s">"#ffffff"</span>).<span class="f">text</span>(<span class="s">" BRIEF"</span>, { continued: <span class="k">false</span>, characterSpacing: <span class="num">3</span> })
+
+<span class="c">// ── 2. TITLE + STATUS BADGE (same line) ─────────────────────</span>
+<span class="k">const</span> titleY = <span class="num">90</span>
+doc.<span class="f">fillColor</span>(<span class="s">"#141824"</span>).<span class="f">fontSize</span>(<span class="num">20</span>).<span class="f">font</span>(<span class="s">"Helvetica-Bold"</span>)
+   .<span class="f">text</span>(brief.title, margin, titleY, { width: contentWidth - <span class="num">100</span> })
+
+<span class="c">// Badge: background pill + text</span>
+<span class="k">const</span> statusX = pageWidth - margin - <span class="num">90</span>
+doc.<span class="f">roundedRect</span>(statusX, titleY, <span class="num">90</span>, <span class="num">22</span>, <span class="num">11</span>).<span class="f">fill</span>(statusColor + <span class="s">"22"</span>)
+doc.<span class="f">fillColor</span>(statusColor).<span class="f">fontSize</span>(<span class="num">8</span>)
+   .<span class="f">text</span>(statusLabel.<span class="f">toUpperCase</span>(), statusX, titleY + <span class="num">7</span>, { width: <span class="num">90</span>, align: <span class="s">"center"</span> })
+
+<span class="c">// ── 3. HORIZONTAL DIVIDER ────────────────────────────────────</span>
+doc.<span class="f">moveTo</span>(margin, doc.y + <span class="num">6</span>).<span class="f">lineTo</span>(pageWidth - margin, doc.y + <span class="num">6</span>)
+   .<span class="f">strokeColor</span>(<span class="s">"#E2E8F0"</span>).<span class="f">lineWidth</span>(<span class="num">0.5</span>).<span class="f">stroke</span>()
+
+<span class="c">// ── 4. SECTION (reusable helper) ────────────────────────────</span>
+<span class="f">sectionHeader</span>(doc, <span class="s">"Informations Client"</span>, margin)
+<span class="f">infoRow</span>(doc, <span class="s">"Nom complet"</span>, <span class="s">`</span>${client.firstName} ${client.lastName}<span class="s">`</span>, margin, contentWidth)
+
+<span class="c">// ── 5. BULLET LIST (features) ───────────────────────────────</span>
+brief.features.<span class="f">forEach</span>((feature: <span class="t">string</span>) => {
+  <span class="k">const</span> y = doc.y                         <span class="c">// capture before drawing</span>
+  doc.<span class="f">circle</span>(margin + <span class="num">4</span>, y + <span class="num">5</span>, <span class="num">3</span>).<span class="f">fill</span>(<span class="s">"#67CFB1"</span>)
+  doc.<span class="f">fillColor</span>(<span class="s">"#334155"</span>).<span class="f">font</span>(<span class="s">"Helvetica"</span>).<span class="f">fontSize</span>(<span class="num">10</span>)
+     .<span class="f">text</span>(feature, margin + <span class="num">14</span>, y, { width: contentWidth - <span class="num">14</span>, lineGap: <span class="num">2</span> })
+})
+
+<span class="c">// ── 6. FOOTER (absolute Y from bottom of page) ──────────────</span>
+<span class="k">const</span> footerY = doc.page.height - <span class="num">44</span>
+doc.<span class="f">moveTo</span>(margin, footerY).<span class="f">lineTo</span>(pageWidth - margin, footerY)
+   .<span class="f">strokeColor</span>(<span class="s">"#E2E8F0"</span>).<span class="f">lineWidth</span>(<span class="num">0.5</span>).<span class="f">stroke</span>()
+doc.<span class="f">fillColor</span>(<span class="s">"#64748B"</span>).<span class="f">fontSize</span>(<span class="num">8</span>)
+   .<span class="f">text</span>(<span class="s">`Généré le </span>${<span class="k">new</span> <span class="t">Date</span>().<span class="f">toLocaleDateString</span>(<span class="s">"fr-FR"</span>)}<span class="s"> · Smart Brief`</span>,
+        margin, footerY + <span class="num">8</span>, { width: contentWidth, align: <span class="s">"center"</span> })</pre>
+
+<!-- ============================================================ HELPER FUNCTIONS -->
+<h2 id="helper-functions">Helper Functions</h2>
+
+<p>Smart Brief defines two reusable helpers to avoid repeating draw code:</p>
+
+<pre><span class="c">// Draws a labeled section header with a colored underline</span>
+<span class="k">function</span> <span class="f">sectionHeader</span>(doc: <span class="t">PDFKit.PDFDocument</span>, title: <span class="t">string</span>, margin: <span class="t">number</span>) {
+  doc.<span class="f">moveDown</span>(<span class="num">0.8</span>)
+  doc.<span class="f">fillColor</span>(<span class="s">"#67CFB1"</span>).<span class="f">fontSize</span>(<span class="num">9</span>).<span class="f">font</span>(<span class="s">"Helvetica-Bold"</span>)
+     .<span class="f">text</span>(title.<span class="f">toUpperCase</span>(), margin, doc.y, { characterSpacing: <span class="num">1.5</span> })
+
+  <span class="k">const</span> lineY = doc.y + <span class="num">3</span>
+  doc.<span class="f">moveTo</span>(margin, lineY).<span class="f">lineTo</span>(margin + <span class="num">50</span>, lineY)
+     .<span class="f">strokeColor</span>(<span class="s">"#67CFB1"</span>).<span class="f">lineWidth</span>(<span class="num">2</span>).<span class="f">stroke</span>()
+
+  doc.<span class="f">moveDown</span>(<span class="num">0.6</span>)
+}
+
+<span class="c">// Draws a label-value row (like a key-value table)</span>
+<span class="k">function</span> <span class="f">infoRow</span>(doc: <span class="t">PDFKit.PDFDocument</span>, label: <span class="t">string</span>, value: <span class="t">string</span>,
+                  margin: <span class="t">number</span>, contentWidth: <span class="t">number</span>) {
+  <span class="k">const</span> y = doc.y
+  doc.<span class="f">fillColor</span>(<span class="s">"#64748B"</span>).<span class="f">fontSize</span>(<span class="num">9</span>).<span class="f">font</span>(<span class="s">"Helvetica"</span>)
+     .<span class="f">text</span>(label, margin, y, { width: <span class="num">110</span> })
+  doc.<span class="f">fillColor</span>(<span class="s">"#334155"</span>).<span class="f">font</span>(<span class="s">"Helvetica-Bold"</span>).<span class="f">fontSize</span>(<span class="num">9</span>)
+     .<span class="f">text</span>(value, margin + <span class="num">115</span>, y, { width: contentWidth - <span class="num">115</span> })
+  doc.<span class="f">moveDown</span>(<span class="num">0.4</span>)
+}</pre>
+
+<p>Usage:</p>
+
+<pre><span class="f">sectionHeader</span>(doc, <span class="s">"Informations Client"</span>, margin)
+<span class="f">infoRow</span>(doc, <span class="s">"Nom complet"</span>, <span class="s">"Omar Ben Ali"</span>, margin, contentWidth)
+<span class="f">infoRow</span>(doc, <span class="s">"Email"</span>,       <span class="s">"omar@example.com"</span>, margin, contentWidth)
+
+<span class="f">sectionHeader</span>(doc, <span class="s">"Détails du Projet"</span>, margin)
+<span class="f">infoRow</span>(doc, <span class="s">"Budget"</span>,     <span class="s">"10 000 MAD"</span>, margin, contentWidth)
+<span class="f">infoRow</span>(doc, <span class="s">"Deadline"</span>,   <span class="s">"1 mars 2026"</span>, margin, contentWidth)</pre>
+
+<!-- ============================================================ ROLE BASED -->
+<h2 id="role-based">Role-Based Content in the PDF</h2>
+
+<p>The PDF shows different content depending on who is viewing it:</p>
+
+<pre><span class="c">// Client email is hidden from clients (they don't need their own email)</span>
+<span class="k">if</span> (client) {
+  <span class="f">infoRow</span>(doc, <span class="s">"Nom complet"</span>, <span class="s">`</span>${client.firstName} ${client.lastName}<span class="s">`</span>, ...)
+  <span class="k">if</span> (role !== <span class="s">"CLIENT"</span>) {
+    <span class="f">infoRow</span>(doc, <span class="s">"Email"</span>, client.email, ...)  <span class="c">// admins + employees see email</span>
+  }
+}
+
+<span class="c">// Team section: clients don't see who's assigned</span>
+<span class="k">if</span> (role !== <span class="s">"CLIENT"</span>) {
+  <span class="f">sectionHeader</span>(doc, <span class="s">"Équipe Assignée"</span>, margin)
+  <span class="k">if</span> (assignees.length) {
+    assignees.<span class="f">forEach</span>(emp => {
+      <span class="c">// Show name + email for each assigned employee</span>
+      doc.<span class="f">text</span>(<span class="s">`</span>${emp.firstName} ${emp.lastName} · ${emp.email}<span class="s">`</span>, ...)
+    })
+  } <span class="k">else</span> {
+    doc.<span class="f">text</span>(<span class="s">"Non assigné"</span>, margin)
+  }
+}</pre>
+
+<div class="callout tip">
+  <strong>The role comes from the gateway header</strong>
+  <code>auth.role</code> in the controller is read from <code>req.user.role</code>, which was set by <code>requireAuth</code> from the <code>x-user-role</code> header injected by the gateway. So the PDF automatically adapts to whoever makes the export request.
+</div>
+
+</main>
+
+<script>
+  const sections = document.querySelectorAll('h2[id], h3[id]');
+  const links    = document.querySelectorAll('nav a');
+
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        links.forEach(l => l.classList.remove('active'));
+        const active = document.querySelector(`nav a[href="#${entry.target.id}"]`);
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-10% 0px -80% 0px' });
+
+  sections.forEach(s => io.observe(s));
+</script>
+</body>
+</html>

@@ -1,0 +1,97 @@
+@startuml SmartBrief - Diagramme de cas d'utilisation
+
+skinparam backgroundColor #1A2238
+skinparam actorBackgroundColor #2E3A5C
+skinparam actorBorderColor #6C63FF
+skinparam usecaseBackgroundColor #1A2238
+skinparam usecaseBorderColor #6C63FF
+skinparam usecaseFontColor #FFFFFF
+skinparam actorFontColor #FFFFFF
+skinparam ArrowColor #6C63FF
+skinparam packageBackgroundColor #12192B
+skinparam packageBorderColor #2E3A5C
+skinparam packageFontColor #AAAAAA
+
+left to right direction
+
+actor "Client" as client #6C63FF
+actor "Administrateur" as admin #00B4D8
+actor "Employé" as employee #10B981
+
+rectangle "SmartBrief" {
+
+  package "Authentification" {
+    usecase "S'inscrire" as UC_REGISTER
+    usecase "Se connecter (email)" as UC_LOGIN
+    usecase "Se connecter (Google OAuth)" as UC_GOOGLE
+    usecase "Réinitialiser le mot de passe" as UC_RESET
+    usecase "Gérer son profil" as UC_PROFILE
+  }
+
+  package "Gestion des briefs (Client)" {
+    usecase "Soumettre un brief" as UC_SUBMIT
+    usecase "Consulter ses briefs" as UC_VIEW_OWN
+    usecase "Modifier un brief" as UC_EDIT
+    usecase "Supprimer un brief" as UC_DELETE_CLIENT
+  }
+
+  package "Gestion des briefs (Admin)" {
+    usecase "Consulter tous les briefs" as UC_VIEW_ALL
+    usecase "Accepter un brief" as UC_ACCEPT
+    usecase "Refuser un brief" as UC_REFUSE
+    usecase "Assigner des employés" as UC_ASSIGN
+    usecase "Créer un compte client" as UC_CREATE_CLIENT
+    usecase "Créer un brief pour un client" as UC_ADMIN_BRIEF
+    usecase "Exporter en PDF" as UC_PDF
+    usecase "Supprimer un brief" as UC_DELETE_ADMIN
+  }
+
+  package "Gestion des briefs (Employé)" {
+    usecase "Consulter les briefs assignés" as UC_VIEW_ASSIGNED
+    usecase "Démarrer la production" as UC_START
+    usecase "Marquer comme terminé" as UC_COMPLETE
+  }
+
+  package "Gestion des tâches" {
+    usecase "Créer une tâche" as UC_TASK_CREATE
+    usecase "Modifier une tâche" as UC_TASK_EDIT
+    usecase "Supprimer une tâche" as UC_TASK_DELETE
+  }
+}
+
+client --> UC_REGISTER
+client --> UC_LOGIN
+client --> UC_GOOGLE
+client --> UC_RESET
+client --> UC_PROFILE
+client --> UC_SUBMIT
+client --> UC_VIEW_OWN
+client --> UC_EDIT
+client --> UC_DELETE_CLIENT
+
+admin --> UC_LOGIN
+admin --> UC_GOOGLE
+admin --> UC_PROFILE
+admin --> UC_VIEW_ALL
+admin --> UC_ACCEPT
+admin --> UC_REFUSE
+admin --> UC_ASSIGN
+admin --> UC_CREATE_CLIENT
+admin --> UC_ADMIN_BRIEF
+admin --> UC_PDF
+admin --> UC_DELETE_ADMIN
+admin --> UC_TASK_CREATE
+admin --> UC_TASK_EDIT
+admin --> UC_TASK_DELETE
+
+employee --> UC_LOGIN
+employee --> UC_GOOGLE
+employee --> UC_PROFILE
+employee --> UC_VIEW_ASSIGNED
+employee --> UC_START
+employee --> UC_COMPLETE
+employee --> UC_TASK_CREATE
+employee --> UC_TASK_EDIT
+employee --> UC_TASK_DELETE
+
+@enduml

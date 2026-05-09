@@ -1,7 +1,16 @@
-import { Resend } from "resend";
+import nodemailer from "nodemailer";
 
-const getResend = () => new Resend(process.env.RESEND_API_KEY);
-const FROM = "Smart Brief <onboarding@resend.dev>";
+const transporter = nodemailer.createTransport({
+  host: "smtp.gmail.com",
+  port: 587,
+  secure: false,
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+});
+
+const FROM = `"Smart Brief" <${process.env.EMAIL_USER}>`;
 
 const STATUS_LABELS: Record<string, string> = {
   PENDING: "En attente",
@@ -55,7 +64,7 @@ function layout(content: string): string {
 }
 
 export async function sendBriefStatusEmail(to: string, clientName: string, briefTitle: string, status: string, reason?: string) {
-  if (!process.env.RESEND_API_KEY) return;
+  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) return;
 
   const statusLabel = STATUS_LABELS[status] || status;
   const statusColor = STATUS_COLORS[status] || "#414CC4";
@@ -85,20 +94,19 @@ export async function sendBriefStatusEmail(to: string, clientName: string, brief
   `;
 
   try {
-    const { error } = await getResend().emails.send({
+    await transporter.sendMail({
       from: FROM,
       to,
       subject: `${isAccepted ? "✅" : isRefused ? "❌" : isCompleted ? "🎉" : "📋"} Votre brief "${briefTitle}" — ${statusLabel}`,
       html: layout(content),
     });
-    if (error) throw new Error(JSON.stringify(error));
   } catch (error) {
     console.error("[EMAIL] Failed to send status email:", error);
   }
 }
 
 export async function sendEmployeeAssignmentEmail(to: string, employeeName: string, briefTitle: string) {
-  if (!process.env.RESEND_API_KEY) return;
+  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) return;
 
   const content = `
     <h2 style="color:#ffffff;font-size:22px;font-weight:900;margin:0 0 8px;">Nouveau projet assigné</h2>
@@ -113,15 +121,14 @@ export async function sendEmployeeAssignmentEmail(to: string, employeeName: stri
   `;
 
   try {
-    const { error } = await getResend().emails.send({ from: FROM, to, subject: `🚀 Nouveau projet assigné : ${briefTitle}`, html: layout(content) });
-    if (error) throw new Error(JSON.stringify(error));
+    await transporter.sendMail({ from: FROM, to, subject: `Nouveau projet assigné : ${briefTitle}`, html: layout(content) });
   } catch (error) {
     console.error("[EMAIL] Failed to send assignment email:", error);
   }
 }
 
 export async function sendAdminNewBriefEmail(to: string, clientName: string, briefTitle: string) {
-  if (!process.env.RESEND_API_KEY) return;
+  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) return;
 
   const content = `
     <h2 style="color:#ffffff;font-size:22px;font-weight:900;margin:0 0 8px;">Nouveau brief soumis</h2>
@@ -138,8 +145,7 @@ export async function sendAdminNewBriefEmail(to: string, clientName: string, bri
   `;
 
   try {
-    const { error } = await getResend().emails.send({ from: FROM, to, subject: `📬 Nouveau brief : ${briefTitle} — ${clientName}`, html: layout(content) });
-    if (error) throw new Error(JSON.stringify(error));
+    await transporter.sendMail({ from: FROM, to, subject: `Nouveau brief : ${briefTitle} — ${clientName}`, html: layout(content) });
   } catch (error) {
     console.error("[EMAIL] Failed to send admin notification email:", error);
   }

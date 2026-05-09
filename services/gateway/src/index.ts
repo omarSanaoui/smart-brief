@@ -16,6 +16,7 @@ const JWT_SECRET = process.env.JWT_SECRET as string
 const allowedOrigins = [
     process.env.FRONTEND_URL || "http://localhost:5173",
     "http://localhost:5173",
+    "http://localhost:5174",
 ]
 
 app.use(cors({
@@ -40,6 +41,7 @@ const publicRoutes = [
     { path: "/auth/google", method: "GET" },
     { path: "/auth/google/callback", method: "GET" },
     { path: "/api/users/internal", method: "GET" },
+    { path: "/uploads", method: "GET" },
 ]
 
 app.use((req, _res, next) => {
@@ -105,6 +107,12 @@ app.use("/briefs", createProxyMiddleware({
             console.log("Proxy error:", err.message)
         }
     }
+}))
+
+app.use("/uploads", createProxyMiddleware({
+    target: process.env.BRIEF_SERVICE_URL || "http://localhost:4000",
+    changeOrigin: true,
+    pathRewrite: (path) => `/uploads${path}`,
 }))
 
 app.listen(8080, () => console.log("Gateway running on http://localhost:8080"))

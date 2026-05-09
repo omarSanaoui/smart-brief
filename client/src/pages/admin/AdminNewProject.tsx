@@ -154,6 +154,19 @@ export default function AdminNewProject() {
         if (!selectedClient) return;
         setSubmitting(true);
         try {
+            // Upload new files first
+            const newFiles = attachments.filter(a => a.file);
+            const existingNames = attachments.filter(a => !a.file).map(a => a.name);
+            let uploadedNames: string[] = [];
+            if (newFiles.length > 0) {
+                const formData = new FormData();
+                newFiles.forEach(a => formData.append("files", a.file!));
+                const res = await briefApi.post("/briefs/upload", formData, {
+                    headers: { "Content-Type": undefined },
+                });
+                uploadedNames = res.data.filenames;
+            }
+
             await briefApi.post(`/briefs/admin/for-client/${selectedClient.id}`, {
                 title: projectName,
                 projectType: serviceType?.value as ProjectType || "OTHER",
@@ -161,7 +174,7 @@ export default function AdminNewProject() {
                 features: features.map((f) => f.value),
                 budgetRange: budget?.value || "",
                 deadline: deadline ? deadline.toISOString() : new Date().toISOString(),
-                attachments: attachments.map((a) => a.name),
+                attachments: [...existingNames, ...uploadedNames],
             });
             setSuccess(true);
             setTimeout(() => navigate("/briefs"), 2000);
@@ -356,7 +369,7 @@ export default function AdminNewProject() {
 
                         <DatePicker.Root
                             value={deadlineValue}
-                            onValueChange={({ value }) => setDeadline(value[0]?.toDate(timeZone) ?? null)}
+                            onValueChange={({ value }) => setDeadline(value[0] ? new Date(Date.UTC(value[0].year, value[0].month - 1, value[0].day, 12, 0, 0)) : null)}
                             min={fromDate(new Date(), timeZone)}
                             closeOnSelect
                             positioning={{ placement: "bottom-start" }}

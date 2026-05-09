@@ -1,5 +1,13 @@
 import { Request, Response } from "express";
 import { z } from "zod";
+import path from "path";
+import fs from "fs";
+import { Writable } from "stream";
+import { createRequire } from "module";
+import { fileURLToPath } from "url";
+
+const require = createRequire(import.meta.url);
+const archiver = require("archiver") as typeof import("archiver");
 import * as briefService from "../services/briefService.js";
 import { fetchUsersFromAuthService } from "../utils/authClient.js";
 import { sendBriefStatusEmail, sendEmployeeAssignmentEmail, sendAdminNewBriefEmail } from "../services/emailService.js";
@@ -10,6 +18,9 @@ import {
   updateBriefStatusSchema,
   assignBriefSchema,
 } from "../schemas/brief.schema.js";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const uploadsDir = path.join(__dirname, "../../uploads");
 
 const getAuth = (req: Request): briefService.AuthContext => {
   // @ts-ignore
@@ -271,5 +282,69 @@ export const deleteBriefHandler = async (req: Request, res: Response) => {
   } catch (error: any) {
     const status = error.message === "Forbidden" ? 403 : (error.message === "Brief not found" ? 404 : 500);
     res.status(status).json({ error: error.message });
+  }
+};
+
+export const uploadAttachmentsHandler = (req: Request, res: Response) => {
+  console.log("[upload] handler reached, files:", (req.files as Express.Multer.File[] | undefined)?.length ?? 0);
+  const files = req.files as Express.Multer.File[] | undefined;
+  if (!files || files.length === 0) {
+    return res.status(400).json({ error: "No files uploaded" });
+  }
+  const filenames = files.map(f => f.filename);
+  console.log("[upload] saved filenames:", filenames);
+  res.status(200).json({ filenames });
+};
+
+export const downloadAttachmentsZipHandler = async (req: Request, res: Response) => {
+  try {
+    const auth = getAuth(req);
+    const briefId = req.params.briefId as string;
+
+    const brief = await briefService.getBriefById(briefId, auth);
+    if (!brief.attachments || brief.attachments.length === 0) {
+      return res.status(404).json({ error: "No attachments found" });
+    }
+
+    // Resolve existing files BEFORE touching the response stream
+    const existing = (brief.attachments as string[])
+      .map((name: string) => ({ name, filePath: path.join(uploadsDir, name) }))
+      .filter(({ filePath }) => fs.existsSync(filePath));
+
+    if (existing.length === 0) {
+      return res.status(404).json({ error: "Attachment files not found on server" });
+    }
+
+    // Buffer the zip in memory so headers are only sent after success
+    const chunks: Buffer[] = [];
+    const sink = new Writable({
+      write(chunk, _enc, cb) { chunks.push(Buffer.from(chunk)); cb(); },
+    });
+
+    const archive = archiver("zip", { zlib: { level: 6 } });
+    archive.pipe(sink);
+    for (const { name, filePath } of existing) {
+      archive.file(filePath, { name });
+    }
+
+    await new Promise<void>((resolve, reject) => {
+      sink.on("finish", resolve);
+      sink.on("error", reject);
+      archive.on("error", reject);
+      archive.finalize();
+    });
+
+    const zipBuffer = Buffer.concat(chunks);
+    const safeTitle = brief.title.replace(/[^a-z0-9]/gi, "-").toLowerCase();
+    res.setHeader("Content-Type", "application/zip");
+    res.setHeader("Content-Disposition", `attachment; filename="${safeTitle}-attachments.zip"`);
+    res.setHeader("Content-Length", zipBuffer.length);
+    res.end(zipBuffer);
+  } catch (error: any) {
+    console.error("ZIP download error:", error);
+    if (!res.headersSent) {
+      const status = error.message === "Forbidden" ? 403 : (error.message === "Brief not found" ? 404 : 500);
+      res.status(status).json({ error: error.message });
+    }
   }
 };

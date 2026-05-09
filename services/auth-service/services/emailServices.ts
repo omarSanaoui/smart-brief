@@ -1,7 +1,16 @@
-import { Resend } from 'resend'
+import nodemailer from "nodemailer"
 
-const FROM = 'Smart Brief <onboarding@resend.dev>'
-const getResend = () => new Resend(process.env.RESEND_API_KEY)
+const transporter = nodemailer.createTransport({
+    host: "smtp.gmail.com",
+    port: 587,
+    secure: false,
+    auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+    },
+})
+
+const FROM = `"Smart Brief" <${process.env.EMAIL_USER}>`
 
 function layout(content: string): string {
     return `<!DOCTYPE html>
@@ -52,58 +61,55 @@ export async function sendVerificationEmail(email: string, code: string) {
         <p style="color:rgba(255,255,255,0.4);font-size:12px;text-align:center;margin:0;">Ne partagez ce code avec personne.</p>
     `
 
-    const { error } = await getResend().emails.send({
+    await transporter.sendMail({
         from: FROM,
         to: email,
         subject: `${code} — Code de vérification Smart Brief`,
         html: layout(content),
     })
-    if (error) throw new Error(JSON.stringify(error))
 }
 
 export async function sendEmailChangeVerification(newEmail: string, firstName: string, confirmLink: string) {
     const content = `
-        <h2 style="color:#ffffff;font-size:22px;font-weight:900;margin:0 0 8px;letter-spacing:1px;">Confirm your new email</h2>
-        <p style="color:rgba(255,255,255,0.6);font-size:14px;margin:0 0 8px;line-height:1.6;">Hi <strong style="color:#ffffff;">${firstName}</strong>,</p>
+        <h2 style="color:#ffffff;font-size:22px;font-weight:900;margin:0 0 8px;letter-spacing:1px;">Confirmez votre nouvel email</h2>
+        <p style="color:rgba(255,255,255,0.6);font-size:14px;margin:0 0 8px;line-height:1.6;">Bonjour <strong style="color:#ffffff;">${firstName}</strong>,</p>
         <p style="color:rgba(255,255,255,0.6);font-size:14px;margin:0 0 24px;line-height:1.6;">
-            You requested to change your email address to this one.<br>
-            Click the button below to confirm. This link expires in <strong style="color:#ffffff;">1 hour</strong>.
+            Vous avez demandé à changer votre adresse email vers celle-ci.<br>
+            Cliquez sur le bouton ci-dessous pour confirmer. Ce lien expire dans <strong style="color:#ffffff;">1 heure</strong>.
         </p>
         <div style="text-align:center;margin:32px 0;">
             <a href="${confirmLink}" style="display:inline-block;background:#414CC4;color:#ffffff;text-decoration:none;padding:14px 36px;border-radius:10px;font-weight:700;font-size:14px;letter-spacing:2px;text-transform:uppercase;">
-                Confirm new email
+                Confirmer le nouvel email
             </a>
         </div>
         <p style="color:rgba(255,255,255,0.35);font-size:11px;text-align:center;word-break:break-all;margin:0;">
-            If the button doesn't work:<br>
+            Si le bouton ne fonctionne pas :<br>
             <a href="${confirmLink}" style="color:#67CFB1;text-decoration:none;">${confirmLink}</a>
         </p>
     `
-    const { error } = await getResend().emails.send({
+    await transporter.sendMail({
         from: FROM,
         to: newEmail,
-        subject: `Confirm your new email — Smart Brief`,
+        subject: `Confirmez votre nouvel email — Smart Brief`,
         html: layout(content),
     })
-    if (error) throw new Error(JSON.stringify(error))
 }
 
 export async function sendEmailChangeNotification(oldEmail: string, firstName: string, newEmail: string) {
     const content = `
-        <h2 style="color:#ffffff;font-size:22px;font-weight:900;margin:0 0 8px;letter-spacing:1px;">Email change requested</h2>
-        <p style="color:rgba(255,255,255,0.6);font-size:14px;margin:0 0 8px;line-height:1.6;">Hi <strong style="color:#ffffff;">${firstName}</strong>,</p>
+        <h2 style="color:#ffffff;font-size:22px;font-weight:900;margin:0 0 8px;letter-spacing:1px;">Changement d'email demandé</h2>
+        <p style="color:rgba(255,255,255,0.6);font-size:14px;margin:0 0 8px;line-height:1.6;">Bonjour <strong style="color:#ffffff;">${firstName}</strong>,</p>
         <p style="color:rgba(255,255,255,0.6);font-size:14px;margin:0 0 24px;line-height:1.6;">
-            A request was made to change your account email to <strong style="color:#ffffff;">${newEmail}</strong>.<br>
-            If this wasn't you, please contact us immediately at <a href="mailto:contact@agence47.ma" style="color:#67CFB1;">contact@agence47.ma</a>.
+            Une demande de changement d'email vers <strong style="color:#ffffff;">${newEmail}</strong> a été effectuée.<br>
+            Si ce n'était pas vous, contactez-nous immédiatement à <a href="mailto:contact@agence47.ma" style="color:#67CFB1;">contact@agence47.ma</a>.
         </p>
     `
-    const { error } = await getResend().emails.send({
+    await transporter.sendMail({
         from: FROM,
         to: oldEmail,
-        subject: `Email change requested — Smart Brief`,
+        subject: `Changement d'email demandé — Smart Brief`,
         html: layout(content),
     })
-    if (error) throw new Error(JSON.stringify(error))
 }
 
 export async function sendPasswordResetEmail(email: string, resetLink: string) {
@@ -123,12 +129,10 @@ export async function sendPasswordResetEmail(email: string, resetLink: string) {
             <a href="${resetLink}" style="color:#67CFB1;text-decoration:none;">${resetLink}</a>
         </p>
     `
-
-    const { error } = await getResend().emails.send({
+    await transporter.sendMail({
         from: FROM,
         to: email,
-        subject: `🔐 Réinitialisation de votre mot de passe Smart Brief`,
+        subject: `Réinitialisation de votre mot de passe Smart Brief`,
         html: layout(content),
     })
-    if (error) throw new Error(JSON.stringify(error))
 }

@@ -1,0 +1,1349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Prisma ORM — Smart Brief Docs</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #222536;
+    --border: #2e3249;
+    --accent: #7c6af7;
+    --accent2: #56cfb2;
+    --accent3: #f7c06a;
+    --accent4: #f76a8a;
+    --text: #e2e4f0;
+    --muted: #8b8fa8;
+    --code-bg: #13151f;
+    --sidebar-w: 270px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; font-size: 15px; line-height: 1.7; display: flex; }
+
+  /* Sidebar */
+  nav {
+    width: var(--sidebar-w); min-height: 100vh; background: var(--surface);
+    border-right: 1px solid var(--border); padding: 24px 0;
+    position: fixed; top: 0; left: 0; overflow-y: auto;
+    display: flex; flex-direction: column; gap: 2px;
+  }
+  nav .logo { padding: 0 20px 20px; font-size: 17px; font-weight: 700; color: var(--accent); border-bottom: 1px solid var(--border); margin-bottom: 10px; }
+  nav .logo span { color: var(--accent2); }
+  nav a {
+    display: block; padding: 7px 20px; color: var(--muted); text-decoration: none;
+    font-size: 13px; border-left: 3px solid transparent; transition: all .15s;
+  }
+  nav a:hover { color: var(--text); background: rgba(124,106,247,.08); }
+  nav a.active { color: var(--accent); border-left-color: var(--accent); background: rgba(124,106,247,.12); }
+  nav .section-title { padding: 14px 20px 4px; font-size: 10px; text-transform: uppercase; letter-spacing: 1.2px; color: var(--muted); font-weight: 600; }
+
+  /* Main */
+  main { margin-left: var(--sidebar-w); padding: 48px 56px; max-width: 980px; width: 100%; }
+  h1 { font-size: 38px; font-weight: 800; color: #fff; margin-bottom: 12px; }
+  h2 { font-size: 26px; font-weight: 700; color: #fff; margin: 56px 0 18px; padding-top: 16px; border-top: 1px solid var(--border); }
+  h2:first-of-type { border-top: none; }
+  h3 { font-size: 18px; font-weight: 600; color: var(--accent2); margin: 32px 0 12px; }
+  h4 { font-size: 15px; font-weight: 600; color: var(--accent3); margin: 22px 0 8px; }
+  p { color: var(--text); margin-bottom: 14px; }
+  ul, ol { padding-left: 22px; margin-bottom: 14px; }
+  li { margin-bottom: 5px; color: var(--text); }
+  strong { color: #fff; }
+  code { background: var(--code-bg); padding: 2px 7px; border-radius: 4px; font-family: 'Cascadia Code', 'Fira Code', monospace; font-size: 13px; color: var(--accent2); }
+  a { color: var(--accent); text-decoration: none; }
+
+  /* Code blocks */
+  pre {
+    background: var(--code-bg); border: 1px solid var(--border); border-radius: 10px;
+    padding: 20px 22px; overflow-x: auto; margin: 16px 0 24px;
+    font-family: 'Cascadia Code', 'Fira Code', monospace; font-size: 13.5px; line-height: 1.65;
+  }
+  pre .c  { color: #4a5568; }   /* comment */
+  pre .k  { color: #c792ea; }   /* keyword */
+  pre .s  { color: #c3e88d; }   /* string */
+  pre .n  { color: var(--accent2); }   /* name/identifier */
+  pre .t  { color: var(--accent3); }   /* type */
+  pre .f  { color: #82aaff; }   /* function */
+  pre .p  { color: var(--text); }   /* punctuation */
+  pre .num { color: #f78c6c; }  /* number */
+  pre .attr { color: #ffcb6b; } /* attribute */
+  pre .kw2 { color: var(--accent); } /* secondary keyword */
+
+  /* Callout boxes */
+  .callout { border-radius: 10px; padding: 16px 20px; margin: 20px 0; border-left: 4px solid; }
+  .callout.info  { background: rgba(86,207,178,.08); border-color: var(--accent2); }
+  .callout.warn  { background: rgba(247,192,106,.08); border-color: var(--accent3); }
+  .callout.error { background: rgba(247,106,138,.08); border-color: var(--accent4); }
+  .callout.tip   { background: rgba(124,106,247,.08); border-color: var(--accent); }
+  .callout strong { display: block; margin-bottom: 6px; font-size: 13px; text-transform: uppercase; letter-spacing: .5px; }
+  .callout.info strong  { color: var(--accent2); }
+  .callout.warn strong  { color: var(--accent3); }
+  .callout.error strong { color: var(--accent4); }
+  .callout.tip strong   { color: var(--accent); }
+
+  /* Badge */
+  .badge { display: inline-block; padding: 2px 9px; border-radius: 99px; font-size: 11px; font-weight: 600; margin-left: 8px; vertical-align: middle; }
+  .badge.green  { background: rgba(86,207,178,.15); color: var(--accent2); }
+  .badge.purple { background: rgba(124,106,247,.15); color: var(--accent); }
+  .badge.yellow { background: rgba(247,192,106,.15); color: var(--accent3); }
+  .badge.red    { background: rgba(247,106,138,.15); color: var(--accent4); }
+
+  /* Two-column comparison */
+  .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0; }
+  .compare > div { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 18px; }
+  .compare > div h4 { margin-top: 0; margin-bottom: 10px; }
+
+  /* Table */
+  table { width: 100%; border-collapse: collapse; margin: 20px 0 28px; }
+  th { background: var(--surface2); color: var(--accent2); font-size: 12px; text-transform: uppercase; letter-spacing: .5px; padding: 10px 14px; text-align: left; border-bottom: 2px solid var(--border); }
+  td { padding: 10px 14px; border-bottom: 1px solid var(--border); font-size: 14px; }
+  tr:hover td { background: rgba(255,255,255,.02); }
+  td code { font-size: 12.5px; }
+
+  /* Step list */
+  .steps { counter-reset: steps; }
+  .step { display: flex; gap: 16px; margin-bottom: 28px; }
+  .step-num { counter-increment: steps; content: counter(steps); min-width: 34px; height: 34px; background: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; flex-shrink: 0; margin-top: 2px; }
+  .step-body h4 { margin-top: 0; }
+
+  /* Flow diagram */
+  .flow { display: flex; align-items: center; gap: 0; margin: 20px 0; flex-wrap: wrap; }
+  .flow-box { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 8px 16px; font-size: 13px; font-weight: 600; color: var(--text); }
+  .flow-arrow { color: var(--muted); padding: 0 8px; font-size: 18px; }
+
+  /* Intro block */
+  .intro-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin: 24px 0; }
+  .intro-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 18px 20px; }
+  .intro-card .icon { font-size: 22px; margin-bottom: 8px; }
+  .intro-card h4 { margin: 0 0 6px; color: #fff; font-size: 14px; }
+  .intro-card p { font-size: 13px; color: var(--muted); margin: 0; }
+
+  /* Highlight row */
+  .hl { background: rgba(124,106,247,.07); }
+</style>
+</head>
+<body>
+
+<nav id="sidebar">
+  <div class="logo">Smart Brief <span>Docs</span></div>
+
+  <div class="section-title">Introduction</div>
+  <a href="#what-is-prisma">What is Prisma?</a>
+  <a href="#three-parts">Three Parts of Prisma</a>
+
+  <div class="section-title">Setup</div>
+  <a href="#install">Installation</a>
+  <a href="#schema-file">schema.prisma</a>
+  <a href="#datasource">datasource & generator</a>
+  <a href="#client-singleton">Client Singleton</a>
+
+  <div class="section-title">Schema</div>
+  <a href="#models">Models & Fields</a>
+  <a href="#field-types">Field Types</a>
+  <a href="#field-attrs">Field Attributes</a>
+  <a href="#enums">Enums</a>
+  <a href="#indexes">Indexes</a>
+  <a href="#optional-fields">Optional Fields & Nulls</a>
+
+  <div class="section-title">Migrations</div>
+  <a href="#migrate-dev">migrate dev</a>
+  <a href="#migrate-deploy">migrate deploy</a>
+  <a href="#db-push">db push</a>
+  <a href="#migration-files">Migration Files</a>
+
+  <div class="section-title">Client Operations</div>
+  <a href="#create">create / createMany</a>
+  <a href="#find">findUnique / findFirst / findMany</a>
+  <a href="#update">update / updateMany</a>
+  <a href="#upsert">upsert</a>
+  <a href="#delete">delete / deleteMany</a>
+  <a href="#count-agg">count & aggregate</a>
+
+  <div class="section-title">Filtering & Querying</div>
+  <a href="#where">where clauses</a>
+  <a href="#string-filters">String filters</a>
+  <a href="#array-filters">Array filters</a>
+  <a href="#orderby-page">orderBy & pagination</a>
+  <a href="#select">select & exclude</a>
+
+  <div class="section-title">Advanced</div>
+  <a href="#transactions">Transactions</a>
+  <a href="#error-handling">Error Handling</a>
+  <a href="#prisma-studio">Prisma Studio</a>
+  <a href="#project-examples">Project Examples</a>
+</nav>
+
+<main>
+
+<!-- ============================================================ HEADER -->
+<h1>Prisma ORM</h1>
+<p style="color:var(--muted);font-size:17px;">The complete guide — from installation to advanced querying, with real Smart Brief examples.</p>
+
+<!-- ============================================================ WHAT IS PRISMA -->
+<h2 id="what-is-prisma">What is Prisma?</h2>
+
+<p>
+  Prisma is a <strong>next-generation ORM</strong> (Object-Relational Mapper) for Node.js and TypeScript.
+  Instead of writing raw SQL, you interact with your database using <strong>type-safe TypeScript methods</strong>.
+  Prisma auto-generates a client based on your schema, so your editor knows the shape of every query result.
+</p>
+
+<div class="compare">
+  <div>
+    <h4 style="color:var(--accent4)">Without Prisma (raw SQL)</h4>
+    <pre><span class="c">// You write strings, no type safety</span>
+<span class="k">const</span> result = <span class="k">await</span> pool.<span class="f">query</span>(
+  <span class="s">`SELECT * FROM "User" WHERE id = $1`</span>,
+  [userId]
+);
+<span class="c">// result.rows[0] is `any`</span></pre>
+  </div>
+  <div>
+    <h4 style="color:var(--accent2)">With Prisma</h4>
+    <pre><span class="c">// Full TypeScript types</span>
+<span class="k">const</span> user = <span class="k">await</span> prisma.user.<span class="f">findUnique</span>({
+  <span class="n">where</span>: { <span class="n">id</span>: userId }
+});
+<span class="c">// user is User | null — fully typed</span></pre>
+  </div>
+</div>
+
+<!-- ============================================================ THREE PARTS -->
+<h2 id="three-parts">Three Parts of Prisma</h2>
+
+<div class="intro-grid">
+  <div class="intro-card">
+    <div class="icon">📄</div>
+    <h4>Prisma Schema</h4>
+    <p>One file (<code>schema.prisma</code>) that describes your database tables, types, enums, and relations. Single source of truth.</p>
+  </div>
+  <div class="intro-card">
+    <div class="icon">⚡</div>
+    <h4>Prisma Client</h4>
+    <p>Auto-generated TypeScript client. Run <code>prisma generate</code> and you get type-safe methods for every model: <code>prisma.user.findUnique()</code>, etc.</p>
+  </div>
+  <div class="intro-card">
+    <div class="icon">🔄</div>
+    <h4>Prisma Migrate</h4>
+    <p>Turns schema changes into SQL migration files. Keeps your database in sync with your schema without losing data.</p>
+  </div>
+</div>
+
+<div class="callout tip">
+  <strong>How they work together</strong>
+  You edit <code>schema.prisma</code> → run <code>prisma migrate dev</code> (creates SQL + runs it on DB) → run <code>prisma generate</code> (updates the TypeScript client) → your code now has new types.
+</div>
+
+<!-- ============================================================ INSTALL -->
+<h2 id="install">Installation</h2>
+
+<h3>Starting a brand-new project</h3>
+
+<div class="steps">
+  <div class="step">
+    <div class="step-num">1</div>
+    <div class="step-body">
+      <h4>Install dependencies</h4>
+      <pre><span class="c"># Core Prisma tools (CLI + client)</span>
+npm install prisma --save-dev
+npm install @prisma/client
+
+<span class="c"># For PostgreSQL with connection pooling (what Smart Brief uses)</span>
+npm install @prisma/adapter-pg pg</pre>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">2</div>
+    <div class="step-body">
+      <h4>Initialize Prisma</h4>
+      <pre>npx prisma init --datasource-provider postgresql</pre>
+      <p>This creates two things:</p>
+      <ul>
+        <li><code>prisma/schema.prisma</code> — your schema file</li>
+        <li><code>.env</code> — with a placeholder <code>DATABASE_URL</code></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">3</div>
+    <div class="step-body">
+      <h4>Set your DATABASE_URL in .env</h4>
+      <pre><span class="c"># Local PostgreSQL</span>
+DATABASE_URL=<span class="s">"postgresql://user:password@localhost:5432/mydb"</span>
+
+<span class="c"># Railway (what Smart Brief uses)</span>
+DATABASE_URL=<span class="s">"postgresql://postgres:secret@containers-us-west.railway.app:1234/railway"</span></pre>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">4</div>
+    <div class="step-body">
+      <h4>Write your schema, then generate the client</h4>
+      <pre>npx prisma generate</pre>
+    </div>
+  </div>
+</div>
+
+<h3>Adding Prisma to an existing project with an existing database</h3>
+
+<pre><span class="c"># Pull the existing database schema into schema.prisma</span>
+npx prisma db pull
+
+<span class="c"># Then generate the client</span>
+npx prisma generate</pre>
+
+<p>Prisma inspects your live database and writes the <code>schema.prisma</code> for you — this is called <strong>introspection</strong>.</p>
+
+<!-- ============================================================ SCHEMA FILE -->
+<h2 id="schema-file">schema.prisma</h2>
+
+<p>The schema file has three sections:</p>
+
+<pre><span class="c">// 1. Generator — tells Prisma what to generate and where</span>
+<span class="k">generator</span> <span class="n">client</span> {
+  <span class="attr">provider</span> = <span class="s">"prisma-client-js"</span>
+  <span class="attr">output</span>   = <span class="s">"../src/generated/prisma"</span>  <span class="c">// custom output path</span>
+}
+
+<span class="c">// 2. Datasource — your database connection</span>
+<span class="k">datasource</span> <span class="n">db</span> {
+  <span class="attr">provider</span> = <span class="s">"postgresql"</span>
+  <span class="c">// DATABASE_URL comes from .env</span>
+}
+
+<span class="c">// 3. Models — your tables</span>
+<span class="k">model</span> <span class="t">User</span> {
+  <span class="n">id</span>        <span class="t">String</span>   <span class="attr">@id @default</span>(<span class="f">uuid</span>())
+  <span class="n">firstName</span> <span class="t">String</span>
+  <span class="n">email</span>     <span class="t">String</span>   <span class="attr">@unique</span>
+  <span class="n">createdAt</span> <span class="t">DateTime</span> <span class="attr">@default</span>(<span class="f">now</span>())
+  <span class="n">updatedAt</span> <span class="t">DateTime</span> <span class="attr">@updatedAt</span>
+}</pre>
+
+<!-- ============================================================ DATASOURCE & GENERATOR -->
+<h2 id="datasource">datasource & generator</h2>
+
+<h3>datasource</h3>
+
+<table>
+  <tr><th>Field</th><th>What it does</th><th>Options</th></tr>
+  <tr><td><code>provider</code></td><td>Which database engine</td><td><code>"postgresql"</code>, <code>"mysql"</code>, <code>"sqlite"</code>, <code>"sqlserver"</code></td></tr>
+  <tr><td><code>url</code></td><td>Connection string</td><td><code>env("DATABASE_URL")</code> — reads from .env</td></tr>
+  <tr><td><code>directUrl</code></td><td>Direct connection (bypass pooler)</td><td>Used with PgBouncer/Supabase</td></tr>
+</table>
+
+<pre><span class="k">datasource</span> <span class="n">db</span> {
+  <span class="attr">provider</span>   = <span class="s">"postgresql"</span>
+  <span class="attr">url</span>        = <span class="f">env</span>(<span class="s">"DATABASE_URL"</span>)
+  <span class="c">// directUrl  = env("DIRECT_URL")   ← uncomment when using a pooler</span>
+}</pre>
+
+<h3>generator</h3>
+
+<table>
+  <tr><th>Field</th><th>What it does</th></tr>
+  <tr><td><code>provider</code></td><td>Always <code>"prisma-client-js"</code> for the TypeScript client</td></tr>
+  <tr><td><code>output</code></td><td>Where to put the generated client. Default: <code>node_modules/@prisma/client</code>. Smart Brief uses a custom path.</td></tr>
+</table>
+
+<div class="callout info">
+  <strong>Why Smart Brief uses a custom output path</strong>
+  Each microservice has its own <code>schema.prisma</code> with <code>output = "../src/generated/prisma"</code>. This puts each service's generated client inside that service, avoiding conflicts between services in the same repo.
+</div>
+
+<!-- ============================================================ CLIENT SINGLETON -->
+<h2 id="client-singleton">Client Singleton Pattern</h2>
+
+<p>
+  You should <strong>never</strong> create a new <code>PrismaClient</code> on every request — it opens a new connection pool each time.
+  Instead, create one instance and export it.
+</p>
+
+<h3>Basic setup (no adapter)</h3>
+
+<pre><span class="c">// db/prisma.ts</span>
+<span class="k">import</span> { PrismaClient } <span class="k">from</span> <span class="s">"@prisma/client"</span>;
+
+<span class="k">const</span> prisma = <span class="k">new</span> <span class="t">PrismaClient</span>();
+
+<span class="k">export default</span> prisma;</pre>
+
+<h3>With @prisma/adapter-pg (Smart Brief setup)</h3>
+
+<p>The <code>adapter-pg</code> lets Prisma use an existing <code>pg.Pool</code> connection pool, giving you more control.</p>
+
+<pre><span class="c">// services/brief-service/db/prisma.ts</span>
+<span class="k">import</span> <span class="s">"dotenv/config"</span>;
+<span class="k">import</span> { PrismaClient } <span class="k">from</span> <span class="s">"../src/generated/prisma/index.js"</span>;
+<span class="k">import</span> { PrismaPg } <span class="k">from</span> <span class="s">"@prisma/adapter-pg"</span>;
+<span class="k">import</span> pg <span class="k">from</span> <span class="s">"pg"</span>;
+
+<span class="k">const</span> pool = <span class="k">new</span> pg.<span class="t">Pool</span>({ <span class="n">connectionString</span>: process.<span class="n">env</span>.<span class="t">DATABASE_URL</span> });
+<span class="k">const</span> adapter = <span class="k">new</span> <span class="t">PrismaPg</span>(pool);
+<span class="k">const</span> prisma = <span class="k">new</span> <span class="t">PrismaClient</span>({ adapter });
+
+<span class="k">export default</span> prisma;</pre>
+
+<h3>Auth service (no pool, just adapter string)</h3>
+
+<pre><span class="c">// services/auth-service/db/prisma.ts</span>
+<span class="k">import</span> { PrismaClient } <span class="k">from</span> <span class="s">"../src/generated/prisma/index.js"</span>;
+<span class="k">import</span> { PrismaPg } <span class="k">from</span> <span class="s">"@prisma/adapter-pg"</span>;
+
+<span class="k">const</span> adapter = <span class="k">new</span> <span class="t">PrismaPg</span>({ <span class="n">connectionString</span>: process.<span class="n">env</span>.<span class="t">DATABASE_URL</span> <span class="k">as</span> <span class="t">string</span> });
+<span class="k">const</span> prisma = <span class="k">new</span> <span class="t">PrismaClient</span>({ adapter });
+
+<span class="k">export default</span> prisma;</pre>
+
+<h3>With logging (useful in development)</h3>
+
+<pre><span class="k">const</span> prisma = <span class="k">new</span> <span class="t">PrismaClient</span>({
+  <span class="n">log</span>: [<span class="s">"query"</span>, <span class="s">"info"</span>, <span class="s">"warn"</span>, <span class="s">"error"</span>],
+  <span class="c">// logs every SQL query Prisma runs — great for debugging</span>
+});</pre>
+
+<!-- ============================================================ MODELS -->
+<h2 id="models">Models & Fields</h2>
+
+<p>A <strong>model</strong> maps to a database table. Each line inside is a <strong>field</strong> (= column).</p>
+
+<pre><span class="k">model</span> <span class="t">User</span> {
+  <span class="c">// fieldName  Type  attributes</span>
+  <span class="n">id</span>        <span class="t">String</span>    <span class="attr">@id @default</span>(<span class="f">uuid</span>())
+  <span class="n">firstName</span> <span class="t">String</span>
+  <span class="n">phone</span>     <span class="t">String</span>?           <span class="c">// ? = optional (nullable)</span>
+  <span class="n">email</span>     <span class="t">String</span>    <span class="attr">@unique</span>
+  <span class="n">role</span>      <span class="t">Role</span>      <span class="attr">@default</span>(<span class="t">CLIENT</span>)   <span class="c">// enum with default</span>
+  <span class="n">features</span>  <span class="t">String[]</span>           <span class="c">// array of strings</span>
+  <span class="n">createdAt</span> <span class="t">DateTime</span>  <span class="attr">@default</span>(<span class="f">now</span>())
+  <span class="n">updatedAt</span> <span class="t">DateTime</span>  <span class="attr">@updatedAt</span>
+}</pre>
+
+<h3>Naming convention</h3>
+<ul>
+  <li>Model names: <strong>PascalCase</strong> singular — <code>User</code>, <code>Brief</code></li>
+  <li>Field names: <strong>camelCase</strong> — <code>firstName</code>, <code>createdAt</code></li>
+  <li>Prisma maps these to snake_case in PostgreSQL automatically (or you can use <code>@@map</code>)</li>
+</ul>
+
+<!-- ============================================================ FIELD TYPES -->
+<h2 id="field-types">Field Types</h2>
+
+<table>
+  <tr><th>Prisma Type</th><th>PostgreSQL type</th><th>TypeScript type</th><th>Notes</th></tr>
+  <tr><td><code>String</code></td><td><code>TEXT</code></td><td><code>string</code></td><td>Variable-length text</td></tr>
+  <tr><td><code>String[]</code></td><td><code>TEXT[]</code></td><td><code>string[]</code></td><td>PostgreSQL array</td></tr>
+  <tr><td><code>Int</code></td><td><code>INTEGER</code></td><td><code>number</code></td><td>Whole numbers</td></tr>
+  <tr><td><code>Float</code></td><td><code>DOUBLE PRECISION</code></td><td><code>number</code></td><td>Decimal numbers</td></tr>
+  <tr><td><code>Boolean</code></td><td><code>BOOLEAN</code></td><td><code>boolean</code></td><td></td></tr>
+  <tr><td><code>DateTime</code></td><td><code>TIMESTAMP(3)</code></td><td><code>Date</code></td><td>Date + time (millisecond precision)</td></tr>
+  <tr><td><code>Json</code></td><td><code>JSONB</code></td><td><code>Prisma.JsonValue</code></td><td>Arbitrary JSON</td></tr>
+  <tr><td><code>Bytes</code></td><td><code>BYTEA</code></td><td><code>Buffer</code></td><td>Binary data</td></tr>
+  <tr class="hl"><td><code>EnumName</code></td><td><code>ENUM type</code></td><td><code>EnumName</code></td><td>Must define <code>enum</code> in schema</td></tr>
+</table>
+
+<div class="callout info">
+  <strong>Type? = nullable</strong>
+  Add a <code>?</code> after any type to make it optional. Without <code>?</code>, the field is <strong>required</strong> and cannot be null.
+  <br/><code>phone String?</code> → column can be NULL<br/>
+  <code>phone String</code> → column is NOT NULL
+</div>
+
+<!-- ============================================================ FIELD ATTRIBUTES -->
+<h2 id="field-attrs">Field Attributes</h2>
+
+<table>
+  <tr><th>Attribute</th><th>What it does</th><th>Example</th></tr>
+  <tr><td><code>@id</code></td><td>Primary key</td><td><code>id String @id</code></td></tr>
+  <tr><td><code>@default(value)</code></td><td>Default value if not provided</td><td><code>role Role @default(CLIENT)</code></td></tr>
+  <tr><td><code>@default(uuid())</code></td><td>Auto-generate UUID</td><td><code>id String @id @default(uuid())</code></td></tr>
+  <tr><td><code>@default(cuid())</code></td><td>Auto-generate CUID (shorter than UUID)</td><td><code>id String @id @default(cuid())</code></td></tr>
+  <tr><td><code>@default(autoincrement())</code></td><td>Auto-increment integer</td><td><code>id Int @id @default(autoincrement())</code></td></tr>
+  <tr><td><code>@default(now())</code></td><td>Current timestamp at insert</td><td><code>createdAt DateTime @default(now())</code></td></tr>
+  <tr><td><code>@updatedAt</code></td><td>Auto-update to current time on every update</td><td><code>updatedAt DateTime @updatedAt</code></td></tr>
+  <tr><td><code>@unique</code></td><td>Unique constraint on this column</td><td><code>email String @unique</code></td></tr>
+  <tr><td><code>@map("col_name")</code></td><td>Map field to a different DB column name</td><td><code>firstName String @map("first_name")</code></td></tr>
+  <tr><td><code>@@map("table_name")</code></td><td>Map model to a different DB table name</td><td><code>@@map("users")</code></td></tr>
+  <tr><td><code>@@unique([a, b])</code></td><td>Composite unique constraint</td><td><code>@@unique([userId, email])</code></td></tr>
+  <tr><td><code>@@index([field])</code></td><td>Create a DB index for performance</td><td><code>@@index([clientId])</code></td></tr>
+</table>
+
+<h3>Relations (foreign keys)</h3>
+
+<p>Prisma handles relations through special <code>@relation</code> attributes. Here's the full pattern:</p>
+
+<pre><span class="k">model</span> <span class="t">Post</span> {
+  <span class="n">id</span>       <span class="t">String</span> <span class="attr">@id @default</span>(<span class="f">uuid</span>())
+  <span class="n">title</span>    <span class="t">String</span>
+  <span class="n">authorId</span> <span class="t">String</span>            <span class="c">// FK column (scalar field)</span>
+  <span class="n">author</span>   <span class="t">User</span>   <span class="attr">@relation</span>(<span class="n">fields</span>: [<span class="n">authorId</span>], <span class="n">references</span>: [<span class="n">id</span>])
+}
+
+<span class="k">model</span> <span class="t">User</span> {
+  <span class="n">id</span>    <span class="t">String</span> <span class="attr">@id @default</span>(<span class="f">uuid</span>())
+  <span class="n">posts</span> <span class="t">Post[]</span>               <span class="c">// back-relation</span>
+}</pre>
+
+<div class="callout warn">
+  <strong>Smart Brief doesn't use Prisma relations</strong>
+  The Brief model stores <code>clientId</code> and <code>assignedToIds</code> as plain strings — not as Prisma relations. This is because the User data lives in a different service (auth-service). Cross-service references are strings, not FK constraints.
+</div>
+
+<!-- ============================================================ ENUMS -->
+<h2 id="enums">Enums</h2>
+
+<p>Define an enum in the schema, then use it as a field type:</p>
+
+<pre><span class="c">// From auth-service/prisma/schema.prisma</span>
+<span class="k">enum</span> <span class="t">Role</span> {
+  ADMIN
+  CLIENT
+  EMPLOYEE
+}
+
+<span class="k">enum</span> <span class="t">Provider</span> {
+  LOCAL
+  GOOGLE
+}
+
+<span class="k">model</span> <span class="t">User</span> {
+  <span class="n">id</span>       <span class="t">String</span>   <span class="attr">@id @default</span>(<span class="f">uuid</span>())
+  <span class="n">role</span>     <span class="t">Role</span>     <span class="attr">@default</span>(<span class="t">CLIENT</span>)
+  <span class="n">provider</span> <span class="t">Provider</span> <span class="attr">@default</span>(<span class="t">LOCAL</span>)
+}</pre>
+
+<pre><span class="c">// From brief-service/prisma/schema.prisma</span>
+<span class="k">enum</span> <span class="t">BriefStatus</span> {
+  PENDING
+  ACCEPTED
+  REFUSED
+  IN_PROGRESS
+  COMPLETED
+}
+
+<span class="k">enum</span> <span class="t">ProjectType</span> {
+  SITE_WEB
+  SEO
+  GOOGLE_ADS
+  SOCIAL_MEDIA
+  PHOTO_VIDEO
+  EMAIL_MARKETING
+  COMMUNITY_MANAGER
+  BRANDING
+  OTHER
+}</pre>
+
+<p>Prisma turns these into PostgreSQL <code>CREATE TYPE ... AS ENUM</code> and also generates TypeScript enums/union types for you.</p>
+
+<pre><span class="c">// In TypeScript, you can use the enum directly:</span>
+<span class="k">import</span> { Role } <span class="k">from</span> <span class="s">"../src/generated/prisma"</span>;
+
+<span class="k">const</span> user = <span class="k">await</span> prisma.user.<span class="f">findMany</span>({
+  <span class="n">where</span>: { <span class="n">role</span>: Role.ADMIN }
+});
+
+<span class="c">// Or as a plain string (Prisma accepts both):</span>
+<span class="k">const</span> user = <span class="k">await</span> prisma.user.<span class="f">findMany</span>({
+  <span class="n">where</span>: { <span class="n">role</span>: <span class="s">"ADMIN"</span> }
+});</pre>
+
+<!-- ============================================================ INDEXES -->
+<h2 id="indexes">Indexes</h2>
+
+<p>Indexes speed up queries that filter by a specific field. Define them with <code>@@index</code>:</p>
+
+<pre><span class="k">model</span> <span class="t">Brief</span> {
+  <span class="n">id</span>       <span class="t">String</span>      <span class="attr">@id @default</span>(<span class="f">uuid</span>())
+  <span class="n">clientId</span> <span class="t">String</span>
+  <span class="n">status</span>   <span class="t">BriefStatus</span> <span class="attr">@default</span>(<span class="t">PENDING</span>)
+
+  <span class="attr">@@index</span>([<span class="n">clientId</span>])  <span class="c">// fast lookup by client</span>
+  <span class="attr">@@index</span>([<span class="n">status</span>])    <span class="c">// fast filtering by status</span>
+}</pre>
+
+<p>Prisma generates <code>CREATE INDEX</code> statements in the migration file:</p>
+
+<pre><span class="c">-- Generated SQL</span>
+<span class="k">CREATE INDEX</span> <span class="n">"Brief_clientId_idx"</span> <span class="k">ON</span> <span class="n">"Brief"</span>(<span class="s">"clientId"</span>);
+<span class="k">CREATE INDEX</span> <span class="n">"Brief_status_idx"</span> <span class="k">ON</span> <span class="n">"Brief"</span>(<span class="s">"status"</span>);</pre>
+
+<!-- ============================================================ OPTIONAL -->
+<h2 id="optional-fields">Optional Fields & Nulls</h2>
+
+<table>
+  <tr><th>Schema</th><th>PostgreSQL</th><th>TypeScript</th></tr>
+  <tr><td><code>name String</code></td><td>NOT NULL</td><td><code>string</code></td></tr>
+  <tr><td><code>name String?</code></td><td>NULL allowed</td><td><code>string | null</code></td></tr>
+  <tr><td><code>tags String[]</code></td><td>TEXT[] NOT NULL DEFAULT '{}'</td><td><code>string[]</code></td></tr>
+</table>
+
+<p>When writing queries, passing <code>undefined</code> means "don't touch this field." Passing <code>null</code> explicitly sets it to NULL.</p>
+
+<pre><span class="c">// undefined → field not included in query</span>
+prisma.user.<span class="f">update</span>({ <span class="n">where</span>: { <span class="n">id</span> }, <span class="n">data</span>: { <span class="n">phone</span>: undefined } });
+
+<span class="c">// null → sets the column to NULL</span>
+prisma.user.<span class="f">update</span>({ <span class="n">where</span>: { <span class="n">id</span> }, <span class="n">data</span>: { <span class="n">phone</span>: <span class="k">null</span> } });</pre>
+
+<!-- ============================================================ MIGRATE DEV -->
+<h2 id="migrate-dev">prisma migrate dev</h2>
+
+<p>The most important command when developing locally:</p>
+
+<pre>npx prisma migrate dev --name add_employee_role</pre>
+
+<p>What it does:</p>
+<ol>
+  <li>Diffs your current schema vs the last migration</li>
+  <li>Creates a new SQL file in <code>prisma/migrations/</code></li>
+  <li>Runs that SQL on your local database</li>
+  <li>Calls <code>prisma generate</code> to update the TypeScript client</li>
+</ol>
+
+<div class="callout info">
+  <strong>The --name flag</strong>
+  Always use a descriptive name: <code>--name add_google_auth</code>, <code>--name add_brief_table</code>.
+  This name becomes part of the migration folder name: <code>20260325_add_google_auth/migration.sql</code>
+</div>
+
+<h3>What a migration file looks like</h3>
+
+<p>From the Smart Brief auth-service — when Google OAuth was added:</p>
+
+<pre><span class="c">-- Migration: 20260325091608_init/migration.sql</span>
+
+<span class="c">-- Create the Provider enum type</span>
+<span class="k">CREATE TYPE</span> <span class="s">"Provider"</span> <span class="k">AS ENUM</span> (<span class="s">'LOCAL'</span>, <span class="s">'GOOGLE'</span>);
+
+<span class="c">-- Add new columns to existing User table</span>
+<span class="k">ALTER TABLE</span> <span class="s">"User"</span>
+  <span class="k">ADD COLUMN</span> <span class="s">"googleId"</span>  TEXT,
+  <span class="k">ADD COLUMN</span> <span class="s">"provider"</span>  <span class="s">"Provider"</span> <span class="k">NOT NULL DEFAULT</span> <span class="s">'LOCAL'</span>,
+  <span class="k">ADD COLUMN</span> <span class="s">"updatedAt"</span> TIMESTAMP(3) <span class="k">NOT NULL</span>;
+
+<span class="c">-- Make password nullable (for Google users who have no password)</span>
+<span class="k">ALTER TABLE</span> <span class="s">"User"</span>
+  <span class="k">ALTER COLUMN</span> <span class="s">"password"</span> <span class="k">DROP NOT NULL</span>;
+
+<span class="c">-- Create unique index on googleId</span>
+<span class="k">CREATE UNIQUE INDEX</span> <span class="s">"User_googleId_key"</span> <span class="k">ON</span> <span class="s">"User"</span>(<span class="s">"googleId"</span>);</pre>
+
+<p>Prisma writes this SQL for you — you don't write migration files manually.</p>
+
+<!-- ============================================================ MIGRATE DEPLOY -->
+<h2 id="migrate-deploy">prisma migrate deploy</h2>
+
+<p>Used in <strong>production</strong>. Runs any pending migrations that haven't been applied yet. Does NOT create new migrations.</p>
+
+<pre>npx prisma migrate deploy</pre>
+
+<div class="flow">
+  <div class="flow-box">dev machine<br/><small>migrate dev</small></div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-box">migration files<br/><small>committed to git</small></div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-box">CI/CD pipeline<br/><small>migrate deploy</small></div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-box">production DB<br/><small>updated safely</small></div>
+</div>
+
+<div class="callout warn">
+  <strong>Never run migrate dev on production</strong>
+  <code>migrate dev</code> can reset the database to resolve drift. <code>migrate deploy</code> is safe — it only applies forward migrations.
+</div>
+
+<!-- ============================================================ DB PUSH -->
+<h2 id="db-push">prisma db push</h2>
+
+<p>Pushes your schema to the database <strong>without creating migration files</strong>. Good for fast prototyping or Railway deployments where you don't want to track migration history.</p>
+
+<pre>npx prisma db push</pre>
+
+<div class="compare">
+  <div>
+    <h4 style="color:var(--accent2)">migrate dev</h4>
+    <ul>
+      <li>Creates SQL migration files</li>
+      <li>Tracks full history in git</li>
+      <li>Safe for production via <code>deploy</code></li>
+      <li>Use for real projects</li>
+    </ul>
+  </div>
+  <div>
+    <h4 style="color:var(--accent3)">db push</h4>
+    <ul>
+      <li>No migration files created</li>
+      <li>Instant schema sync</li>
+      <li>Risk of data loss on breaking changes</li>
+      <li>Use for early prototyping</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ============================================================ MIGRATION FILES -->
+<h2 id="migration-files">Migration Files in Detail</h2>
+
+<p>All migrations live in <code>prisma/migrations/</code>. Each migration is a folder with a timestamped name:</p>
+
+<pre>prisma/
+  migrations/
+    20260323161115_user/
+      migration.sql        ← SQL that creates/alters tables
+    20260325091608_init/
+      migration.sql        ← adds googleId, provider
+    20260401110314_add_employee/
+      migration.sql        ← adds EMPLOYEE to Role enum
+  schema.prisma</pre>
+
+<p>Prisma keeps a <code>_prisma_migrations</code> table in your database that tracks which migrations have been applied.</p>
+
+<pre><span class="c">-- You can see this table in psql:</span>
+SELECT * FROM _prisma_migrations ORDER BY finished_at;</pre>
+
+<!-- ============================================================ CREATE -->
+<h2 id="create">create / createMany</h2>
+
+<h3>create — insert one row</h3>
+
+<pre><span class="k">const</span> user = <span class="k">await</span> prisma.user.<span class="f">create</span>({
+  <span class="n">data</span>: {
+    <span class="n">firstName</span>: <span class="s">"Omar"</span>,
+    <span class="n">lastName</span>:  <span class="s">"Ben Ali"</span>,
+    <span class="n">email</span>:     <span class="s">"omar@example.com"</span>,
+    <span class="n">password</span>:  hashedPassword,
+    <span class="n">provider</span>:  <span class="s">"LOCAL"</span>,
+  },
+});
+<span class="c">// returns the full User object with all fields</span></pre>
+
+<h3>createMany — insert multiple rows</h3>
+
+<pre><span class="k">const</span> result = <span class="k">await</span> prisma.user.<span class="f">createMany</span>({
+  <span class="n">data</span>: [
+    { <span class="n">firstName</span>: <span class="s">"Alice"</span>, <span class="n">email</span>: <span class="s">"alice@x.com"</span>, ... },
+    { <span class="n">firstName</span>: <span class="s">"Bob"</span>,   <span class="n">email</span>: <span class="s">"bob@x.com"</span>,   ... },
+  ],
+  <span class="n">skipDuplicates</span>: <span class="k">true</span>,  <span class="c">// skip rows that would violate unique constraint</span>
+});
+<span class="c">// result = { count: 2 }</span>
+<span class="c">// createMany does NOT return the created records, just the count</span></pre>
+
+<!-- ============================================================ FIND -->
+<h2 id="find">findUnique / findFirst / findMany</h2>
+
+<h3>findUnique — exact lookup by unique field</h3>
+
+<pre><span class="c">// Must use a field marked @id or @unique</span>
+<span class="k">const</span> user = <span class="k">await</span> prisma.user.<span class="f">findUnique</span>({
+  <span class="n">where</span>: { <span class="n">email</span>: <span class="s">"omar@example.com"</span> }
+});
+<span class="c">// Returns User | null</span></pre>
+
+<pre><span class="c">// By primary key</span>
+<span class="k">const</span> brief = <span class="k">await</span> prisma.brief.<span class="f">findUnique</span>({
+  <span class="n">where</span>: { <span class="n">id</span>: briefId }
+});
+<span class="c">// Returns Brief | null</span></pre>
+
+<h3>findFirst — first matching row</h3>
+
+<pre><span class="c">// Finds the first row matching the where clause</span>
+<span class="k">const</span> brief = <span class="k">await</span> prisma.brief.<span class="f">findFirst</span>({
+  <span class="n">where</span>: { <span class="n">clientId</span>: userId, <span class="n">status</span>: <span class="s">"PENDING"</span> },
+  <span class="n">orderBy</span>: { <span class="n">createdAt</span>: <span class="s">"desc"</span> }
+});
+<span class="c">// Returns Brief | null</span></pre>
+
+<h3>findMany — all matching rows</h3>
+
+<pre><span class="c">// All briefs for a client, newest first</span>
+<span class="k">const</span> briefs = <span class="k">await</span> prisma.brief.<span class="f">findMany</span>({
+  <span class="n">where</span>: { <span class="n">clientId</span>: userId },
+  <span class="n">orderBy</span>: { <span class="n">createdAt</span>: <span class="s">"desc"</span> },
+});
+<span class="c">// Returns Brief[]  — empty array if none found</span></pre>
+
+<pre><span class="c">// All briefs assigned to this employee (array contains value)</span>
+<span class="k">const</span> briefs = <span class="k">await</span> prisma.brief.<span class="f">findMany</span>({
+  <span class="n">where</span>: { <span class="n">assignedToIds</span>: { <span class="n">has</span>: employeeId } },
+  <span class="n">orderBy</span>: { <span class="n">createdAt</span>: <span class="s">"desc"</span> },
+});
+
+<span class="c">// All users</span>
+<span class="k">const</span> allUsers = <span class="k">await</span> prisma.user.<span class="f">findMany</span>();</pre>
+
+<!-- ============================================================ UPDATE -->
+<h2 id="update">update / updateMany</h2>
+
+<h3>update — update one row by unique field</h3>
+
+<pre><span class="c">// Must use @id or @unique in where</span>
+<span class="k">const</span> updated = <span class="k">await</span> prisma.user.<span class="f">update</span>({
+  <span class="n">where</span>: { <span class="n">id</span>: userId },
+  <span class="n">data</span>: {
+    <span class="n">firstName</span>: <span class="s">"NewName"</span>,
+    <span class="n">updatedAt</span>: <span class="k">new</span> <span class="t">Date</span>(),  <span class="c">// @updatedAt handles this automatically</span>
+  },
+});
+<span class="c">// Returns the updated User</span>
+<span class="c">// Throws PrismaClientKnownRequestError P2025 if record not found</span></pre>
+
+<h3>Updating a brief's status (from briefService.ts)</h3>
+
+<pre><span class="k">const</span> brief = <span class="k">await</span> prisma.brief.<span class="f">update</span>({
+  <span class="n">where</span>: { <span class="n">id</span>: briefId },
+  <span class="n">data</span>: {
+    <span class="n">status</span>:            status,
+    <span class="n">statusReason</span>:      reason?.<span class="f">trim</span>() || <span class="k">null</span>,
+    <span class="n">statusUpdatedById</span>: adminId,
+    <span class="n">statusUpdatedAt</span>:   <span class="k">new</span> <span class="t">Date</span>(),
+  },
+});</pre>
+
+<h3>updateMany — update multiple rows</h3>
+
+<pre><span class="c">// Mark all PENDING briefs from a client as REFUSED</span>
+<span class="k">const</span> result = <span class="k">await</span> prisma.brief.<span class="f">updateMany</span>({
+  <span class="n">where</span>: { <span class="n">clientId</span>: userId, <span class="n">status</span>: <span class="s">"PENDING"</span> },
+  <span class="n">data</span>:  { <span class="n">status</span>: <span class="s">"REFUSED"</span> },
+});
+<span class="c">// result = { count: 3 }</span>
+<span class="c">// Does NOT return the updated records</span></pre>
+
+<!-- ============================================================ UPSERT -->
+<h2 id="upsert">upsert</h2>
+
+<p>
+  <strong>upsert</strong> = UPDATE if exists, INSERT if not.
+  You must provide <code>where</code>, <code>create</code>, and <code>update</code>.
+</p>
+
+<pre><span class="c">// From authServices.ts — storing a verification token</span>
+<span class="c">// If there's already a pending registration for this email,</span>
+<span class="c">// update the code. Otherwise, create a new record.</span>
+<span class="k">await</span> prisma.verifyToken.<span class="f">upsert</span>({
+  <span class="n">where</span>:  { <span class="n">email</span> },
+  <span class="n">update</span>: { <span class="n">code</span>, <span class="n">expiresAt</span>, <span class="n">firstName</span>, <span class="n">lastName</span>, <span class="n">password</span>: hashedPassword, <span class="n">phone</span> },
+  <span class="n">create</span>: { <span class="n">email</span>, <span class="n">code</span>, <span class="n">expiresAt</span>, <span class="n">firstName</span>, <span class="n">lastName</span>, <span class="n">password</span>: hashedPassword, <span class="n">phone</span> },
+});</pre>
+
+<pre><span class="c">// From authServices.ts — Google OAuth user</span>
+<span class="c">// If email exists (user registered locally), link their Google account</span>
+<span class="c">// If email doesn't exist, create a new user</span>
+user = <span class="k">await</span> prisma.user.<span class="f">upsert</span>({
+  <span class="n">where</span>:  { <span class="n">email</span> },
+  <span class="n">update</span>: { <span class="n">googleId</span>, <span class="n">provider</span>: <span class="s">"GOOGLE"</span> },
+  <span class="n">create</span>: {
+    <span class="n">firstName</span>: name.<span class="n">givenName</span>,
+    <span class="n">lastName</span>:  name.<span class="n">familyName</span>,
+    <span class="n">email</span>,
+    <span class="n">googleId</span>,
+    <span class="n">provider</span>: <span class="s">"GOOGLE"</span>,
+  },
+});</pre>
+
+<div class="callout info">
+  <strong>The where clause in upsert must use a unique field</strong>
+  Just like <code>findUnique</code>, the <code>where</code> in <code>upsert</code> can only use <code>@id</code> or <code>@unique</code> fields.
+</div>
+
+<!-- ============================================================ DELETE -->
+<h2 id="delete">delete / deleteMany</h2>
+
+<h3>delete — one row</h3>
+
+<pre><span class="c">// Delete a verify token after the user is created</span>
+<span class="k">await</span> prisma.verifyToken.<span class="f">delete</span>({ <span class="n">where</span>: { <span class="n">email</span> } });
+
+<span class="c">// Delete a brief</span>
+<span class="k">await</span> prisma.brief.<span class="f">delete</span>({ <span class="n">where</span>: { <span class="n">id</span>: briefId } });
+
+<span class="c">// Returns the deleted record</span>
+<span class="c">// Throws P2025 if not found</span></pre>
+
+<h3>deleteMany — multiple rows</h3>
+
+<pre><span class="c">// Delete all expired tokens</span>
+<span class="k">const</span> result = <span class="k">await</span> prisma.verifyToken.<span class="f">deleteMany</span>({
+  <span class="n">where</span>: { <span class="n">expiresAt</span>: { <span class="n">lt</span>: <span class="k">new</span> <span class="t">Date</span>() } }  <span class="c">// lt = less than</span>
+});
+<span class="c">// result = { count: 5 }</span></pre>
+
+<!-- ============================================================ COUNT/AGG -->
+<h2 id="count-agg">count & aggregate</h2>
+
+<h3>count</h3>
+
+<pre><span class="c">// How many briefs does this client have?</span>
+<span class="k">const</span> total = <span class="k">await</span> prisma.brief.<span class="f">count</span>({
+  <span class="n">where</span>: { <span class="n">clientId</span>: userId }
+});
+<span class="c">// total = 7</span>
+
+<span class="c">// How many PENDING briefs?</span>
+<span class="k">const</span> pending = <span class="k">await</span> prisma.brief.<span class="f">count</span>({
+  <span class="n">where</span>: { <span class="n">status</span>: <span class="s">"PENDING"</span> }
+});</pre>
+
+<h3>aggregate</h3>
+
+<pre><span class="c">// Aggregate numeric fields</span>
+<span class="k">const</span> stats = <span class="k">await</span> prisma.order.<span class="f">aggregate</span>({
+  <span class="n">_count</span>: <span class="k">true</span>,
+  <span class="n">_sum</span>:   { <span class="n">amount</span>: <span class="k">true</span> },
+  <span class="n">_avg</span>:   { <span class="n">amount</span>: <span class="k">true</span> },
+  <span class="n">_min</span>:   { <span class="n">amount</span>: <span class="k">true</span> },
+  <span class="n">_max</span>:   { <span class="n">amount</span>: <span class="k">true</span> },
+  <span class="n">where</span>:  { <span class="n">userId</span>: userId },
+});
+<span class="c">// stats._sum.amount = 1250.00</span></pre>
+
+<h3>groupBy</h3>
+
+<pre><span class="c">// Count briefs per status</span>
+<span class="k">const</span> grouped = <span class="k">await</span> prisma.brief.<span class="f">groupBy</span>({
+  <span class="n">by</span>:     [<span class="s">"status"</span>],
+  <span class="n">_count</span>: { <span class="n">id</span>: <span class="k">true</span> },
+  <span class="n">orderBy</span>: { <span class="n">_count</span>: { <span class="n">id</span>: <span class="s">"desc"</span> } }
+});
+<span class="c">// [{ status: "PENDING", _count: { id: 5 } }, ...]</span></pre>
+
+<!-- ============================================================ WHERE -->
+<h2 id="where">where clauses</h2>
+
+<p>The <code>where</code> object is used in all read/write operations. Prisma supports many filter operators:</p>
+
+<table>
+  <tr><th>Operator</th><th>Meaning</th><th>Example</th></tr>
+  <tr><td><code>equals</code></td><td>Exact match (default)</td><td><code>{ role: "ADMIN" }</code> or <code>{ role: { equals: "ADMIN" } }</code></td></tr>
+  <tr><td><code>not</code></td><td>Not equal</td><td><code>{ status: { not: "REFUSED" } }</code></td></tr>
+  <tr><td><code>in</code></td><td>Value in array</td><td><code>{ id: { in: ["a", "b"] } }</code></td></tr>
+  <tr><td><code>notIn</code></td><td>Value not in array</td><td><code>{ status: { notIn: ["REFUSED", "COMPLETED"] } }</code></td></tr>
+  <tr><td><code>lt</code></td><td>Less than</td><td><code>{ expiresAt: { lt: new Date() } }</code></td></tr>
+  <tr><td><code>lte</code></td><td>Less than or equal</td><td><code>{ createdAt: { lte: someDate } }</code></td></tr>
+  <tr><td><code>gt</code></td><td>Greater than</td><td><code>{ deadline: { gt: new Date() } }</code></td></tr>
+  <tr><td><code>gte</code></td><td>Greater than or equal</td><td><code>{ amount: { gte: 100 } }</code></td></tr>
+  <tr><td><code>contains</code></td><td>String contains substring</td><td><code>{ title: { contains: "logo" } }</code></td></tr>
+  <tr><td><code>startsWith</code></td><td>String starts with</td><td><code>{ email: { startsWith: "admin" } }</code></td></tr>
+  <tr><td><code>endsWith</code></td><td>String ends with</td><td><code>{ email: { endsWith: "@gmail.com" } }</code></td></tr>
+  <tr><td><code>mode: 'insensitive'</code></td><td>Case-insensitive string match</td><td><code>{ title: { contains: "logo", mode: 'insensitive' } }</code></td></tr>
+  <tr><td><code>isNull</code></td><td>Field is null</td><td><code>{ phone: null }</code></td></tr>
+  <tr><td><code>isSet</code></td><td>Field is not null</td><td><code>{ googleId: { not: null } }</code></td></tr>
+</table>
+
+<h3>Combining conditions</h3>
+
+<pre><span class="c">// AND (default — just nest multiple conditions)</span>
+prisma.brief.<span class="f">findMany</span>({
+  <span class="n">where</span>: {
+    <span class="n">clientId</span>: userId,
+    <span class="n">status</span>:   <span class="s">"PENDING"</span>,
+    <span class="n">deadline</span>: { <span class="n">gt</span>: <span class="k">new</span> <span class="t">Date</span>() }
+  }
+});
+
+<span class="c">// OR</span>
+prisma.brief.<span class="f">findMany</span>({
+  <span class="n">where</span>: {
+    <span class="n">OR</span>: [
+      { <span class="n">status</span>: <span class="s">"PENDING"</span> },
+      { <span class="n">status</span>: <span class="s">"ACCEPTED"</span> },
+    ]
+  }
+});
+
+<span class="c">// NOT</span>
+prisma.brief.<span class="f">findMany</span>({
+  <span class="n">where</span>: {
+    <span class="n">NOT</span>: { <span class="n">status</span>: <span class="s">"REFUSED"</span> }
+  }
+});</pre>
+
+<!-- ============================================================ STRING FILTERS -->
+<h2 id="string-filters">String filters</h2>
+
+<pre><span class="c">// Case-insensitive search across title and description</span>
+prisma.brief.<span class="f">findMany</span>({
+  <span class="n">where</span>: {
+    <span class="n">OR</span>: [
+      { <span class="n">title</span>:       { <span class="n">contains</span>: searchTerm, <span class="n">mode</span>: <span class="s">"insensitive"</span> } },
+      { <span class="n">description</span>: { <span class="n">contains</span>: searchTerm, <span class="n">mode</span>: <span class="s">"insensitive"</span> } },
+    ]
+  }
+});
+
+<span class="c">// Emails ending with @gmail.com</span>
+prisma.user.<span class="f">findMany</span>({
+  <span class="n">where</span>: { <span class="n">email</span>: { <span class="n">endsWith</span>: <span class="s">"@gmail.com"</span> } }
+});</pre>
+
+<!-- ============================================================ ARRAY FILTERS -->
+<h2 id="array-filters">Array filters</h2>
+
+<p>For fields like <code>String[]</code> (e.g. <code>assignedToIds</code>, <code>features</code>, <code>attachments</code>):</p>
+
+<table>
+  <tr><th>Filter</th><th>Meaning</th><th>Example</th></tr>
+  <tr><td><code>has</code></td><td>Array contains this value</td><td><code>{ assignedToIds: { has: empId } }</code></td></tr>
+  <tr><td><code>hasSome</code></td><td>Array contains at least one of these</td><td><code>{ tags: { hasSome: ["SEO", "ADS"] } }</code></td></tr>
+  <tr><td><code>hasEvery</code></td><td>Array contains all of these</td><td><code>{ features: { hasEvery: ["login", "register"] } }</code></td></tr>
+  <tr><td><code>isEmpty</code></td><td>Array is empty</td><td><code>{ attachments: { isEmpty: true } }</code></td></tr>
+  <tr><td><code>equals</code></td><td>Array exactly equals</td><td><code>{ assignedToIds: { equals: [id1, id2] } }</code></td></tr>
+</table>
+
+<pre><span class="c">// From briefService.ts — find briefs assigned to this employee</span>
+prisma.brief.<span class="f">findMany</span>({
+  <span class="n">where</span>: { <span class="n">assignedToIds</span>: { <span class="n">has</span>: employeeId } },
+  <span class="n">orderBy</span>: { <span class="n">createdAt</span>: <span class="s">"desc"</span> },
+});</pre>
+
+<!-- ============================================================ ORDERBY PAGE -->
+<h2 id="orderby-page">orderBy & Pagination</h2>
+
+<h3>orderBy</h3>
+
+<pre><span class="c">// Single field</span>
+prisma.brief.<span class="f">findMany</span>({ <span class="n">orderBy</span>: { <span class="n">createdAt</span>: <span class="s">"desc"</span> } });
+
+<span class="c">// Multiple fields (sorts by first, then second on tie)</span>
+prisma.brief.<span class="f">findMany</span>({
+  <span class="n">orderBy</span>: [
+    { <span class="n">status</span>:    <span class="s">"asc"</span> },
+    { <span class="n">createdAt</span>: <span class="s">"desc"</span> },
+  ]
+});</pre>
+
+<h3>Pagination with skip & take</h3>
+
+<pre><span class="k">const</span> PAGE_SIZE = <span class="num">10</span>;
+<span class="k">const</span> page = <span class="num">2</span>;  <span class="c">// 1-indexed</span>
+
+<span class="k">const</span> briefs = <span class="k">await</span> prisma.brief.<span class="f">findMany</span>({
+  <span class="n">skip</span>:    (page - <span class="num">1</span>) * PAGE_SIZE,  <span class="c">// skip 10 rows</span>
+  <span class="n">take</span>:    PAGE_SIZE,                <span class="c">// take next 10</span>
+  <span class="n">orderBy</span>: { <span class="n">createdAt</span>: <span class="s">"desc"</span> },
+});
+
+<span class="c">// Get total count for UI (total pages)</span>
+<span class="k">const</span> total = <span class="k">await</span> prisma.brief.<span class="f">count</span>();</pre>
+
+<!-- ============================================================ SELECT -->
+<h2 id="select">select & exclude password</h2>
+
+<h3>select — choose specific fields</h3>
+
+<pre><span class="c">// Only return id, firstName, lastName, email, role</span>
+<span class="k">const</span> users = <span class="k">await</span> prisma.user.<span class="f">findMany</span>({
+  <span class="n">where</span>:  { <span class="n">role</span>: <span class="s">"ADMIN"</span> },
+  <span class="n">select</span>: {
+    <span class="n">id</span>:        <span class="k">true</span>,
+    <span class="n">firstName</span>: <span class="k">true</span>,
+    <span class="n">lastName</span>:  <span class="k">true</span>,
+    <span class="n">email</span>:     <span class="k">true</span>,
+    <span class="n">role</span>:      <span class="k">true</span>,
+    <span class="c">// password: false — omit by not including it</span>
+  },
+});
+<span class="c">// users is now { id, firstName, lastName, email, role }[] — no password field</span></pre>
+
+<h3>Exclude password with destructuring (Smart Brief pattern)</h3>
+
+<p>Instead of using <code>select</code>, Smart Brief reads the full user then strips the password:</p>
+
+<pre><span class="c">// In authController.ts and authMiddleware.ts</span>
+<span class="k">const</span> user = <span class="k">await</span> prisma.user.<span class="f">findUnique</span>({ <span class="n">where</span>: { <span class="n">id</span>: decoded.id } });
+
+<span class="c">// Strip password before sending to client</span>
+<span class="k">const</span> { <span class="n">password</span>, ...<span class="n">safeUser</span> } = user;
+<span class="c">// safeUser has all User fields EXCEPT password</span>
+req.user = safeUser;</pre>
+
+<div class="callout tip">
+  <strong>select vs destructuring — when to use which</strong>
+  Use <code>select</code> when you want to avoid fetching large data from the DB. Use destructuring when you already need the full object but just want to strip a field before sending it to the client.
+</div>
+
+<!-- ============================================================ TRANSACTIONS -->
+<h2 id="transactions">Transactions</h2>
+
+<p>A transaction groups multiple queries — if any one fails, they all roll back.</p>
+
+<h3>Sequential transactions (array form)</h3>
+
+<pre><span class="c">// All-or-nothing: create user AND delete verify token</span>
+<span class="k">const</span> [user] = <span class="k">await</span> prisma.<span class="f">$transaction</span>([
+  prisma.user.<span class="f">create</span>({ <span class="n">data</span>: { ... } }),
+  prisma.verifyToken.<span class="f">delete</span>({ <span class="n">where</span>: { <span class="n">email</span> } }),
+]);
+<span class="c">// If create fails, delete never runs</span>
+<span class="c">// If delete fails, user is rolled back too</span></pre>
+
+<h3>Interactive transactions (callback form)</h3>
+
+<p>More powerful — you can include conditional logic inside the transaction:</p>
+
+<pre><span class="k">const</span> result = <span class="k">await</span> prisma.<span class="f">$transaction</span>(<span class="k">async</span> (tx) => {
+  <span class="c">// tx is a Prisma client scoped to this transaction</span>
+  <span class="k">const</span> brief = <span class="k">await</span> tx.brief.<span class="f">findUnique</span>({ <span class="n">where</span>: { <span class="n">id</span>: briefId } });
+  <span class="k">if</span> (!brief) <span class="k">throw new</span> <span class="t">Error</span>(<span class="s">"Not found"</span>);  <span class="c">// rolls back</span>
+
+  <span class="k">const</span> updated = <span class="k">await</span> tx.brief.<span class="f">update</span>({
+    <span class="n">where</span>: { <span class="n">id</span>: briefId },
+    <span class="n">data</span>:  { <span class="n">status</span>: <span class="s">"ACCEPTED"</span> },
+  });
+
+  <span class="k">return</span> updated;
+});</pre>
+
+<div class="callout warn">
+  <strong>Smart Brief doesn't use explicit transactions</strong>
+  <code>verifyAndCreateUser</code> in authServices.ts runs <code>user.create</code> then <code>verifyToken.delete</code> separately. If delete fails after create succeeds, the user exists but the token is stuck. For production systems, this should be wrapped in a <code>$transaction</code>.
+</div>
+
+<!-- ============================================================ ERROR HANDLING -->
+<h2 id="error-handling">Error Handling</h2>
+
+<p>Prisma throws typed errors from <code>@prisma/client/runtime</code>:</p>
+
+<pre><span class="k">import</span> { Prisma } <span class="k">from</span> <span class="s">"@prisma/client"</span>;  <span class="c">// or from your generated path</span>
+
+<span class="k">try</span> {
+  <span class="k">await</span> prisma.user.<span class="f">create</span>({ <span class="n">data</span>: { <span class="n">email</span>: duplicateEmail, ... } });
+} <span class="k">catch</span> (error) {
+  <span class="k">if</span> (error <span class="k">instanceof</span> Prisma.<span class="t">PrismaClientKnownRequestError</span>) {
+    <span class="k">if</span> (error.<span class="n">code</span> === <span class="s">"P2002"</span>) {
+      <span class="c">// Unique constraint failed</span>
+      <span class="c">// error.meta.target = ["email"] (which field)</span>
+      <span class="k">throw new</span> <span class="t">Error</span>(<span class="s">"Email already in use"</span>);
+    }
+    <span class="k">if</span> (error.<span class="n">code</span> === <span class="s">"P2025"</span>) {
+      <span class="c">// Record not found (for update/delete)</span>
+      <span class="k">throw new</span> <span class="t">Error</span>(<span class="s">"Record not found"</span>);
+    }
+  }
+  <span class="k">throw</span> error;  <span class="c">// re-throw unknown errors</span>
+}</pre>
+
+<h3>Most common Prisma error codes</h3>
+
+<table>
+  <tr><th>Code</th><th>When it happens</th><th>Common cause</th></tr>
+  <tr><td><code>P2002</code></td><td><code>create</code> or <code>update</code></td><td>Unique constraint violation (duplicate email, etc.)</td></tr>
+  <tr><td><code>P2025</code></td><td><code>update</code>, <code>delete</code>, <code>findUniqueOrThrow</code></td><td>Record does not exist</td></tr>
+  <tr><td><code>P2003</code></td><td><code>create</code>, <code>update</code></td><td>Foreign key constraint failed</td></tr>
+  <tr><td><code>P2000</code></td><td><code>create</code></td><td>Value too long for column type</td></tr>
+  <tr><td><code>P1001</code></td><td>Any operation</td><td>Can't reach the database server</td></tr>
+</table>
+
+<h3>findUniqueOrThrow / findFirstOrThrow</h3>
+
+<p>Instead of checking for null, throw automatically:</p>
+
+<pre><span class="c">// Instead of:</span>
+<span class="k">const</span> user = <span class="k">await</span> prisma.user.<span class="f">findUnique</span>({ <span class="n">where</span>: { <span class="n">id</span> } });
+<span class="k">if</span> (!user) <span class="k">throw new</span> <span class="t">Error</span>(<span class="s">"not found"</span>);
+
+<span class="c">// You can write:</span>
+<span class="k">const</span> user = <span class="k">await</span> prisma.user.<span class="f">findUniqueOrThrow</span>({ <span class="n">where</span>: { <span class="n">id</span> } });
+<span class="c">// throws PrismaClientKnownRequestError P2025 if not found</span></pre>
+
+<!-- ============================================================ PRISMA STUDIO -->
+<h2 id="prisma-studio">Prisma Studio</h2>
+
+<p>A visual browser-based GUI for your database. Run it locally:</p>
+
+<pre>npx prisma studio</pre>
+
+<p>Opens at <code>http://localhost:5555</code>. You can:</p>
+<ul>
+  <li>Browse all tables and rows</li>
+  <li>Filter, sort, and search records</li>
+  <li>Edit cells directly</li>
+  <li>Create and delete rows</li>
+  <li>Inspect enum values, arrays, and JSON fields</li>
+</ul>
+
+<div class="callout tip">
+  <strong>Use Prisma Studio to fix data manually</strong>
+  For example: <code>UPDATE "User" SET role = 'ADMIN' WHERE email = '...'</code> can be done visually in Studio without writing SQL.
+</div>
+
+<!-- ============================================================ PROJECT EXAMPLES -->
+<h2 id="project-examples">Real Project Examples</h2>
+
+<h3>Auth Service — Full user registration flow</h3>
+
+<pre><span class="c">// 1. Check if email exists</span>
+<span class="k">const</span> existing = <span class="k">await</span> prisma.user.<span class="f">findUnique</span>({ <span class="n">where</span>: { <span class="n">email</span> } });
+<span class="k">if</span> (existing) <span class="k">throw new</span> <span class="t">Error</span>(<span class="s">"Email already in use"</span>);
+
+<span class="c">// 2. Save temp data + send code</span>
+<span class="k">await</span> prisma.verifyToken.<span class="f">upsert</span>({
+  <span class="n">where</span>:  { <span class="n">email</span> },
+  <span class="n">update</span>: { <span class="n">code</span>, <span class="n">expiresAt</span>, <span class="n">firstName</span>, <span class="n">lastName</span>, <span class="n">password</span>: hash, <span class="n">phone</span> },
+  <span class="n">create</span>: { <span class="n">email</span>, <span class="n">code</span>, <span class="n">expiresAt</span>, <span class="n">firstName</span>, <span class="n">lastName</span>, <span class="n">password</span>: hash, <span class="n">phone</span> },
+});
+
+<span class="c">// 3. Verify code and create real user</span>
+<span class="k">const</span> record = <span class="k">await</span> prisma.verifyToken.<span class="f">findUnique</span>({ <span class="n">where</span>: { <span class="n">email</span> } });
+<span class="k">if</span> (!record || record.<span class="n">code</span> !== code || record.<span class="n">expiresAt</span> &lt; <span class="k">new</span> <span class="t">Date</span>()) {
+  <span class="k">throw new</span> <span class="t">Error</span>(<span class="s">"Invalid or expired code"</span>);
+}
+
+<span class="k">const</span> user = <span class="k">await</span> prisma.user.<span class="f">create</span>({
+  <span class="n">data</span>: {
+    <span class="n">firstName</span>: record.<span class="n">firstName</span>,
+    <span class="n">lastName</span>:  record.<span class="n">lastName</span>,
+    <span class="n">email</span>:     record.<span class="n">email</span>,
+    <span class="n">password</span>:  record.<span class="n">password</span>,
+    <span class="n">phone</span>:     record.<span class="n">phone</span>,
+    <span class="n">provider</span>:  <span class="s">"LOCAL"</span>,
+  },
+});
+
+<span class="k">await</span> prisma.verifyToken.<span class="f">delete</span>({ <span class="n">where</span>: { <span class="n">email</span> } });</pre>
+
+<h3>Brief Service — Full brief lifecycle</h3>
+
+<pre><span class="c">// CREATE — client creates a brief</span>
+<span class="k">const</span> brief = <span class="k">await</span> prisma.brief.<span class="f">create</span>({
+  <span class="n">data</span>: { <span class="n">clientId</span>, ...input }
+});
+
+<span class="c">// READ — admin gets all briefs</span>
+<span class="k">const</span> all = <span class="k">await</span> prisma.brief.<span class="f">findMany</span>({
+  <span class="n">orderBy</span>: { <span class="n">createdAt</span>: <span class="s">"desc"</span> }
+});
+
+<span class="c">// READ — employee gets their briefs</span>
+<span class="k">const</span> mine = <span class="k">await</span> prisma.brief.<span class="f">findMany</span>({
+  <span class="n">where</span>: { <span class="n">assignedToIds</span>: { <span class="n">has</span>: employeeId } }
+});
+
+<span class="c">// UPDATE — admin accepts brief</span>
+<span class="k">await</span> prisma.brief.<span class="f">update</span>({
+  <span class="n">where</span>: { <span class="n">id</span>: briefId },
+  <span class="n">data</span>:  { <span class="n">status</span>: <span class="s">"ACCEPTED"</span>, <span class="n">statusUpdatedById</span>: adminId, <span class="n">statusUpdatedAt</span>: <span class="k">new</span> <span class="t">Date</span>() },
+});
+
+<span class="c">// UPDATE — admin assigns employees (array of IDs)</span>
+<span class="k">await</span> prisma.brief.<span class="f">update</span>({
+  <span class="n">where</span>: { <span class="n">id</span>: briefId },
+  <span class="n">data</span>:  {
+    <span class="n">assignedToIds</span>:    employeeIds,   <span class="c">// string[]</span>
+    <span class="n">assignedById</span>:     adminId,
+    <span class="n">assignedAt</span>:       <span class="k">new</span> <span class="t">Date</span>(),
+    <span class="n">status</span>:           <span class="s">"IN_PROGRESS"</span>,
+    <span class="n">statusUpdatedById</span>: adminId,
+    <span class="n">statusUpdatedAt</span>:  <span class="k">new</span> <span class="t">Date</span>(),
+  },
+});
+
+<span class="c">// DELETE — client or admin deletes brief</span>
+<span class="k">await</span> prisma.brief.<span class="f">delete</span>({ <span class="n">where</span>: { <span class="n">id</span>: briefId } });</pre>
+
+<h3>Auth Controller — Update user profile</h3>
+
+<pre><span class="c">// Build a dynamic update object — only include changed fields</span>
+<span class="k">const</span> data: Record&lt;<span class="t">string</span>, <span class="t">unknown</span>&gt; = {};
+
+<span class="k">if</span> (<span class="k">typeof</span> firstName === <span class="s">"string"</span>) data.<span class="n">firstName</span> = firstName.<span class="f">trim</span>();
+<span class="k">if</span> (<span class="k">typeof</span> lastName  === <span class="s">"string"</span>) data.<span class="n">lastName</span>  = lastName.<span class="f">trim</span>();
+<span class="k">if</span> (<span class="k">typeof</span> phone     === <span class="s">"string"</span>) data.<span class="n">phone</span>     = phone.<span class="f">trim</span>() || <span class="k">null</span>;
+
+<span class="k">const</span> updated = <span class="k">await</span> prisma.user.<span class="f">update</span>({
+  <span class="n">where</span>: { <span class="n">id</span>: requester.<span class="n">id</span> },
+  <span class="n">data</span>,
+});
+
+<span class="c">// Strip password before returning</span>
+<span class="k">const</span> { <span class="n">password</span>, ...<span class="n">safeUser</span> } = updated;
+res.<span class="f">json</span>({ <span class="n">user</span>: safeUser });</pre>
+
+<h3>Full project schemas side by side</h3>
+
+<pre><span class="c">// ── auth-service/prisma/schema.prisma ──────────────────────</span>
+<span class="k">enum</span> <span class="t">Role</span>     { ADMIN CLIENT EMPLOYEE }
+<span class="k">enum</span> <span class="t">Provider</span> { LOCAL GOOGLE }
+
+<span class="k">model</span> <span class="t">User</span> {
+  <span class="n">id</span>        <span class="t">String</span>    <span class="attr">@id @default</span>(<span class="f">uuid</span>())
+  <span class="n">firstName</span> <span class="t">String</span>
+  <span class="n">lastName</span>  <span class="t">String</span>
+  <span class="n">phone</span>     <span class="t">String</span>?
+  <span class="n">email</span>     <span class="t">String</span>    <span class="attr">@unique</span>
+  <span class="n">password</span>  <span class="t">String</span>?
+  <span class="n">provider</span>  <span class="t">Provider</span>  <span class="attr">@default</span>(<span class="t">LOCAL</span>)
+  <span class="n">googleId</span>  <span class="t">String</span>?   <span class="attr">@unique</span>
+  <span class="n">role</span>      <span class="t">Role</span>      <span class="attr">@default</span>(<span class="t">CLIENT</span>)
+  <span class="n">createdAt</span> <span class="t">DateTime</span>  <span class="attr">@default</span>(<span class="f">now</span>())
+  <span class="n">updatedAt</span> <span class="t">DateTime</span>  <span class="attr">@updatedAt</span>
+}
+
+<span class="k">model</span> <span class="t">VerifyToken</span> {
+  <span class="n">id</span>        <span class="t">String</span>   <span class="attr">@id @default</span>(<span class="f">uuid</span>())
+  <span class="n">email</span>     <span class="t">String</span>   <span class="attr">@unique</span>
+  <span class="n">code</span>      <span class="t">String</span>
+  <span class="n">firstName</span> <span class="t">String</span>
+  <span class="n">lastName</span>  <span class="t">String</span>
+  <span class="n">password</span>  <span class="t">String</span>
+  <span class="n">phone</span>     <span class="t">String</span>?
+  <span class="n">expiresAt</span> <span class="t">DateTime</span>
+}
+
+<span class="c">// ── brief-service/prisma/schema.prisma ─────────────────────</span>
+<span class="k">enum</span> <span class="t">ProjectType</span> {
+  SITE_WEB SEO GOOGLE_ADS SOCIAL_MEDIA PHOTO_VIDEO
+  EMAIL_MARKETING COMMUNITY_MANAGER BRANDING OTHER
+}
+<span class="k">enum</span> <span class="t">BriefStatus</span> { PENDING ACCEPTED REFUSED IN_PROGRESS COMPLETED }
+
+<span class="k">model</span> <span class="t">Brief</span> {
+  <span class="n">id</span>               <span class="t">String</span>      <span class="attr">@id @default</span>(<span class="f">uuid</span>())
+  <span class="n">clientId</span>         <span class="t">String</span>
+  <span class="n">assignedToIds</span>    <span class="t">String[]</span>
+  <span class="n">assignedById</span>     <span class="t">String</span>?
+  <span class="n">assignedAt</span>       <span class="t">DateTime</span>?
+  <span class="n">title</span>            <span class="t">String</span>
+  <span class="n">projectType</span>      <span class="t">ProjectType</span>
+  <span class="n">description</span>      <span class="t">String</span>
+  <span class="n">features</span>         <span class="t">String[]</span>
+  <span class="n">budgetRange</span>      <span class="t">String</span>
+  <span class="n">deadline</span>         <span class="t">DateTime</span>
+  <span class="n">status</span>           <span class="t">BriefStatus</span> <span class="attr">@default</span>(<span class="t">PENDING</span>)
+  <span class="n">statusReason</span>     <span class="t">String</span>?
+  <span class="n">statusUpdatedById</span> <span class="t">String</span>?
+  <span class="n">statusUpdatedAt</span>  <span class="t">DateTime</span>?
+  <span class="n">attachments</span>      <span class="t">String[]</span>
+  <span class="n">createdAt</span>        <span class="t">DateTime</span>    <span class="attr">@default</span>(<span class="f">now</span>())
+  <span class="n">updatedAt</span>        <span class="t">DateTime</span>    <span class="attr">@updatedAt</span>
+
+  <span class="attr">@@index</span>([<span class="n">clientId</span>])
+  <span class="attr">@@index</span>([<span class="n">status</span>])
+}</pre>
+
+</main>
+
+<script>
+  // Active sidebar link tracking
+  const sections = document.querySelectorAll('h2[id], h3[id]');
+  const links    = document.querySelectorAll('nav a');
+
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        links.forEach(l => l.classList.remove('active'));
+        const active = document.querySelector(`nav a[href="#${entry.target.id}"]`);
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-10% 0px -80% 0px' });
+
+  sections.forEach(s => io.observe(s));
+</script>
+</body>
+</html>

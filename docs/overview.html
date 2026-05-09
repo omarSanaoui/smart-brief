@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Smart Brief — Full Application Documentation</title>
+  <style>
+    :root {
+      --bg: #0f1528;
+      --surface: #141824;
+      --card: #1a2238;
+      --border: #2e3a5c;
+      --teal: #67cfb1;
+      --purple: #414cc4;
+      --text: #e8eaf0;
+      --muted: rgba(255,255,255,0.5);
+      --dim: rgba(255,255,255,0.25);
+      --yellow: #f59e0b;
+      --red: #ef4444;
+      --green: #10b981;
+      --blue: #60a5fa;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      font-size: 15px;
+      line-height: 1.7;
+    }
+
+    .layout { display: flex; min-height: 100vh; }
+
+    nav {
+      width: 260px;
+      min-width: 260px;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      padding: 28px 0;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+    }
+
+    nav .logo { padding: 0 24px 24px; border-bottom: 1px solid var(--border); margin-bottom: 16px; }
+    nav .logo span:first-child { color: var(--teal); font-weight: 900; letter-spacing: 3px; font-size: 16px; }
+    nav .logo span:last-child  { color: #fff; font-weight: 900; letter-spacing: 3px; font-size: 16px; }
+    nav .logo p { color: var(--dim); font-size: 11px; margin-top: 4px; letter-spacing: 1px; }
+
+    nav ul { list-style: none; padding: 0 12px; }
+    nav li a {
+      display: block; padding: 8px 12px; border-radius: 8px;
+      color: var(--muted); text-decoration: none; font-size: 13px; transition: all .15s;
+    }
+    nav li a:hover { background: rgba(255,255,255,.05); color: #fff; }
+    nav li a.active { background: rgba(103,207,177,.1); color: var(--teal); }
+
+    nav .section-label {
+      padding: 16px 12px 6px; color: var(--dim); font-size: 10px;
+      font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+    }
+
+    main { flex: 1; padding: 48px 64px; max-width: 900px; }
+
+    h1 { font-size: 36px; font-weight: 900; color: #fff; margin-bottom: 12px; }
+    h2 { font-size: 24px; font-weight: 800; color: #fff; margin: 48px 0 16px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
+    h3 { font-size: 17px; font-weight: 700; color: var(--teal); margin: 28px 0 10px; }
+    h4 { font-size: 14px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin: 20px 0 8px; }
+
+    p { color: rgba(255,255,255,.75); margin-bottom: 14px; }
+    p strong { color: #fff; }
+    a { color: var(--teal); }
+
+    .hero-badge {
+      display: inline-block; background: rgba(65,76,196,.15); border: 1px solid rgba(65,76,196,.4);
+      color: var(--purple); padding: 4px 14px; border-radius: 20px; font-size: 12px;
+      font-weight: 700; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 16px;
+    }
+
+    .subtitle { color: var(--muted); font-size: 16px; margin-bottom: 32px; }
+
+    .tag { display: inline-block; padding: 3px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; margin: 2px; }
+    .tag-teal   { background: rgba(103,207,177,.12); color: var(--teal); }
+    .tag-purple { background: rgba(65,76,196,.15);   color: #818cf8; }
+    .tag-yellow { background: rgba(245,158,11,.12);  color: var(--yellow); }
+    .tag-red    { background: rgba(239,68,68,.12);   color: var(--red); }
+    .tag-green  { background: rgba(16,185,129,.12);  color: var(--green); }
+    .tag-blue   { background: rgba(96,165,250,.12);  color: var(--blue); }
+    .tag-gray   { background: rgba(255,255,255,.07); color: var(--muted); }
+
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin: 16px 0; }
+    .card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 16px 0; }
+    .card-grid .card { margin: 0; }
+
+    .callout {
+      border-left: 3px solid var(--purple); background: rgba(65,76,196,.08);
+      padding: 14px 20px; border-radius: 0 8px 8px 0; margin: 16px 0; font-size: 14px; color: rgba(255,255,255,.75);
+    }
+    .callout.teal   { border-color: var(--teal);   background: rgba(103,207,177,.07); }
+    .callout.yellow { border-color: var(--yellow); background: rgba(245,158,11,.07); }
+    .callout.red    { border-color: var(--red);    background: rgba(239,68,68,.07); }
+    .callout.green  { border-color: var(--green);  background: rgba(16,185,129,.07); }
+
+    code {
+      background: rgba(255,255,255,.07); border: 1px solid var(--border); padding: 2px 7px;
+      border-radius: 5px; font-family: 'Cascadia Code', 'Consolas', monospace; font-size: 13px; color: var(--teal);
+    }
+
+    pre {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+      padding: 20px 24px; overflow-x: auto; margin: 16px 0; font-size: 13px; line-height: 1.6;
+    }
+    pre code { background: none; border: none; padding: 0; color: #c9d1d9; font-size: inherit; }
+    pre .c  { color: #8b949e; font-style: italic; }
+    pre .k  { color: #ff7b72; }
+    pre .s  { color: #a5d6ff; }
+    pre .f  { color: #d2a8ff; }
+    pre .n  { color: #ffa657; }
+    pre .t  { color: #79c0ff; }
+
+    table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 14px; }
+    th { background: var(--surface); color: var(--muted); padding: 10px 14px; text-align: left; border: 1px solid var(--border); font-size: 11px; letter-spacing: 1px; text-transform: uppercase; }
+    td { padding: 10px 14px; border: 1px solid var(--border); color: rgba(255,255,255,.8); vertical-align: top; }
+    tr:nth-child(even) td { background: rgba(255,255,255,.02); }
+
+    .flow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 16px 0; }
+    .flow-step { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 8px 16px; font-size: 13px; font-weight: 600; white-space: nowrap; }
+    .flow-arrow { color: var(--muted); font-size: 18px; }
+
+    .status-row { display: flex; gap: 8px; flex-wrap: wrap; margin: 10px 0; }
+
+    ul, ol { padding-left: 24px; margin-bottom: 14px; }
+    ul li, ol li { color: rgba(255,255,255,.75); margin-bottom: 5px; }
+    ul li strong, ol li strong { color: #fff; }
+
+    .section { margin-bottom: 80px; }
+    hr { border: none; border-top: 1px solid var(--border); margin: 40px 0; }
+
+    .env-row { display: flex; gap: 8px; align-items: flex-start; margin-bottom: 8px; }
+    .env-key { color: var(--teal); font-family: monospace; font-size: 13px; min-width: 240px; }
+    .env-desc { color: var(--muted); font-size: 13px; }
+
+    @media (max-width: 900px) {
+      nav { display: none; }
+      main { padding: 24px 20px; }
+      .card-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <nav>
+    <div class="logo">
+      <div><span>SMART</span><span> BRIEF</span></div>
+      <p>DOCUMENTATION</p>
+    </div>
+    <ul>
+      <li><a href="#overview">Overview</a></li>
+      <li><a href="#architecture">Architecture</a></li>
+
+      <li class="section-label">Frontend</li>
+      <li><a href="#frontend-structure">Project Structure</a></li>
+      <li><a href="#routing">Routing</a></li>
+      <li><a href="#redux">Redux State</a></li>
+      <li><a href="#axios">Axios Clients</a></li>
+
+      <li class="section-label">Auth Service</li>
+      <li><a href="#auth-overview">What It Does</a></li>
+      <li><a href="#registration">Registration Flow</a></li>
+      <li><a href="#login">Login & JWT</a></li>
+      <li><a href="#google-oauth">Google OAuth</a></li>
+      <li><a href="#password-reset">Password Reset</a></li>
+      <li><a href="#email-change">Email Change</a></li>
+      <li><a href="#admin-clients">Admin: Create Clients</a></li>
+      <li><a href="#auth-routes">All Auth Routes</a></li>
+
+      <li class="section-label">Brief Service</li>
+      <li><a href="#brief-overview">What It Does</a></li>
+      <li><a href="#brief-lifecycle">Brief Lifecycle</a></li>
+      <li><a href="#task-system">Task System</a></li>
+      <li><a href="#brief-routes">All Brief Routes</a></li>
+      <li><a href="#pdf-export">PDF Export</a></li>
+
+      <li class="section-label">Gateway</li>
+      <li><a href="#gateway">How It Works</a></li>
+      <li><a href="#jwt-flow">JWT Verification Flow</a></li>
+
+      <li class="section-label">Data Layer</li>
+      <li><a href="#database">Database Schema</a></li>
+      <li><a href="#prisma">Prisma ORM</a></li>
+
+      <li class="section-label">Other</li>
+      <li><a href="#email">Email System</a></li>
+      <li><a href="#deployment">Deployment</a></li>
+      <li><a href="#env-vars">Environment Variables</a></li>
+    </ul>
+  </nav>
+
+  <!-- MAIN -->
+  <main>
+
+    <!-- OVERVIEW -->
+    <section class="section" id="overview">
+      <div class="hero-badge">Full Stack Web App</div>
+      <h1>Smart Brief</h1>
+      <p class="subtitle">A project brief management platform built for Agence 47. Clients submit project briefs, the admin reviews and assigns them to employees, and employees manage production tasks.</p>
+
+      <div class="card-grid">
+        <div class="card">
+          <h4>Who Uses It</h4>
+          <ul style="padding-left:18px;margin:0">
+            <li><strong>Clients</strong> — submit and track briefs, view tasks</li>
+            <li><strong>Admin</strong> — accept/refuse briefs, assign employees, create tasks, create clients</li>
+            <li><strong>Employees</strong> — manage assigned briefs and update task statuses</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h4>Key Features</h4>
+          <ul style="padding-left:18px;margin:0">
+            <li>Email + Google OAuth registration</li>
+            <li>Email verification with 6-digit code</li>
+            <li>Role-based UI (3 roles)</li>
+            <li>Task system with progress bar per brief</li>
+            <li>Admin can create walk-in clients & their briefs</li>
+            <li>Email change with verification link</li>
+            <li>PDF brief export</li>
+            <li>Email notifications</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="callout teal">
+        <strong>Tech stack at a glance:</strong> React + TypeScript + Vite + Chakra UI (frontend), Node.js + Express v5 + TypeScript (3 backend services), PostgreSQL + Prisma (database), deployed on Vercel (frontend) and Railway (backend).
+      </div>
+    </section>
+
+    <!-- ARCHITECTURE -->
+    <section class="section" id="architecture">
+      <h2>Architecture</h2>
+      <p>The backend is split into <strong>3 microservices</strong>. The frontend never talks directly to any service — everything goes through the <strong>Gateway</strong>.</p>
+
+      <div class="card" style="margin-top:20px;">
+        <div style="text-align:center;margin-bottom:20px;">
+          <div style="display:inline-block;background:rgba(103,207,177,.1);border:1px solid rgba(103,207,177,.3);border-radius:10px;padding:10px 28px;font-weight:800;font-size:15px;color:var(--teal);">React Frontend (Vercel)</div>
+          <div style="color:var(--muted);margin:8px 0;font-size:20px;">↕</div>
+          <div style="display:inline-block;background:rgba(65,76,196,.15);border:1px solid rgba(65,76,196,.4);border-radius:10px;padding:10px 28px;font-weight:800;font-size:15px;color:#818cf8;">API Gateway :8080 (Railway)</div>
+          <div style="color:var(--muted);margin:8px 0;font-size:20px;">↙ &nbsp;&nbsp;&nbsp;&nbsp; ↘</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:500px;margin:0 auto;">
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;">
+              <div style="color:var(--yellow);font-weight:700;">Auth Service :3000</div>
+              <div style="color:var(--muted);font-size:12px;margin-top:4px;">Users, JWT, OAuth, Email Change</div>
+              <div style="color:var(--dim);font-size:11px;margin-top:6px;">↕ PostgreSQL DB #1</div>
+            </div>
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;">
+              <div style="color:var(--blue);font-weight:700;">Brief Service :4000</div>
+              <div style="color:var(--muted);font-size:12px;margin-top:4px;">Briefs, Tasks, PDF, Emails</div>
+              <div style="color:var(--dim);font-size:11px;margin-top:6px;">↕ PostgreSQL DB #2</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <h3>Why a Gateway?</h3>
+      <p>The Gateway is a single entry point for all API calls. It does two critical jobs:</p>
+      <ul>
+        <li><strong>JWT Verification</strong> — validates the user's token on every request before forwarding it</li>
+        <li><strong>Reverse Proxy</strong> — routes requests to the correct service based on the URL path</li>
+      </ul>
+
+      <table>
+        <tr><th>URL Prefix</th><th>Routed To</th><th>Description</th></tr>
+        <tr><td><code>/auth/*</code></td><td>Auth Service :3000</td><td>Login, register, profile, admin client management</td></tr>
+        <tr><td><code>/briefs/*</code></td><td>Brief Service :4000</td><td>All brief and task operations</td></tr>
+        <tr><td><code>/api/users/internal</code></td><td>Auth Service :3000</td><td>Internal user lookup (used by Brief Service)</td></tr>
+      </table>
+
+      <h3>Why Two Databases?</h3>
+      <p>Each service owns its own database. This is a microservices principle called <strong>"database per service"</strong>. The Auth DB stores users; the Brief DB stores briefs and tasks. When the Brief Service needs user details (e.g. a client's name for a PDF), it makes an <strong>HTTP call</strong> back through the Gateway to the Auth Service.</p>
+    </section>
+
+    <hr />
+
+    <!-- FRONTEND STRUCTURE -->
+    <h2 id="frontend-structure" style="margin-top:0">Frontend — Project Structure</h2>
+    <p>The frontend is a <strong>React Single-Page Application (SPA)</strong> built with Vite. The source code lives in <code>client/src/</code>.</p>
+
+    <pre><code>client/src/
+├── App.tsx                   ← Root component, routes, background SVGs
+├── main.tsx                  ← Entry point, wraps App in Redux Provider + Router
+├── app/
+│   ├── store.ts              ← Redux store (auth + briefs slices)
+│   └── hooks.ts              ← Typed useAppDispatch / useAppSelector
+├── features/
+│   ├── auth/
+│   │   ├── api/authAxios.ts
+│   │   └── authSlice/        ← Redux: slice, thunks, selectors, types
+│   └── briefs/
+│       ├── api/briefAxios.ts
+│       └── briefSlice/       ← Redux: slice, thunks, selectors, types (includes tasks)
+├── pages/
+│   ├── Landing.tsx
+│   ├── Home.tsx
+│   ├── auth/                 ← Register, Login, VerifyCode, ForgotPassword,
+│   │                             ResetPassword, VerifyEmailChange
+│   ├── client/               ← NewProject, MyBriefs
+│   ├── admin/                ← AdminNewProject (create client + brief)
+│   └── shared/               ← BriefsDashboard, BriefDetails
+└── components/
+    ├── Navbar.tsx
+    ├── Footer.tsx
+    ├── UserProfileModal.tsx
+    ├── shared/
+    │   └── ConfirmDialog.tsx  ← Styled replacement for window.confirm
+    ├── admin/
+    │   └── AddClientModal.tsx ← Admin creates walk-in clients
+    └── briefs/               ← BriefCard, BriefModal, EditBriefModal,
+                                  TaskSection, StatusBadge</code></pre>
+
+    <!-- ROUTING -->
+    <section class="section" id="routing">
+      <h2>Routing</h2>
+      <p>React Router v6. The root <code>/</code> renders different pages depending on login state. A <code>vercel.json</code> catch-all rewrite ensures deep-link refreshes don't 404.</p>
+
+      <table>
+        <tr><th>Path</th><th>Component</th><th>Who Can See It</th></tr>
+        <tr><td><code>/</code></td><td>Landing <em>or</em> Home</td><td>Logged-out → Landing, Logged-in → Home</td></tr>
+        <tr><td><code>/register</code></td><td>Register</td><td>Anyone</td></tr>
+        <tr><td><code>/login</code></td><td>Login</td><td>Anyone</td></tr>
+        <tr><td><code>/verify-code</code></td><td>VerifyCode</td><td>Anyone (new users)</td></tr>
+        <tr><td><code>/forgot-password</code></td><td>ForgotPassword</td><td>Anyone</td></tr>
+        <tr><td><code>/reset-password/:token</code></td><td>ResetPassword</td><td>Anyone (via email link)</td></tr>
+        <tr><td><code>/verify-email-change/:token</code></td><td>VerifyEmailChange</td><td>Anyone (via email link)</td></tr>
+        <tr><td><code>/new-project</code></td><td>NewProject</td><td>Clients</td></tr>
+        <tr><td><code>/my-briefs</code></td><td>MyBriefs</td><td>Clients</td></tr>
+        <tr><td><code>/briefs</code></td><td>BriefsDashboard</td><td>Admin, Employees</td></tr>
+        <tr><td><code>/assigned-briefs</code></td><td>BriefsDashboard</td><td>Employees</td></tr>
+        <tr><td><code>/briefs/:id</code></td><td>BriefDetails</td><td>All roles (access control inside)</td></tr>
+        <tr><td><code>/admin/new-project</code></td><td>AdminNewProject</td><td>Admin only</td></tr>
+      </table>
+
+      <div class="callout">
+        <strong>SPA refresh fix:</strong> <code>vercel.json</code> has a catch-all rewrite — any path not matching a static file is served as <code>index.html</code>, letting React Router handle it client-side.
+      </div>
+    </section>
+
+    <!-- REDUX -->
+    <section class="section" id="redux">
+      <h2>Redux State Management</h2>
+      <p>Redux Toolkit manages global state. Two slices: <code>auth</code> and <code>briefs</code>. The briefs slice also holds task state.</p>
+
+      <div class="card-grid">
+        <div class="card">
+          <h4>Auth Slice</h4>
+          <p style="font-size:13px">State: <code>user</code>, <code>token</code>, <code>loading</code>, <code>error</code>, <code>initialized</code></p>
+          <p style="font-size:13px;margin-bottom:0">Thunks: <code>loginThunk</code>, <code>registerThunk</code>, <code>verifyCodeThunk</code>, <code>getMeThunk</code>, <code>updateMeThunk</code>, <code>changePasswordThunk</code>, <code>deleteMeThunk</code></p>
+        </div>
+        <div class="card">
+          <h4>Briefs Slice</h4>
+          <p style="font-size:13px">State: <code>briefs[]</code>, <code>currentBrief</code>, <code>employees[]</code>, <code>tasks[]</code>, <code>tasksLoading</code>, <code>loading</code>, <code>error</code></p>
+          <p style="font-size:13px;margin-bottom:0">Thunks: <code>fetchBriefsThunk</code>, <code>createBriefThunk</code>, <code>updateBriefThunk</code>, <code>deleteBriefThunk</code>, <code>fetchTasksThunk</code>, <code>createTaskThunk</code>, <code>updateTaskThunk</code>, <code>updateTaskStatusThunk</code>, <code>deleteTaskThunk</code></p>
+        </div>
+      </div>
+
+      <h3>Session Persistence</h3>
+      <p>On login, the JWT is saved to <code>localStorage</code>. On every refresh, <code>App.tsx</code> reads the token, puts it in Redux, then calls <code>getMeThunk</code> to reload the user profile from the server.</p>
+    </section>
+
+    <!-- AXIOS -->
+    <section class="section" id="axios">
+      <h2>Axios HTTP Clients</h2>
+      <p>Two Axios instances, both pointing at the Gateway base URL (<code>VITE_API_URL</code>).</p>
+
+      <table>
+        <tr><th>File</th><th>Used For</th></tr>
+        <tr><td><code>features/auth/api/authAxios.ts</code></td><td>Auth calls: <code>/auth/*</code></td></tr>
+        <tr><td><code>features/briefs/api/briefAxios.ts</code></td><td>Brief/task calls: <code>/briefs/*</code></td></tr>
+      </table>
+
+      <p>Both have a <strong>request interceptor</strong> that attaches the JWT as a Bearer token, and a <strong>response interceptor</strong> that clears the token and redirects to <code>/login</code> on any 401.</p>
+    </section>
+
+    <hr />
+
+    <!-- AUTH SERVICE -->
+    <section class="section" id="auth-overview">
+      <h2>Auth Service — What It Does</h2>
+      <p>Standalone Node.js/Express server on port <strong>3000</strong>. Handles everything user-related.</p>
+
+      <div class="card-grid">
+        <div class="card">
+          <h4>Responsibilities</h4>
+          <ul style="padding-left:18px;margin:0;font-size:14px">
+            <li>User registration with email verification</li>
+            <li>Login with password hashing (bcrypt)</li>
+            <li>JWT token issuance</li>
+            <li>Google OAuth 2.0</li>
+            <li>Password reset via email link</li>
+            <li>Email change with verification link</li>
+            <li>Profile management (get, update, delete)</li>
+            <li>Admin-created clients (walk-in / phone)</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h4>Key Libraries</h4>
+          <ul style="padding-left:18px;margin:0;font-size:14px">
+            <li><strong>bcryptjs</strong> — hashes passwords</li>
+            <li><strong>jsonwebtoken</strong> — creates/verifies JWTs</li>
+            <li><strong>passport.js</strong> — handles Google OAuth</li>
+            <li><strong>Resend</strong> — sends emails via HTTP API</li>
+            <li><strong>Prisma</strong> — ORM for PostgreSQL</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- REGISTRATION -->
+    <section class="section" id="registration">
+      <h2>Registration Flow</h2>
+      <p>Two-step process. The user's data is not permanently saved until they verify their email.</p>
+
+      <div class="flow">
+        <div class="flow-step">1. POST /auth/register</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">2. Save to VerifyToken table</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">3. Send 6-digit code by email</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">4. POST /auth/verify-code</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">5. Create User + return JWT</div>
+      </div>
+
+      <h3>Password Strength Rules</h3>
+      <p>Passwords must have: minimum <strong>8 characters</strong>, at least one <strong>uppercase</strong> letter, one <strong>lowercase</strong> letter, and one <strong>number</strong>. No special character required.</p>
+
+      <pre><code><span class="c">// utils/validation.ts</span>
+<span class="k">function</span> <span class="f">isStrongPassword</span>(password: <span class="t">string</span>): <span class="t">boolean</span> {
+  <span class="k">if</span> (password.length < <span class="n">8</span>) <span class="k">return false</span>;
+  <span class="k">if</span> (!/[A-Z]/.test(password)) <span class="k">return false</span>;
+  <span class="k">if</span> (!/[a-z]/.test(password)) <span class="k">return false</span>;
+  <span class="k">if</span> (!/\d/.test(password))    <span class="k">return false</span>;
+  <span class="k">return true</span>;
+}</code></pre>
+    </section>
+
+    <!-- LOGIN & JWT -->
+    <section class="section" id="login">
+      <h2>Login &amp; JWT</h2>
+
+      <h3>How Login Works</h3>
+      <ol>
+        <li>User submits email + password to <code>POST /auth/login</code></li>
+        <li>Service looks up the user by email</li>
+        <li>Uses <code>bcrypt.compare()</code> to check the password against the stored hash</li>
+        <li>If valid: signs a JWT and returns it along with the user object</li>
+      </ol>
+
+      <h3>What's Inside the JWT</h3>
+      <p>Payload: <code>{ id: "user-uuid", role: "ADMIN" }</code> — expires in 7 days. The Gateway verifies this on every request and injects <code>x-user-id</code> and <code>x-user-role</code> headers for the downstream services.</p>
+
+      <div class="callout">
+        <strong>How verification works:</strong> The Gateway calls <code>jwt.verify(token, JWT_SECRET)</code>. If valid, the decoded <code>id</code> and <code>role</code> are forwarded as custom headers. Services trust these headers without re-verifying the JWT.
+      </div>
+    </section>
+
+    <!-- GOOGLE OAUTH -->
+    <section class="section" id="google-oauth">
+      <h2>Google OAuth 2.0</h2>
+      <p>Users can sign in with their Google account. Uses OAuth 2.0 with Passport.js.</p>
+
+      <div class="flow" style="flex-direction:column;align-items:flex-start;gap:4px;">
+        <div class="flow-step" style="background:transparent;border:none;padding:4px 0;font-weight:400;font-size:14px;color:rgba(255,255,255,.8)"><span style="color:var(--teal);font-weight:700;margin-right:8px;">1.</span> User clicks "Sign in with Google"</div>
+        <div class="flow-step" style="background:transparent;border:none;padding:4px 0;font-weight:400;font-size:14px;color:rgba(255,255,255,.8)"><span style="color:var(--teal);font-weight:700;margin-right:8px;">2.</span> <code>GET /auth/google</code> → redirects to Google consent page</div>
+        <div class="flow-step" style="background:transparent;border:none;padding:4px 0;font-weight:400;font-size:14px;color:rgba(255,255,255,.8)"><span style="color:var(--teal);font-weight:700;margin-right:8px;">3.</span> Google redirects back to <code>GET /auth/google/callback</code></div>
+        <div class="flow-step" style="background:transparent;border:none;padding:4px 0;font-weight:400;font-size:14px;color:rgba(255,255,255,.8)"><span style="color:var(--teal);font-weight:700;margin-right:8px;">4.</span> Passport exchanges the code for a Google profile</div>
+        <div class="flow-step" style="background:transparent;border:none;padding:4px 0;font-weight:400;font-size:14px;color:rgba(255,255,255,.8)"><span style="color:var(--teal);font-weight:700;margin-right:8px;">5.</span> <code>findOrCreateGoogleUser()</code> — finds by Google ID or email, creates if new</div>
+        <div class="flow-step" style="background:transparent;border:none;padding:4px 0;font-weight:400;font-size:14px;color:rgba(255,255,255,.8)"><span style="color:var(--teal);font-weight:700;margin-right:8px;">6.</span> JWT signed → redirect to <code>FRONTEND_URL/?token=xxx</code></div>
+        <div class="flow-step" style="background:transparent;border:none;padding:4px 0;font-weight:400;font-size:14px;color:rgba(255,255,255,.8)"><span style="color:var(--teal);font-weight:700;margin-right:8px;">7.</span> Frontend reads <code>?token=</code>, saves to localStorage, removes from URL</div>
+      </div>
+    </section>
+
+    <!-- PASSWORD RESET -->
+    <section class="section" id="password-reset">
+      <h2>Password Reset</h2>
+
+      <div class="flow">
+        <div class="flow-step">1. POST /auth/forgot-password</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">2. Email with reset link</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">3. Click → /reset-password/:token</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">4. POST /auth/reset-password</div>
+      </div>
+
+      <p>The link contains a short-lived JWT (30 minutes) with <code>purpose: "reset-password"</code>. The token is embedded in the <strong>URL path</strong> (not a query param) to prevent email clients from stripping it.</p>
+
+      <div class="callout">
+        <strong>Security note:</strong> The forgot-password endpoint always returns the same response whether or not the email exists — this prevents attackers from discovering which emails are registered.
+      </div>
+    </section>
+
+    <!-- EMAIL CHANGE -->
+    <section class="section" id="email-change">
+      <h2>Email Change Verification</h2>
+      <p>When a user updates their email in the profile modal, the new email is <strong>not applied immediately</strong>. Instead:</p>
+
+      <div class="flow">
+        <div class="flow-step">1. PATCH /auth/me (with new email)</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">2. JWT token generated</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">3. Verification email → new address</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">4. Notification email → old address</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">5. Click link → /verify-email-change/:token</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">6. Email updated in DB</div>
+      </div>
+
+      <ul>
+        <li>The token expires in <strong>1 hour</strong></li>
+        <li>The token is embedded in the URL path (not a query param) for email client safety</li>
+        <li>The old email gets a "your email was changed" notification — if it wasn't them, they can contact support</li>
+        <li>Non-email profile fields (name, phone) are saved immediately without verification</li>
+        <li>The frontend shows an amber banner — "check your inbox" — after requesting the change</li>
+        <li>After confirming, the Redux user store is refreshed so the new email shows everywhere instantly</li>
+      </ul>
+    </section>
+
+    <!-- ADMIN CLIENTS -->
+    <section class="section" id="admin-clients">
+      <h2>Admin: Create Clients &amp; Briefs</h2>
+      <p>Not all clients use the website directly — some contact the agency by phone or walk in. The admin can create a client account on their behalf and submit the brief for them.</p>
+
+      <h3>Creating a Client</h3>
+      <p>Via <code>POST /auth/admin/create-client</code> (admin only). Fields: first name, last name, optional email, optional phone.</p>
+      <ul>
+        <li><strong>Email optional</strong> — if omitted, a placeholder is auto-generated: <code>firstname.lastname@client.agence47.ma</code>. The <code>isPlaceholderEmail</code> flag is set to <code>true</code>.</li>
+        <li><strong>Password auto-generated</strong> — 12-character random password (uppercase + lowercase + digits, no special chars). Returned once in the response — the admin downloads or copies it to give to the client.</li>
+        <li>The client is linked to the creating admin via <code>addedByAdminId</code>.</li>
+        <li>The credentials screen in the UI has <strong>copy</strong> buttons and a <strong>download as .txt</strong> button.</li>
+      </ul>
+
+      <h3>Creating a Brief for a Client</h3>
+      <p>Via <code>POST /briefs/admin/for-client/:clientId</code> (admin only). The admin selects a client from their client grid at <code>/admin/new-project</code>, then fills in the same 2-step brief form as a regular client.</p>
+
+      <div class="callout teal">
+        The admin's client grid only shows clients <em>they</em> created (<code>addedByAdminId = currentAdmin.id</code>). Clients created by the same admin are listed with their name, email, and phone.
+      </div>
+    </section>
+
+    <!-- AUTH ROUTES -->
+    <section class="section" id="auth-routes">
+      <h2>All Auth Routes</h2>
+
+      <table>
+        <tr><th>Method</th><th>Path</th><th>Auth</th><th>Description</th></tr>
+        <tr><td><span class="tag tag-green">POST</span></td><td><code>/auth/register</code></td><td>No</td><td>Start registration, sends verification email</td></tr>
+        <tr><td><span class="tag tag-green">POST</span></td><td><code>/auth/verify-code</code></td><td>No</td><td>Confirm email code, creates user, returns JWT</td></tr>
+        <tr><td><span class="tag tag-green">POST</span></td><td><code>/auth/resend-code</code></td><td>No</td><td>Resend verification email</td></tr>
+        <tr><td><span class="tag tag-green">POST</span></td><td><code>/auth/login</code></td><td>No</td><td>Login with email/password, returns JWT</td></tr>
+        <tr><td><span class="tag tag-green">POST</span></td><td><code>/auth/forgot-password</code></td><td>No</td><td>Send password reset email</td></tr>
+        <tr><td><span class="tag tag-green">POST</span></td><td><code>/auth/reset-password</code></td><td>No</td><td>Set new password using reset token</td></tr>
+        <tr><td><span class="tag tag-blue">GET</span></td><td><code>/auth/verify-email-change</code></td><td>No</td><td>Confirm email change via token in query param</td></tr>
+        <tr><td><span class="tag tag-blue">GET</span></td><td><code>/auth/google</code></td><td>No</td><td>Start Google OAuth flow</td></tr>
+        <tr><td><span class="tag tag-blue">GET</span></td><td><code>/auth/google/callback</code></td><td>No</td><td>Google OAuth callback</td></tr>
+        <tr><td><span class="tag tag-blue">GET</span></td><td><code>/auth/me</code></td><td>Yes</td><td>Get current user's profile</td></tr>
+        <tr><td><span class="tag tag-yellow">PATCH</span></td><td><code>/auth/me</code></td><td>Yes</td><td>Update name/phone (instant) or email (sends verification)</td></tr>
+        <tr><td><span class="tag tag-green">POST</span></td><td><code>/auth/change-password</code></td><td>Yes</td><td>Change password (requires current password)</td></tr>
+        <tr><td><span class="tag tag-red">DELETE</span></td><td><code>/auth/me</code></td><td>Yes</td><td>Delete own account</td></tr>
+        <tr><td><span class="tag tag-blue">GET</span></td><td><code>/auth/users/role/:role</code></td><td>Yes</td><td>Get users by role</td></tr>
+        <tr><td><span class="tag tag-blue">GET</span></td><td><code>/auth/users/:id</code></td><td>Yes</td><td>Get user by ID (own or admin only)</td></tr>
+        <tr><td><span class="tag tag-green">POST</span></td><td><code>/auth/admin/create-client</code></td><td>Admin</td><td>Create a client account, returns generated password</td></tr>
+        <tr><td><span class="tag tag-blue">GET</span></td><td><code>/auth/admin/clients</code></td><td>Admin</td><td>List clients created by this admin</td></tr>
+        <tr><td><span class="tag tag-blue">GET</span></td><td><code>/api/users/internal?ids=</code></td><td>No*</td><td>Internal: batch user lookup by IDs</td></tr>
+      </table>
+      <p style="font-size:12px;color:var(--dim)">* Internal endpoint bypasses gateway auth — called server-to-server inside Railway's private network.</p>
+    </section>
+
+    <hr />
+
+    <!-- BRIEF SERVICE -->
+    <section class="section" id="brief-overview">
+      <h2>Brief Service — What It Does</h2>
+      <p>Runs on port <strong>4000</strong>. Manages briefs, tasks, PDF export, and email notifications for brief events. Trusts the <code>x-user-id</code> and <code>x-user-role</code> headers injected by the Gateway.</p>
+    </section>
+
+    <!-- BRIEF LIFECYCLE -->
+    <section class="section" id="brief-lifecycle">
+      <h2>Brief Lifecycle</h2>
+
+      <div class="status-row">
+        <span class="tag tag-yellow" style="padding:6px 14px;font-size:13px;">PENDING</span>
+        <span style="color:var(--muted);font-size:20px;align-self:center;">→</span>
+        <span class="tag tag-teal" style="padding:6px 14px;font-size:13px;">ACCEPTED</span>
+        <span style="color:var(--muted);font-size:20px;align-self:center;">→</span>
+        <span class="tag tag-blue" style="padding:6px 14px;font-size:13px;">IN_PROGRESS</span>
+        <span style="color:var(--muted);font-size:20px;align-self:center;">→</span>
+        <span class="tag tag-green" style="padding:6px 14px;font-size:13px;">COMPLETED</span>
+        <br/>
+        <span style="color:var(--muted);font-size:20px;margin-left:8px;">↘</span>
+        <span class="tag tag-red" style="padding:6px 14px;font-size:13px;margin-left:4px;">REFUSED</span>
+      </div>
+
+      <table>
+        <tr><th>Status</th><th>Who Sets It</th><th>What Happens</th></tr>
+        <tr><td><span class="tag tag-yellow">PENDING</span></td><td>Auto on creation</td><td>Brief submitted. Admin notified by email.</td></tr>
+        <tr><td><span class="tag tag-teal">ACCEPTED</span></td><td>Admin</td><td>Admin accepted. Client notified. Admin can now assign employees.</td></tr>
+        <tr><td><span class="tag tag-red">REFUSED</span></td><td>Admin</td><td>Admin rejected. Client notified with optional reason.</td></tr>
+        <tr><td><span class="tag tag-blue">IN_PROGRESS</span></td><td>Admin (via assign) / Employee</td><td>Set when admin assigns employees, or employee updates status.</td></tr>
+        <tr><td><span class="tag tag-green">COMPLETED</span></td><td>Employee</td><td>Work marked done. Client notified by email.</td></tr>
+      </table>
+    </section>
+
+    <!-- TASK SYSTEM -->
+    <section class="section" id="task-system">
+      <h2>Task System</h2>
+      <p>Each brief can have multiple tasks. Tasks track the work breakdown within a brief.</p>
+
+      <div class="card-grid">
+        <div class="card">
+          <h4>Who Can Do What</h4>
+          <ul style="padding-left:18px;margin:0;font-size:14px">
+            <li><strong>Admin</strong> — create, edit, delete tasks</li>
+            <li><strong>Employees</strong> — update task status (if assigned to the brief)</li>
+            <li><strong>Clients</strong> — view tasks read-only</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h4>Task Fields</h4>
+          <ul style="padding-left:18px;margin:0;font-size:14px">
+            <li><code>name</code> — task title</li>
+            <li><code>description</code> — details</li>
+            <li><code>priority</code> — LOW | MEDIUM | HIGH</li>
+            <li><code>startDate</code> / <code>endDate</code> — date range</li>
+            <li><code>status</code> — PENDING | IN_PROGRESS | COMPLETED</li>
+          </ul>
+        </div>
+      </div>
+
+      <h3>Progress Bar</h3>
+      <p>Both <code>BriefModal</code> and <code>BriefDetails</code> show a progress bar calculated as:</p>
+      <pre><code>completedTasks / totalTasks × 100%</code></pre>
+      <p>The bar updates in real time as employees change task statuses.</p>
+
+      <h3>UI Implementation</h3>
+      <p>The <code>TaskSection</code> component uses <strong>Chakra UI v3</strong> for the priority select and date pickers (<code>Select.Root</code> with <code>createListCollection</code>, <code>DatePicker.Root</code> with <code>Portal</code>). This ensures consistent dark theming via CSS <code>[data-part]</code> selectors.</p>
+    </section>
+
+    <!-- BRIEF ROUTES -->
+    <section class="section" id="brief-routes">
+      <h2>All Brief Routes</h2>
+      <p>All routes require a valid JWT (Gateway verifies and injects user headers).</p>
+
+      <table>
+        <tr><th>Method</th><th>Path</th><th>Role</th><th>Description</th></tr>
+        <tr><td><span class="tag tag-green">POST</span></td><td><code>/briefs</code></td><td>CLIENT</td><td>Client creates a brief</td></tr>
+        <tr><td><span class="tag tag-green">POST</span></td><td><code>/briefs/admin/for-client/:clientId</code></td><td>ADMIN</td><td>Admin creates a brief on behalf of a client</td></tr>
+        <tr><td><span class="tag tag-blue">GET</span></td><td><code>/briefs</code></td><td>All</td><td>Get briefs filtered by role</td></tr>
+        <tr><td><span class="tag tag-blue">GET</span></td><td><code>/briefs/:id</code></td><td>All*</td><td>Get one brief by ID</td></tr>
+        <tr><td><span class="tag tag-yellow">PATCH</span></td><td><code>/briefs/:id</code></td><td>CLIENT</td><td>Edit own brief (only while PENDING)</td></tr>
+        <tr><td><span class="tag tag-yellow">PATCH</span></td><td><code>/briefs/admin/:id/status</code></td><td>ADMIN</td><td>Accept or refuse a brief</td></tr>
+        <tr><td><span class="tag tag-yellow">PATCH</span></td><td><code>/briefs/admin/:id/assign</code></td><td>ADMIN</td><td>Assign employees to a brief</td></tr>
+        <tr><td><span class="tag tag-yellow">PATCH</span></td><td><code>/briefs/employee/:id/status</code></td><td>EMPLOYEE</td><td>Update brief to IN_PROGRESS or COMPLETED</td></tr>
+        <tr><td><span class="tag tag-blue">GET</span></td><td><code>/briefs/:id/export</code></td><td>All*</td><td>Export brief as PDF</td></tr>
+        <tr><td><span class="tag tag-red">DELETE</span></td><td><code>/briefs/:id</code></td><td>ADMIN/CLIENT</td><td>Delete brief (client: PENDING only; admin: any)</td></tr>
+        <tr><td><span class="tag tag-blue">GET</span></td><td><code>/briefs/:briefId/tasks</code></td><td>All*</td><td>Get all tasks for a brief</td></tr>
+        <tr><td><span class="tag tag-green">POST</span></td><td><code>/briefs/:briefId/tasks</code></td><td>ADMIN</td><td>Create a task</td></tr>
+        <tr><td><span class="tag tag-yellow">PATCH</span></td><td><code>/briefs/:briefId/tasks/:taskId</code></td><td>ADMIN</td><td>Edit a task (name, description, dates, priority)</td></tr>
+        <tr><td><span class="tag tag-yellow">PATCH</span></td><td><code>/briefs/:briefId/tasks/:taskId/status</code></td><td>EMPLOYEE</td><td>Update task status</td></tr>
+        <tr><td><span class="tag tag-red">DELETE</span></td><td><code>/briefs/:briefId/tasks/:taskId</code></td><td>ADMIN</td><td>Delete a task</td></tr>
+      </table>
+      <p style="font-size:12px;color:var(--dim)">* Clients see only their own briefs/tasks. Employees see only briefs assigned to them.</p>
+    </section>
+
+    <!-- PDF EXPORT -->
+    <section class="section" id="pdf-export">
+      <h2>PDF Export</h2>
+      <p>When a user clicks "Export PDF", the frontend calls <code>GET /briefs/:id/export</code>. The Brief Service generates a PDF in memory using <strong>PDFKit</strong> and streams it to the browser. No files are saved to disk.</p>
+    </section>
+
+    <hr />
+
+    <!-- GATEWAY -->
+    <section class="section" id="gateway">
+      <h2>Gateway — How It Works</h2>
+      <p>Express server on port <strong>8080</strong> — the single entry point for all client requests.</p>
+
+      <h3>Processing Order (Every Request)</h3>
+      <ol>
+        <li><strong>CORS check</strong> — allowed origins: frontend URL, all <code>*.vercel.app</code>, localhost</li>
+        <li><strong>JWT check</strong> — skipped for public routes, verified for everything else</li>
+        <li><strong>Header injection</strong> — <code>x-user-id</code> and <code>x-user-role</code> added to request</li>
+        <li><strong>Proxy forwarding</strong> — request sent to auth-service or brief-service</li>
+      </ol>
+
+      <h3>Public Routes (No Token Required)</h3>
+      <pre><code>POST /auth/register
+POST /auth/verify-code
+POST /auth/resend-code
+POST /auth/login
+POST /auth/forgot-password
+POST /auth/reset-password
+GET  /auth/verify-email-change
+GET  /auth/google
+GET  /auth/google/callback
+GET  /api/users/internal</code></pre>
+    </section>
+
+    <!-- JWT FLOW -->
+    <section class="section" id="jwt-flow">
+      <h2>JWT Verification Flow</h2>
+
+      <div class="card">
+        <div style="font-size:14px;line-height:2">
+          <div><span style="color:var(--teal);font-weight:700;">Frontend</span> → sends <code>Authorization: Bearer eyJhbG...</code> with every request</div>
+          <div style="color:var(--muted);margin-left:20px;">↓</div>
+          <div><span style="color:#818cf8;font-weight:700;">Gateway</span> → <code>jwt.verify(token, JWT_SECRET)</code></div>
+          <div style="color:var(--muted);margin-left:20px;">↓ invalid → 401 &nbsp;&nbsp; ↓ valid → extracts <code>{ id, role }</code></div>
+          <div><span style="color:#818cf8;font-weight:700;">Gateway</span> → adds headers <code>x-user-id</code> and <code>x-user-role</code>, forwards request</div>
+          <div style="color:var(--muted);margin-left:20px;">↓</div>
+          <div><span style="color:var(--yellow);font-weight:700;">Service</span> → reads headers, sets <code>req.user = { userId, role }</code></div>
+          <div style="color:var(--muted);margin-left:20px;">↓</div>
+          <div><span style="color:var(--yellow);font-weight:700;">Controller</span> → checks <code>req.user.role</code> to decide access</div>
+        </div>
+      </div>
+    </section>
+
+    <hr />
+
+    <!-- DATABASE -->
+    <section class="section" id="database">
+      <h2>Database Schema</h2>
+      <p>Two separate PostgreSQL databases — one per service.</p>
+
+      <h3>Auth Service Database</h3>
+      <table>
+        <tr><th colspan="3" style="background:rgba(65,76,196,.15);color:#818cf8;">Table: User</th></tr>
+        <tr><th>Column</th><th>Type</th><th>Notes</th></tr>
+        <tr><td><code>id</code></td><td>UUID</td><td>Primary key, auto-generated</td></tr>
+        <tr><td><code>firstName</code></td><td>String</td><td></td></tr>
+        <tr><td><code>lastName</code></td><td>String</td><td></td></tr>
+        <tr><td><code>email</code></td><td>String</td><td>Unique</td></tr>
+        <tr><td><code>password</code></td><td>String?</td><td>Null for Google-only users</td></tr>
+        <tr><td><code>phone</code></td><td>String?</td><td>Optional</td></tr>
+        <tr><td><code>role</code></td><td>Enum</td><td>ADMIN | CLIENT | EMPLOYEE (default: CLIENT)</td></tr>
+        <tr><td><code>provider</code></td><td>Enum</td><td>LOCAL | GOOGLE</td></tr>
+        <tr><td><code>googleId</code></td><td>String?</td><td>Set for Google OAuth users</td></tr>
+        <tr><td><code>addedByAdminId</code></td><td>String?</td><td>ID of admin who created this client (walk-in flow)</td></tr>
+        <tr><td><code>isPlaceholderEmail</code></td><td>Boolean</td><td>True when email was auto-generated (no real email provided)</td></tr>
+        <tr><td><code>createdAt</code></td><td>DateTime</td><td>Auto-set</td></tr>
+        <tr><td><code>updatedAt</code></td><td>DateTime</td><td>Auto-updated</td></tr>
+      </table>
+
+      <table style="margin-top:20px">
+        <tr><th colspan="3" style="background:rgba(65,76,196,.15);color:#818cf8;">Table: VerifyToken</th></tr>
+        <tr><th>Column</th><th>Type</th><th>Notes</th></tr>
+        <tr><td><code>email</code></td><td>String</td><td>Primary key — temporary staging record</td></tr>
+        <tr><td><code>code</code></td><td>String</td><td>6-digit verification code</td></tr>
+        <tr><td><code>expiresAt</code></td><td>DateTime</td><td>10 minutes from creation</td></tr>
+        <tr><td><code>firstName / lastName</code></td><td>String</td><td>Stored temporarily until user is created</td></tr>
+        <tr><td><code>password</code></td><td>String</td><td>Already hashed at this point</td></tr>
+        <tr><td><code>phone</code></td><td>String?</td><td></td></tr>
+      </table>
+
+      <h3 style="margin-top:28px">Brief Service Database</h3>
+      <table>
+        <tr><th colspan="3" style="background:rgba(96,165,250,.1);color:var(--blue);">Table: Brief</th></tr>
+        <tr><th>Column</th><th>Type</th><th>Notes</th></tr>
+        <tr><td><code>id</code></td><td>UUID</td><td>Primary key</td></tr>
+        <tr><td><code>clientId</code></td><td>String</td><td>References a User ID in the Auth DB</td></tr>
+        <tr><td><code>title</code></td><td>String</td><td></td></tr>
+        <tr><td><code>projectType</code></td><td>Enum</td><td>SITE_WEB | SEO | GOOGLE_ADS | SOCIAL_MEDIA | PHOTO_VIDEO | EMAIL_MARKETING | COMMUNITY_MANAGER | BRANDING | OTHER</td></tr>
+        <tr><td><code>description</code></td><td>String</td><td>Format: "Brand: X\n\nCore Goal: Y"</td></tr>
+        <tr><td><code>features</code></td><td>String[]</td><td>PostgreSQL array</td></tr>
+        <tr><td><code>budgetRange</code></td><td>String</td><td></td></tr>
+        <tr><td><code>deadline</code></td><td>DateTime</td><td></td></tr>
+        <tr><td><code>status</code></td><td>Enum</td><td>PENDING | ACCEPTED | REFUSED | IN_PROGRESS | COMPLETED</td></tr>
+        <tr><td><code>statusReason</code></td><td>String?</td><td>Admin's optional note</td></tr>
+        <tr><td><code>statusUpdatedById</code></td><td>String?</td><td></td></tr>
+        <tr><td><code>statusUpdatedAt</code></td><td>DateTime?</td><td></td></tr>
+        <tr><td><code>assignedToIds</code></td><td>String[]</td><td>Array of employee User IDs</td></tr>
+        <tr><td><code>assignedById</code></td><td>String?</td><td>Admin who assigned</td></tr>
+        <tr><td><code>assignedAt</code></td><td>DateTime?</td><td></td></tr>
+        <tr><td><code>attachments</code></td><td>String[]</td><td>File references</td></tr>
+        <tr><td><code>createdAt / updatedAt</code></td><td>DateTime</td><td>Auto-managed</td></tr>
+      </table>
+
+      <table style="margin-top:20px">
+        <tr><th colspan="3" style="background:rgba(103,207,177,.08);color:var(--teal);">Table: Task</th></tr>
+        <tr><th>Column</th><th>Type</th><th>Notes</th></tr>
+        <tr><td><code>id</code></td><td>UUID</td><td>Primary key</td></tr>
+        <tr><td><code>briefId</code></td><td>String</td><td>Foreign key → Brief (CASCADE DELETE)</td></tr>
+        <tr><td><code>name</code></td><td>String</td><td>Task title</td></tr>
+        <tr><td><code>description</code></td><td>String</td><td></td></tr>
+        <tr><td><code>priority</code></td><td>Enum</td><td>LOW | MEDIUM | HIGH (default: MEDIUM)</td></tr>
+        <tr><td><code>startDate</code></td><td>DateTime</td><td></td></tr>
+        <tr><td><code>endDate</code></td><td>DateTime</td><td></td></tr>
+        <tr><td><code>status</code></td><td>Enum</td><td>PENDING | IN_PROGRESS | COMPLETED (default: PENDING)</td></tr>
+        <tr><td><code>createdAt / updatedAt</code></td><td>DateTime</td><td>Auto-managed</td></tr>
+      </table>
+    </section>
+
+    <!-- PRISMA -->
+    <section class="section" id="prisma">
+      <h2>Prisma ORM</h2>
+      <p>Prisma lets you interact with PostgreSQL using TypeScript. Define your tables in <code>schema.prisma</code>, Prisma generates a fully-typed client.</p>
+
+      <table>
+        <tr><th>Concept</th><th>What It Does</th></tr>
+        <tr><td><strong>Schema</strong></td><td>Defines models (tables) and columns in <code>prisma/schema.prisma</code></td></tr>
+        <tr><td><strong>Migration</strong></td><td>SQL file describing a schema change. Generated by <code>prisma migrate dev</code>, committed to git.</td></tr>
+        <tr><td><strong>Deploy</strong></td><td><code>prisma migrate deploy</code> — applies pending migrations on startup. Runs before the server starts in production.</td></tr>
+        <tr><td><strong>Generate</strong></td><td><code>prisma generate</code> — creates the TypeScript client from the schema. Runs via <code>postinstall</code>.</td></tr>
+      </table>
+
+      <div class="callout yellow">
+        <strong>Railway auto-migration:</strong> Each service's <code>package.json</code> start script is <code>prisma migrate deploy &amp;&amp; tsx index.ts</code>. Every deployment automatically applies any new migration SQL files before the server starts.
+      </div>
+    </section>
+
+    <hr />
+
+    <!-- EMAIL -->
+    <section class="section" id="email">
+      <h2>Email System</h2>
+      <p>Emails sent via <strong>Resend</strong> (HTTP API). Railway blocks SMTP ports — Resend uses HTTPS (port 443) which is always allowed.</p>
+
+      <h3>Emails Sent by the App</h3>
+      <table>
+        <tr><th>Trigger</th><th>Sent To</th><th>Content</th></tr>
+        <tr><td>User registers</td><td>New user</td><td>6-digit verification code</td></tr>
+        <tr><td>User requests password reset</td><td>User</td><td>Reset link valid 30 min (path-based URL)</td></tr>
+        <tr><td>User changes email</td><td>New email address</td><td>Confirmation link valid 1 hour (path-based URL)</td></tr>
+        <tr><td>User changes email</td><td>Old email address</td><td>Security notification ("your email was changed")</td></tr>
+        <tr><td>Client creates a brief</td><td>Admin</td><td>New brief notification</td></tr>
+        <tr><td>Admin accepts/refuses brief</td><td>Client</td><td>Status update with optional reason</td></tr>
+        <tr><td>Admin assigns employees</td><td>Each employee</td><td>Assignment notification</td></tr>
+        <tr><td>Employee marks brief COMPLETED</td><td>Client</td><td>Project completion notification</td></tr>
+      </table>
+
+      <div class="callout">
+        <strong>Path-based tokens:</strong> Reset and email-change links embed the token in the URL path (<code>/reset-password/TOKEN</code>) rather than a query param (<code>?token=</code>). This prevents certain email clients and mobile proxies from stripping the token.
+      </div>
+
+      <div class="callout red">
+        <strong>Free plan limitation:</strong> Resend's free plan can only send to verified addresses or addresses on your own domain. To send to any email, add a custom domain (e.g. <code>agence47.ma</code>) to Resend and configure DNS records.
+      </div>
+    </section>
+
+    <hr />
+
+    <!-- DEPLOYMENT -->
+    <section class="section" id="deployment">
+      <h2>Deployment</h2>
+
+      <div class="card-grid">
+        <div class="card">
+          <h4>Frontend — Vercel</h4>
+          <p style="font-size:13px">Vite builds the React app into static files. Vercel serves them via CDN. Auto-redeploys on every push to main.</p>
+          <p style="font-size:13px">A <code>vercel.json</code> catch-all rewrite ensures page refreshes on any route return <code>index.html</code> instead of 404.</p>
+          <p style="font-size:13px;margin:0">URL: <code>smart-brief-six.vercel.app</code></p>
+        </div>
+        <div class="card">
+          <h4>Backend — Railway</h4>
+          <p style="font-size:13px">3 services (auth, brief, gateway) + 2 PostgreSQL databases — all on Railway. Services communicate via Railway's private internal network.</p>
+          <p style="font-size:13px;margin:0">Each push to main triggers a redeploy. Migrations run automatically on startup.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ENV VARS -->
+    <section class="section" id="env-vars">
+      <h2>Environment Variables</h2>
+
+      <h3>Gateway</h3>
+      <div class="card" style="font-size:13px">
+        <div class="env-row"><span class="env-key">JWT_SECRET</span><span class="env-desc">Must be identical across all 3 services.</span></div>
+        <div class="env-row"><span class="env-key">AUTH_SERVICE_URL</span><span class="env-desc">Internal Railway URL of auth-service</span></div>
+        <div class="env-row"><span class="env-key">BRIEF_SERVICE_URL</span><span class="env-desc">Internal Railway URL of brief-service</span></div>
+        <div class="env-row"><span class="env-key">FRONTEND_URL</span><span class="env-desc">Vercel URL for CORS. e.g. <code>https://smart-brief-six.vercel.app</code></span></div>
+      </div>
+
+      <h3>Auth Service</h3>
+      <div class="card" style="font-size:13px">
+        <div class="env-row"><span class="env-key">DATABASE_URL</span><span class="env-desc">PostgreSQL connection string for the Auth database</span></div>
+        <div class="env-row"><span class="env-key">JWT_SECRET</span><span class="env-desc">Same as gateway</span></div>
+        <div class="env-row"><span class="env-key">RESEND_API_KEY</span><span class="env-desc">API key from resend.com</span></div>
+        <div class="env-row"><span class="env-key">FRONTEND_URL</span><span class="env-desc">Used to build email links (reset, email change). e.g. <code>https://smart-brief-six.vercel.app</code></span></div>
+        <div class="env-row"><span class="env-key">GOOGLE_CLIENT_ID</span><span class="env-desc">From Google Cloud Console OAuth credentials</span></div>
+        <div class="env-row"><span class="env-key">GOOGLE_CLIENT_SECRET</span><span class="env-desc">From Google Cloud Console OAuth credentials</span></div>
+        <div class="env-row"><span class="env-key">GOOGLE_CALLBACK_URL</span><span class="env-desc">e.g. <code>https://auth-service.up.railway.app/auth/google/callback</code></span></div>
+      </div>
+
+      <h3>Brief Service</h3>
+      <div class="card" style="font-size:13px">
+        <div class="env-row"><span class="env-key">DATABASE_URL</span><span class="env-desc">PostgreSQL connection string for the Brief database</span></div>
+        <div class="env-row"><span class="env-key">GATEWAY_URL</span><span class="env-desc">Internal Railway URL of the gateway (for internal user lookups)</span></div>
+        <div class="env-row"><span class="env-key">RESEND_API_KEY</span><span class="env-desc">Same API key as auth-service</span></div>
+        <div class="env-row"><span class="env-key">ADMIN_EMAIL</span><span class="env-desc">Admin's email — receives "new brief" notifications</span></div>
+      </div>
+
+      <h3>Frontend (Vercel)</h3>
+      <div class="card" style="font-size:13px">
+        <div class="env-row"><span class="env-key">VITE_API_URL</span><span class="env-desc">Public Railway gateway URL. e.g. <code>https://gateway-production-xxxx.up.railway.app</code></span></div>
+      </div>
+    </section>
+
+    <hr />
+    <div style="text-align:center;padding:24px 0 48px;color:var(--dim);font-size:12px;">
+      Smart Brief · Agence 47 · Full Application Documentation
+    </div>
+
+  </main>
+</div>
+
+<script>
+  const sections = document.querySelectorAll('section[id], h2[id]');
+  const links = document.querySelectorAll('nav a');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        links.forEach(l => l.classList.remove('active'));
+        const active = document.querySelector(`nav a[href="#${entry.target.id}"]`);
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { threshold: 0.2, rootMargin: '-60px 0px -60% 0px' });
+  sections.forEach(s => observer.observe(s));
+</script>
+
+</body>
+</html>

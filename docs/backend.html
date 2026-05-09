@@ -1,0 +1,1231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Backend — Smart Brief Docs</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0d1117; --surface: #161b27; --card: #1a2238; --border: #2e3a5c;
+      --teal: #62d2b2; --purple: #4a55d0; --blue: #4a9edd; --red: #f47068;
+      --yellow: #f0c060; --green: #5cb85c; --text: #cdd9f5; --muted: #6b7a99;
+      --sidebar-w: 270px;
+    }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); display: flex; min-height: 100vh; line-height: 1.7; }
+    nav#sidebar { position: fixed; top: 0; left: 0; width: var(--sidebar-w); height: 100vh; background: var(--surface); border-right: 1px solid var(--border); overflow-y: auto; padding: 28px 0 40px; }
+    nav#sidebar .logo { font-size: 1rem; font-weight: 700; color: var(--teal); padding: 0 22px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; }
+    nav#sidebar .logo span { color: var(--purple); }
+    nav#sidebar .section-label { font-size: .65rem; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); padding: 18px 22px 6px; }
+    nav#sidebar a { display: block; padding: 7px 22px; color: var(--muted); text-decoration: none; font-size: .83rem; border-left: 2px solid transparent; transition: all .15s; }
+    nav#sidebar a:hover { color: var(--text); background: rgba(255,255,255,.03); }
+    nav#sidebar a.active { color: var(--teal); border-left-color: var(--teal); background: rgba(98,210,178,.06); }
+    main { margin-left: var(--sidebar-w); padding: 60px 64px 120px; max-width: calc(var(--sidebar-w) + 900px); width: 100%; }
+    h1 { font-size: 2.6rem; color: #fff; font-weight: 800; line-height: 1.15; }
+    h1 .hl-teal { color: var(--teal); } h1 .hl-purple { color: var(--purple); }
+    .page-sub { color: var(--muted); font-size: 1.05rem; margin-top: 10px; margin-bottom: 48px; max-width: 640px; }
+    h2 { font-size: 1.6rem; color: #fff; font-weight: 700; margin: 64px 0 18px; padding-bottom: 10px; border-bottom: 1px solid var(--border); scroll-margin-top: 32px; }
+    h3 { font-size: 1.1rem; color: var(--teal); font-weight: 600; margin: 32px 0 10px; scroll-margin-top: 32px; }
+    h4 { font-size: .9rem; color: var(--yellow); font-weight: 600; margin: 24px 0 8px; text-transform: uppercase; letter-spacing: .05em; }
+    p { margin-bottom: 14px; }
+    ul, ol { padding-left: 22px; margin-bottom: 14px; }
+    li { margin-bottom: 5px; }
+    strong { color: #fff; }
+    code { font-family: 'Cascadia Code','Fira Code',monospace; background: rgba(255,255,255,.07); color: var(--teal); padding: 1px 6px; border-radius: 4px; font-size: .88em; }
+    pre { background: #0a0e1a; border: 1px solid var(--border); border-radius: 10px; padding: 20px 22px; overflow-x: auto; font-family: 'Cascadia Code','Fira Code',monospace; font-size: .82rem; line-height: 1.65; margin: 12px 0 22px; position: relative; }
+    pre .file-label { position: absolute; top: 10px; right: 14px; font-size: .68rem; color: var(--muted); background: var(--surface); border: 1px solid var(--border); padding: 2px 8px; border-radius: 4px; font-family: inherit; }
+    .kw { color: #c792ea; } .tp { color: #82b1ff; } .str { color: #c3e88d; }
+    .fn { color: var(--teal); } .cm { color: #546e7a; font-style: italic; }
+    .nm { color: #f78c6c; } .op { color: #89ddff; } .ts { color: var(--yellow); }
+    .callout { border-radius: 10px; padding: 16px 20px; margin: 18px 0; border-left: 4px solid; font-size: .9rem; }
+    .callout.info  { background: rgba(74,158,221,.1);  border-color: var(--blue); }
+    .callout.warn  { background: rgba(240,192,96,.1);  border-color: var(--yellow); }
+    .callout.tip   { background: rgba(98,210,178,.1);  border-color: var(--teal); }
+    .callout.danger{ background: rgba(244,112,104,.1); border-color: var(--red); }
+    .callout strong { display: block; margin-bottom: 4px; font-size: .8rem; text-transform: uppercase; letter-spacing: .07em; }
+    .callout.info strong { color: var(--blue); } .callout.warn strong { color: var(--yellow); }
+    .callout.tip  strong { color: var(--teal); } .callout.danger strong { color: var(--red); }
+    .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 12px 0 22px; }
+    .compare > div { border-radius: 10px; overflow: hidden; }
+    .compare > div > .compare-label { font-size: .7rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; padding: 8px 16px; }
+    .compare .bad  .compare-label { background: rgba(244,112,104,.2); color: var(--red); }
+    .compare .good .compare-label { background: rgba(98,210,178,.2);  color: var(--teal); }
+    .compare pre { margin: 0; border-radius: 0 0 10px 10px; border-top: none; }
+    .flow { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin: 20px 0; }
+    .flow-box { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 10px 16px; font-size: .82rem; font-weight: 600; text-align: center; min-width: 110px; }
+    .flow-box.teal   { border-color: var(--teal);   color: var(--teal); }
+    .flow-box.purple { border-color: var(--purple);  color: #8891e8; }
+    .flow-box.blue   { border-color: var(--blue);    color: var(--blue); }
+    .flow-box.yellow { border-color: var(--yellow);  color: var(--yellow); }
+    .flow-box.red    { border-color: var(--red);     color: var(--red); }
+    .flow-box.green  { border-color: var(--green);   color: var(--green); }
+    .flow-arrow { color: var(--muted); font-size: 1.1rem; }
+    table { width: 100%; border-collapse: collapse; margin: 16px 0 24px; font-size: .87rem; }
+    th { background: var(--card); color: var(--teal); font-weight: 600; padding: 10px 14px; text-align: left; border-bottom: 2px solid var(--border); }
+    td { padding: 9px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
+    tr:last-child td { border-bottom: none; }
+    hr { border: none; border-top: 1px solid var(--border); margin: 40px 0; }
+    ::-webkit-scrollbar { width: 6px; } ::-webkit-scrollbar-track { background: var(--bg); } ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  </style>
+</head>
+<body>
+<nav id="sidebar">
+  <div class="logo">⚙ <span>Smart</span>Brief · Backend</div>
+  <div class="section-label">Architecture</div>
+  <a href="#what-is-node">Node.js &amp; the Runtime</a>
+  <a href="#what-is-express">Express.js</a>
+  <a href="#microservices">Microservices Overview</a>
+  <a href="#request-journey">Request Journey</a>
+  <div class="section-label">Gateway</div>
+  <a href="#gateway-overview">Gateway Overview</a>
+  <a href="#cors">CORS</a>
+  <a href="#public-routes">Public Routes List</a>
+  <a href="#jwt-verify-gateway">JWT Verification</a>
+  <a href="#reverse-proxy">Reverse Proxy</a>
+  <a href="#x-headers">x-user-id / x-user-role</a>
+  <div class="section-label">Auth Service</div>
+  <a href="#auth-server">Auth Server Setup</a>
+  <a href="#auth-routes">Auth Routes</a>
+  <a href="#auth-middleware">authenticate Middleware</a>
+  <a href="#auth-controller">Auth Controller</a>
+  <a href="#auth-service-layer">Auth Service Layer</a>
+  <a href="#bcrypt">bcrypt — Password Hashing</a>
+  <a href="#jwt-sign">jsonwebtoken — Signing</a>
+  <a href="#google-oauth">Passport &amp; Google OAuth</a>
+  <a href="#validation-utils">Input Validation Utils</a>
+  <div class="section-label">Brief Service</div>
+  <a href="#brief-server">Brief Server Setup</a>
+  <a href="#brief-middleware">requireAuth Middleware</a>
+  <a href="#brief-routes">Brief Routes</a>
+  <a href="#zod">Zod — Schema Validation</a>
+  <a href="#brief-controller">Brief Controller</a>
+  <a href="#brief-service-layer">Brief Service Layer</a>
+  <a href="#auth-client">Service-to-Service HTTP</a>
+  <div class="section-label">Concepts</div>
+  <a href="#middleware-chain">Middleware Chain</a>
+  <a href="#http-status">HTTP Status Codes</a>
+  <a href="#dotenv">dotenv &amp; env vars</a>
+  <a href="#module-augmentation">Module Augmentation</a>
+  <a href="#error-handling">Error Handling Pattern</a>
+  <a href="#cheatsheet">Cheat Sheet</a>
+</nav>
+
+<main>
+  <h1><span class="hl-teal">Backend</span> Deep Dive</h1>
+  <p class="page-sub">Node.js · Express · JWT · bcrypt · Passport · Zod · microservices. Everything in the Smart Brief backend — how it works, why it's built this way, and what every line means.</p>
+
+  <!-- ═══════════════════════════════════════════════ ARCHITECTURE -->
+  <h2 id="what-is-node">Node.js &amp; the Runtime</h2>
+  <p>Node.js is a <strong>JavaScript runtime built on Chrome's V8 engine</strong>. It lets you run JavaScript outside the browser — on a server. Before Node.js, JavaScript only ran in browsers. Now the same language powers both the React frontend and the Express backend.</p>
+  <p>The key characteristic of Node.js is that it is <strong>single-threaded and non-blocking</strong>. It does not create a new OS thread for every incoming request (like PHP or Java). Instead, it uses an <strong>event loop</strong> — when an operation like a database query or HTTP call is waiting, Node hands control back and handles other requests. When the result arrives, it resumes.</p>
+
+  <div class="compare">
+    <div class="bad"><div class="compare-label">Blocking (other languages)</div>
+<pre><span class="cm">Thread 1: waiting for DB query...</span>
+<span class="cm">          (blocked, can't do anything)</span>
+<span class="cm">Thread 2: serving another request</span>
+<span class="cm">Thread 3: waiting for file read...</span>
+<span class="cm">          (blocked)</span>
+<span class="cm">→ need many threads to handle load</span></pre></div>
+    <div class="good"><div class="compare-label">Node.js (non-blocking)</div>
+<pre><span class="cm">Single thread:</span>
+<span class="cm">→ start DB query (async)</span>
+<span class="cm">→ handle another request</span>
+<span class="cm">→ handle another request</span>
+<span class="cm">→ DB result arrives → resume first</span>
+<span class="cm">→ one thread handles everything</span></pre></div>
+  </div>
+
+  <p>This is why all database calls in the project use <code>async/await</code> — they are non-blocking I/O operations.</p>
+
+  <h2 id="what-is-express">Express.js</h2>
+  <p>Express is a minimal web framework for Node.js. Node's built-in <code>http</code> module can create a server, but it is very low-level — you would have to manually parse URLs, headers, and JSON. Express wraps all of that and gives you a clean API for:</p>
+  <ul>
+    <li>Defining routes (<code>router.get("/path", handler)</code>)</li>
+    <li>Running middleware in sequence</li>
+    <li>Parsing request bodies (<code>express.json()</code>)</li>
+    <li>Sending responses (<code>res.json()</code>, <code>res.status(404).send()</code>)</li>
+  </ul>
+
+<pre><span class="cm">// The minimal shape of every Express app in this project</span>
+<span class="kw">import</span> express <span class="kw">from</span> <span class="str">"express"</span>;
+<span class="kw">const</span> app <span class="op">=</span> <span class="fn">express</span>();
+
+app.<span class="fn">use</span>(express.<span class="fn">json</span>());            <span class="cm">// parse JSON request bodies</span>
+app.<span class="fn">use</span>(<span class="str">"/auth"</span>, authRoutes);       <span class="cm">// mount a router</span>
+
+app.<span class="fn">listen</span>(<span class="nm">3000</span>, () <span class="op">=&gt;</span> console.<span class="fn">log</span>(<span class="str">"Running"</span>));</pre>
+
+  <h3>Request and Response objects</h3>
+  <p>Every route handler receives <code>req</code> (the incoming request) and <code>res</code> (your tool to send back a response):</p>
+
+<pre><span class="cm">// What lives on req:</span>
+req.body        <span class="cm">// parsed JSON body (needs express.json() middleware)</span>
+req.params      <span class="cm">// URL params → /users/:id → req.params.id</span>
+req.query       <span class="cm">// query string → /users?role=ADMIN → req.query.role</span>
+req.headers     <span class="cm">// all HTTP headers including Authorization</span>
+req.method      <span class="cm">// "GET", "POST", "PATCH", "DELETE"</span>
+req.path        <span class="cm">// "/auth/login"</span>
+req.user        <span class="cm">// set by authenticate middleware (custom)</span>
+
+<span class="cm">// What you call on res:</span>
+res.<span class="fn">json</span>({ message: <span class="str">"ok"</span> })       <span class="cm">// send JSON, sets Content-Type header</span>
+res.<span class="fn">status</span>(<span class="nm">400</span>).<span class="fn">json</span>({ ... })     <span class="cm">// set status code then send</span>
+res.<span class="fn">status</span>(<span class="nm">204</span>).<span class="fn">send</span>()           <span class="cm">// 204 No Content (after DELETE)</span>
+res.<span class="fn">redirect</span>(<span class="str">"https://..."</span>)       <span class="cm">// 302 redirect</span>
+res.<span class="fn">setHeader</span>(<span class="str">"Content-Type"</span>, <span class="str">"application/pdf"</span>)
+res.<span class="fn">send</span>(pdfBuffer)              <span class="cm">// send binary data</span></pre>
+
+  <h2 id="microservices">Microservices Architecture</h2>
+  <p>Smart Brief is not a single server — it is three separate Node.js processes, each with its own responsibility and its own database:</p>
+
+  <div class="flow">
+    <div class="flow-box teal">React Frontend<br><small>Vercel</small></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box yellow">Gateway :8080<br><small>Railway</small></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box purple">Auth Service :3000<br><small>Railway</small></div>
+  </div>
+  <div class="flow" style="margin-top:0">
+    <div class="flow-box" style="visibility:hidden;min-width:110px"></div>
+    <div class="flow-arrow" style="visibility:hidden">→</div>
+    <div class="flow-box yellow">Gateway :8080</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box blue">Brief Service :4000<br><small>Railway</small></div>
+  </div>
+
+  <table>
+    <thead><tr><th>Service</th><th>Port</th><th>Responsibility</th><th>Database</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Gateway</strong></td><td>8080</td><td>CORS, JWT verification, reverse proxy to other services</td><td>None</td></tr>
+      <tr><td><strong>Auth Service</strong></td><td>3000</td><td>Register, login, Google OAuth, user management</td><td>PostgreSQL (users)</td></tr>
+      <tr><td><strong>Brief Service</strong></td><td>4000</td><td>Brief CRUD, status workflow, assignments</td><td>PostgreSQL (briefs)</td></tr>
+    </tbody>
+  </table>
+
+  <p>The frontend <strong>only ever talks to the gateway</strong>. It never calls the auth or brief service directly. The gateway is the single entry point — it verifies the JWT and forwards requests to the right service.</p>
+
+  <h2 id="request-journey">Request Journey — End to End</h2>
+  <p>Let's trace what happens when the admin clicks "Accept" on a brief:</p>
+
+<pre><span class="cm">1. Frontend dispatches updateBriefThunk
+   → Axios sends: PATCH https://gateway.railway.app/briefs/admin/abc123/status
+     Headers: Authorization: Bearer eyJhbGci...
+     Body:    { status: "ACCEPTED" }
+
+2. Gateway receives the request
+   → CORS check: is the origin allowed? ✓
+   → Is it a public route? No
+   → authenticate() runs:
+       - extracts "eyJhbGci..." from Authorization header
+       - jwt.verify(token, JWT_SECRET) → { id: "user-id", role: "ADMIN" }
+       - adds req.headers["x-user-id"] = "user-id"
+       - adds req.headers["x-user-role"] = "ADMIN"
+   → createProxyMiddleware forwards to Brief Service:
+       PATCH http://brief-service:4000/briefs/admin/abc123/status
+       (same headers, including x-user-id and x-user-role)
+
+3. Brief Service receives the request
+   → requireAuth middleware reads x-user-id + x-user-role
+   → sets req.user = { userId: "user-id", role: "ADMIN" }
+   → route matches: PATCH /admin/:briefId/status
+   → updateBriefStatusHandler runs:
+       - checks auth.role === "ADMIN" ✓
+       - validates body with Zod
+       - calls briefService.updateBriefStatus(...)
+       - sends notification email
+       - res.json(updatedBrief)
+
+4. Response travels back through the proxy to the frontend
+5. Redux reducer updates state.briefs.currentBrief
+6. Component re-renders with new status badge</span></pre>
+
+  <hr />
+
+  <!-- ═══════════════════════════════════════════════ GATEWAY -->
+  <h2 id="gateway-overview">Gateway — Overview</h2>
+  <p>The gateway is the simplest of the three services. It has no database. Its only job is: <strong>receive requests, check the JWT, forward to the right service</strong>.</p>
+
+<pre><span class="file-label">gateway/src/index.ts</span>
+<span class="kw">import</span> dotenv <span class="kw">from</span> <span class="str">"dotenv"</span>
+<span class="kw">import</span> express, { Request, Response, NextFunction } <span class="kw">from</span> <span class="str">"express"</span>
+<span class="kw">import</span> { createProxyMiddleware } <span class="kw">from</span> <span class="str">"http-proxy-middleware"</span>
+<span class="kw">import</span> jwt <span class="kw">from</span> <span class="str">"jsonwebtoken"</span>
+<span class="kw">import</span> cors <span class="kw">from</span> <span class="str">"cors"</span>
+
+dotenv.<span class="fn">config</span>()   <span class="cm">// load .env file into process.env</span>
+
+<span class="kw">const</span> app <span class="op">=</span> <span class="fn">express</span>()
+<span class="kw">const</span> JWT_SECRET <span class="op">=</span> process.env.JWT_SECRET <span class="kw">as</span> <span class="tp">string</span></pre>
+
+  <h2 id="cors">CORS — Cross-Origin Resource Sharing</h2>
+  <p>Browsers block requests from one origin to another by default. A request from <code>https://smartbrief.vercel.app</code> to <code>https://gateway.railway.app</code> is cross-origin — the browser will refuse it unless the server explicitly says it's allowed via CORS headers.</p>
+  <p>The gateway uses a <strong>dynamic origin check</strong> instead of a static list, so any Vercel preview deployment (<code>*.vercel.app</code>) also works:</p>
+
+<pre><span class="file-label">gateway/src/index.ts</span>
+<span class="kw">const</span> allowedOrigins <span class="op">=</span> [
+    process.env.FRONTEND_URL || <span class="str">"http://localhost:5173"</span>,
+    <span class="str">"http://localhost:5173"</span>,
+]
+
+app.<span class="fn">use</span>(<span class="fn">cors</span>({
+    origin: (origin, callback) <span class="op">=&gt;</span> {
+        <span class="cm">// origin is undefined for server-to-server calls (no browser involved)</span>
+        <span class="kw">if</span> (!origin) <span class="kw">return</span> <span class="fn">callback</span>(<span class="nm">null</span>, <span class="nm">true</span>)
+
+        <span class="cm">// exact match OR any vercel preview</span>
+        <span class="kw">if</span> (allowedOrigins.<span class="fn">includes</span>(origin) || origin.<span class="fn">endsWith</span>(<span class="str">".vercel.app"</span>)) {
+            <span class="fn">callback</span>(<span class="nm">null</span>, <span class="nm">true</span>)   <span class="cm">// ✓ allow</span>
+        } <span class="kw">else</span> {
+            <span class="fn">callback</span>(<span class="kw">new</span> <span class="fn">Error</span>(<span class="str">"Not allowed by CORS"</span>))  <span class="cm">// ✗ block</span>
+        }
+    },
+    credentials: <span class="nm">true</span>   <span class="cm">// allow cookies/auth headers cross-origin</span>
+}))</pre>
+
+  <div class="callout info">
+    <strong>Why is CORS on the gateway, not the services?</strong>
+    The gateway is the only service the browser talks to. The auth and brief services are internal — the browser never reaches them directly. So CORS only needs to be configured once, on the gateway.
+  </div>
+
+  <h2 id="public-routes">Public Routes List</h2>
+  <p>Some routes must work without a token — register, login, forgot password. These are declared upfront so the <code>authenticate</code> middleware skips them:</p>
+
+<pre><span class="file-label">gateway/src/index.ts</span>
+<span class="kw">const</span> publicRoutes <span class="op">=</span> [
+    { path: <span class="str">"/auth/register"</span>,        method: <span class="str">"POST"</span> },
+    { path: <span class="str">"/auth/verify-code"</span>,      method: <span class="str">"POST"</span> },
+    { path: <span class="str">"/auth/resend-code"</span>,      method: <span class="str">"POST"</span> },
+    { path: <span class="str">"/auth/login"</span>,            method: <span class="str">"POST"</span> },
+    { path: <span class="str">"/auth/forgot-password"</span>,  method: <span class="str">"POST"</span> },
+    { path: <span class="str">"/auth/reset-password"</span>,   method: <span class="str">"POST"</span> },
+    { path: <span class="str">"/auth/google"</span>,           method: <span class="str">"GET"</span> },
+    { path: <span class="str">"/auth/google/callback"</span>,  method: <span class="str">"GET"</span> },
+]
+
+<span class="cm">// Inside authenticate():</span>
+<span class="kw">const</span> isPublic <span class="op">=</span> publicRoutes.<span class="fn">some</span>(
+    r <span class="op">=&gt;</span> req.path.<span class="fn">startsWith</span>(r.path) <span class="op">&amp;&amp;</span> req.method <span class="op">===</span> r.method
+)
+<span class="kw">if</span> (isPublic) <span class="kw">return</span> <span class="fn">next</span>()  <span class="cm">// skip JWT check for these</span></pre>
+
+  <h2 id="jwt-verify-gateway">JWT Verification at the Gateway</h2>
+  <p>For every non-public request, the gateway reads and verifies the JWT. If valid, it extracts the user's <code>id</code> and <code>role</code> and injects them as headers before forwarding:</p>
+
+<pre><span class="file-label">gateway/src/index.ts</span>
+<span class="kw">function</span> <span class="fn">authenticate</span>(req: <span class="tp">Request</span>, res: <span class="tp">Response</span>, next: <span class="tp">NextFunction</span>) {
+    <span class="kw">const</span> isPublic <span class="op">=</span> publicRoutes.<span class="fn">some</span>(
+        r <span class="op">=&gt;</span> req.path.<span class="fn">startsWith</span>(r.path) <span class="op">&amp;&amp;</span> req.method <span class="op">===</span> r.method
+    )
+    <span class="kw">if</span> (isPublic) <span class="kw">return</span> <span class="fn">next</span>()
+
+    <span class="cm">// Extract token from: "Authorization: Bearer eyJhbGci..."</span>
+    <span class="kw">const</span> token <span class="op">=</span> req.headers.authorization?.<span class="fn">split</span>(<span class="str">" "</span>)[<span class="nm">1</span>]
+    <span class="kw">if</span> (!token) {
+        res.<span class="fn">status</span>(<span class="nm">401</span>).<span class="fn">json</span>({ message: <span class="str">"No token provided"</span> })
+        <span class="kw">return</span>
+    }
+
+    <span class="kw">try</span> {
+        <span class="cm">// Verify signature and expiry — throws if invalid</span>
+        <span class="kw">const</span> decoded <span class="op">=</span> jwt.<span class="fn">verify</span>(token, JWT_SECRET) <span class="kw">as</span> { id: <span class="tp">string</span>, role: <span class="tp">string</span> }
+
+        <span class="cm">// Attach identity to the forwarded request as trusted headers</span>
+        req.headers[<span class="str">"x-user-id"</span>]   <span class="op">=</span> decoded.id
+        req.headers[<span class="str">"x-user-role"</span>] <span class="op">=</span> decoded.role
+        <span class="fn">next</span>()
+    } <span class="kw">catch</span> {
+        res.<span class="fn">status</span>(<span class="nm">401</span>).<span class="fn">json</span>({ message: <span class="str">"Invalid or expired token"</span> })
+    }
+}
+
+app.<span class="fn">use</span>(authenticate)  <span class="cm">// runs before every route below this line</span></pre>
+
+  <h2 id="reverse-proxy">Reverse Proxy with http-proxy-middleware</h2>
+  <p>After authentication passes, the gateway <strong>forwards the request</strong> to the appropriate service. It does not re-implement any business logic — it is purely a traffic director.</p>
+
+<pre><span class="file-label">gateway/src/index.ts</span>
+<span class="cm">// All /auth/* requests → Auth Service</span>
+app.<span class="fn">use</span>(<span class="str">"/auth"</span>, <span class="fn">createProxyMiddleware</span>({
+    target: process.env.AUTH_SERVICE_URL || <span class="str">"http://localhost:3000"</span>,
+    changeOrigin: <span class="nm">true</span>,
+    <span class="cm">// pathRewrite explains what happens to the path:</span>
+    <span class="cm">// Gateway receives:  /auth/login</span>
+    <span class="cm">// Express strips:    /auth  (because app.use("/auth", ...))</span>
+    <span class="cm">// path is now:       /login</span>
+    <span class="cm">// pathRewrite adds:  /auth back → /auth/login</span>
+    <span class="cm">// Auth service gets: /auth/login  ✓</span>
+    pathRewrite: (path) <span class="op">=&gt;</span> <span class="str">`/auth<span class="op">${</span>path<span class="op">}</span>`</span>,
+}))
+
+<span class="cm">// All /briefs/* requests → Brief Service (same pattern)</span>
+app.<span class="fn">use</span>(<span class="str">"/briefs"</span>, <span class="fn">createProxyMiddleware</span>({
+    target: process.env.BRIEF_SERVICE_URL || <span class="str">"http://localhost:4000"</span>,
+    changeOrigin: <span class="nm">true</span>,
+    pathRewrite: (path) <span class="op">=&gt;</span> <span class="str">`/briefs<span class="op">${</span>path<span class="op">}</span>`</span>,
+}))
+
+<span class="cm">// Internal route for service-to-service (brief-service fetching user info)</span>
+app.<span class="fn">use</span>(<span class="str">"/api/users/internal"</span>, <span class="fn">createProxyMiddleware</span>({
+    target: process.env.AUTH_SERVICE_URL || <span class="str">"http://localhost:3000"</span>,
+    changeOrigin: <span class="nm">true</span>,
+}))</pre>
+
+  <h2 id="x-headers">x-user-id / x-user-role Headers</h2>
+  <p>This is the security contract between the gateway and the backend services. The gateway is the <em>only</em> thing that can set these headers after verifying the JWT. The backend services trust them completely — they never re-verify the token themselves.</p>
+
+  <div class="flow">
+    <div class="flow-box teal">Frontend<br><small>Authorization: Bearer token</small></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box yellow">Gateway<br><small>verifies JWT</small></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box blue">Services<br><small>x-user-id + x-user-role</small></div>
+  </div>
+
+  <div class="callout warn">
+    <strong>This only works because the services are not publicly accessible</strong>
+    Auth and brief services must only accept connections from the gateway — not from the internet. On Railway, this is enforced by keeping them as private services. If someone could directly call <code>http://brief-service:4000</code> and add fake <code>x-user-role: ADMIN</code> headers, the security would be broken.
+  </div>
+
+  <hr />
+
+  <!-- ═══════════════════════════════════════════════ AUTH SERVICE -->
+  <h2 id="auth-server">Auth Service — Server Setup</h2>
+
+<pre><span class="file-label">auth-service/index.ts</span>
+<span class="kw">import</span> <span class="str">"dotenv/config"</span>;       <span class="cm">// load .env at startup</span>
+<span class="kw">import</span> express <span class="kw">from</span> <span class="str">"express"</span>;
+<span class="kw">import</span> passport <span class="kw">from</span> <span class="str">"passport"</span>;
+<span class="kw">import</span> authRoutes <span class="kw">from</span> <span class="str">"./routes/authRoutes.js"</span>;
+
+<span class="cm">// Guard — fail fast if critical env vars are missing</span>
+<span class="kw">if</span> (!process.env.JWT_SECRET)   <span class="kw">throw new</span> <span class="fn">Error</span>(<span class="str">"JWT_SECRET required"</span>)
+<span class="kw">if</span> (!process.env.DATABASE_URL) <span class="kw">throw new</span> <span class="fn">Error</span>(<span class="str">"DATABASE_URL required"</span>)
+
+<span class="kw">const</span> app <span class="op">=</span> <span class="fn">express</span>()
+app.<span class="fn">use</span>(express.<span class="fn">json</span>())        <span class="cm">// parse incoming JSON bodies</span>
+app.<span class="fn">use</span>(cors({ ... }))         <span class="cm">// allow gateway + frontend in dev</span>
+app.<span class="fn">use</span>(passport.<span class="fn">initialize</span>()) <span class="cm">// required for Google OAuth strategy</span>
+app.<span class="fn">use</span>(<span class="str">"/auth"</span>, authRoutes)    <span class="cm">// mount all auth routes under /auth</span>
+
+app.<span class="fn">listen</span>(process.env.PORT || <span class="nm">3000</span>)</pre>
+
+  <h2 id="auth-routes">Auth Routes</h2>
+  <p>The router maps HTTP method + path to a handler function. Some routes are unprotected (anyone can call them), some require a valid JWT via the <code>authenticate</code> middleware:</p>
+
+<pre><span class="file-label">auth-service/routes/authRoutes.ts</span>
+<span class="cm">// ── Public ─────────────────────────────────────────────────────</span>
+router.<span class="fn">post</span>(<span class="str">"/register"</span>,         register)
+router.<span class="fn">post</span>(<span class="str">"/verify-code"</span>,     verifyCode)
+router.<span class="fn">post</span>(<span class="str">"/resend-code"</span>,     resendCode)
+router.<span class="fn">post</span>(<span class="str">"/login"</span>,           logIn)
+router.<span class="fn">post</span>(<span class="str">"/forgot-password"</span>, forgotPassword)
+router.<span class="fn">post</span>(<span class="str">"/reset-password"</span>,  resetPassword)
+
+<span class="cm">// ── Google OAuth ────────────────────────────────────────────────</span>
+router.<span class="fn">get</span>(<span class="str">"/google"</span>,
+    passport.<span class="fn">authenticate</span>(<span class="str">"google"</span>, { scope: [<span class="str">"profile"</span>, <span class="str">"email"</span>] })
+)
+router.<span class="fn">get</span>(<span class="str">"/google/callback"</span>,
+    passport.<span class="fn">authenticate</span>(<span class="str">"google"</span>, { session: <span class="nm">false</span>, failureRedirect: <span class="str">"/login"</span> }),
+    googleCallback
+)
+
+<span class="cm">// ── Protected (require valid JWT) ───────────────────────────────</span>
+router.<span class="fn">get</span>   (<span class="str">"/me"</span>,              authenticate, getMe)
+router.<span class="fn">patch</span> (<span class="str">"/me"</span>,              authenticate, updateMe)
+router.<span class="fn">post</span>  (<span class="str">"/change-password"</span>, authenticate, changePassword)
+router.<span class="fn">delete</span>(<span class="str">"/me"</span>,              authenticate, deleteMe)
+router.<span class="fn">get</span>   (<span class="str">"/users/role/:role"</span>,authenticate, getUsersByRole)
+router.<span class="fn">get</span>   (<span class="str">"/users/:id"</span>,       authenticate, getUserById)</pre>
+
+  <h2 id="auth-middleware">authenticate Middleware</h2>
+  <p>The auth service has its <em>own</em> JWT middleware that goes a step further than the gateway — it not only verifies the token but also <strong>fetches the full user object from the database</strong> and attaches it to <code>req.user</code>. This way controllers can access all user data without repeating the DB lookup.</p>
+
+<pre><span class="file-label">auth-service/middlewares/authMiddleware.ts</span>
+<span class="kw">export async function</span> <span class="fn">authenticate</span>(req, res, next) {
+    <span class="kw">try</span> {
+        <span class="kw">const</span> authHeader <span class="op">=</span> req.headers.authorization
+        <span class="kw">if</span> (!authHeader || !authHeader.<span class="fn">startsWith</span>(<span class="str">"Bearer"</span>)) {
+            res.<span class="fn">status</span>(<span class="nm">401</span>).<span class="fn">json</span>({ message: <span class="str">"No token provided"</span> })
+            <span class="kw">return</span>
+        }
+        <span class="kw">const</span> token   <span class="op">=</span> authHeader.<span class="fn">split</span>(<span class="str">" "</span>)[<span class="nm">1</span>]
+        <span class="kw">const</span> decoded <span class="op">=</span> jwt.<span class="fn">verify</span>(token, JWT_SECRET) <span class="kw">as</span> { id: <span class="tp">string</span>, role: <span class="tp">string</span> }
+
+        <span class="cm">// Fetch user from DB — confirms account still exists</span>
+        <span class="kw">const</span> user <span class="op">=</span> <span class="kw">await</span> prisma.user.<span class="fn">findUnique</span>({ where: { id: decoded.id } })
+        <span class="kw">if</span> (!user) {
+            res.<span class="fn">status</span>(<span class="nm">401</span>).<span class="fn">json</span>({ message: <span class="str">"User not found"</span> })
+            <span class="kw">return</span>
+        }
+
+        <span class="cm">// Strip password — never expose it on req.user</span>
+        <span class="kw">const</span> { password, ...safeUser } <span class="op">=</span> user
+        req.user <span class="op">=</span> safeUser    <span class="cm">// controllers access this</span>
+        <span class="fn">next</span>()
+    } <span class="kw">catch</span> (error) {
+        res.<span class="fn">status</span>(<span class="nm">401</span>).<span class="fn">json</span>({ message: <span class="str">"Invalid or expired token"</span> })
+    }
+}</pre>
+
+  <div class="callout tip">
+    <strong>Why does the auth service check the DB when the gateway already verified the token?</strong>
+    The gateway only verifies the JWT signature — it confirms the token was signed with the right secret. But it doesn't check if the user was deleted since the token was issued. The auth service does the DB lookup to catch that case. The brief service doesn't do this because it doesn't have the users database.
+  </div>
+
+  <h2 id="auth-controller">Auth Controller</h2>
+  <p>Controllers are functions that handle a specific route. Their job is to: <strong>validate the input → call a service function → send the response</strong>. They should contain no business logic themselves — that lives in the service layer.</p>
+
+<pre><span class="file-label">auth-service/src/controllers/authController.ts</span>
+<span class="kw">export async function</span> <span class="fn">register</span>(req: <span class="tp">Request</span>, res: <span class="tp">Response</span>) {
+    <span class="kw">try</span> {
+        <span class="kw">const</span> { firstName, lastName, email, password, phone } <span class="op">=</span> req.body;
+
+        <span class="cm">// 1. Check required fields present</span>
+        <span class="kw">if</span> (!firstName || !lastName || !email || !password) {
+            res.<span class="fn">status</span>(<span class="nm">400</span>).<span class="fn">json</span>({ message: <span class="str">"All fields are required"</span> });
+            <span class="kw">return</span>;
+        }
+
+        <span class="cm">// 2. Sanitize — trim whitespace, lowercase email</span>
+        <span class="kw">const</span> cleanFirstName <span class="op">=</span> <span class="fn">String</span>(firstName).<span class="fn">trim</span>();
+        <span class="kw">const</span> cleanEmail    <span class="op">=</span> <span class="fn">normalizeEmail</span>(<span class="fn">String</span>(email));
+
+        <span class="cm">// 3. Validate format</span>
+        <span class="kw">if</span> (!<span class="fn">isValidName</span>(cleanFirstName)) {
+            res.<span class="fn">status</span>(<span class="nm">400</span>).<span class="fn">json</span>({ message: <span class="str">"Name must be 2-40 letters"</span> });
+            <span class="kw">return</span>;
+        }
+        <span class="kw">if</span> (!<span class="fn">isValidEmail</span>(cleanEmail)) { ... }
+        <span class="kw">if</span> (!<span class="fn">isStrongPassword</span>(cleanPassword)) { ... }
+
+        <span class="cm">// 4. Delegate to service layer (the actual logic)</span>
+        <span class="kw">const</span> result <span class="op">=</span> <span class="kw">await</span> <span class="fn">initiateRegister</span>(cleanFirstName, cleanLastName, cleanEmail, cleanPassword, cleanPhone)
+        res.<span class="fn">status</span>(<span class="nm">200</span>).<span class="fn">json</span>(result)
+
+    } <span class="kw">catch</span> (error: <span class="kw">any</span>) {
+        <span class="cm">// Service threw an error (e.g. "Email already in use") → 500</span>
+        res.<span class="fn">status</span>(<span class="nm">500</span>).<span class="fn">json</span>({ message: error.message });
+    }
+}</pre>
+
+  <h2 id="auth-service-layer">Auth Service Layer</h2>
+  <p>The service layer contains the actual business logic. Controllers call these functions. This separation means if you wanted to use the same logic in a CLI script or a test, you just import the service function — no HTTP required.</p>
+
+  <h3>Registration flow — initiateRegister</h3>
+<pre><span class="file-label">auth-service/services/authServices.ts</span>
+<span class="kw">export async function</span> <span class="fn">initiateRegister</span>(firstName, lastName, email, password, phone?) {
+    <span class="cm">// 1. Check email not already registered</span>
+    <span class="kw">const</span> existing <span class="op">=</span> <span class="kw">await</span> prisma.user.<span class="fn">findUnique</span>({ where: { email } })
+    <span class="kw">if</span> (existing) <span class="kw">throw new</span> <span class="fn">Error</span>(<span class="str">"Email already in use"</span>)
+
+    <span class="cm">// 2. Hash password immediately</span>
+    <span class="kw">const</span> hashedPassword <span class="op">=</span> <span class="kw">await</span> bcrypt.<span class="fn">hash</span>(password, <span class="nm">10</span>)
+
+    <span class="cm">// 3. Generate 6-digit code, set 10-min expiry</span>
+    <span class="kw">const</span> code      <span class="op">=</span> <span class="fn">generateCode</span>()
+    <span class="kw">const</span> expiresAt <span class="op">=</span> <span class="kw">new</span> <span class="fn">Date</span>(Date.<span class="fn">now</span>() <span class="op">+</span> <span class="nm">10</span> <span class="op">*</span> <span class="nm">60</span> <span class="op">*</span> <span class="nm">1000</span>)
+
+    <span class="cm">// 4. Store in VerifyToken table (NOT User table yet)</span>
+    <span class="cm">// upsert = update if exists, create if not</span>
+    <span class="cm">// This handles "resend code" — replaces the old pending record</span>
+    <span class="kw">await</span> prisma.verifyToken.<span class="fn">upsert</span>({
+        where:  { email },
+        update: { code, expiresAt, firstName, lastName, password: hashedPassword, phone },
+        create: { email, code, expiresAt, firstName, lastName, password: hashedPassword, phone }
+    })
+
+    <span class="cm">// 5. Send verification email (fire-and-forget — don't fail registration if email fails)</span>
+    <span class="kw">try</span> { <span class="kw">await</span> <span class="fn">sendVerificationEmail</span>(email, code) }
+    <span class="kw">catch</span> (err) { console.<span class="fn">error</span>(<span class="str">"Email failed:"</span>, err) }
+
+    <span class="kw">return</span> { message: <span class="str">"Verification code sent to your email"</span> }
+}</pre>
+
+  <h3>Verify code → create user</h3>
+<pre><span class="kw">export async function</span> <span class="fn">verifyAndCreateUser</span>(email, code) {
+    <span class="kw">const</span> record <span class="op">=</span> <span class="kw">await</span> prisma.verifyToken.<span class="fn">findUnique</span>({ where: { email } })
+    <span class="kw">if</span> (!record)              <span class="kw">throw new</span> <span class="fn">Error</span>(<span class="str">"No verification pending for this email"</span>)
+    <span class="kw">if</span> (record.code !== code) <span class="kw">throw new</span> <span class="fn">Error</span>(<span class="str">"Invalid code"</span>)
+    <span class="kw">if</span> (record.expiresAt <span class="op">&lt;</span> <span class="kw">new</span> <span class="fn">Date</span>()) <span class="kw">throw new</span> <span class="fn">Error</span>(<span class="str">"Code has expired"</span>)
+
+    <span class="cm">// All checks passed — create the actual User record</span>
+    <span class="kw">const</span> user <span class="op">=</span> <span class="kw">await</span> prisma.user.<span class="fn">create</span>({
+        data: { firstName: record.firstName, lastName: record.lastName,
+                email: record.email, password: record.password,
+                phone: record.phone, provider: <span class="str">"LOCAL"</span> }
+    })
+
+    <span class="cm">// Clean up the temporary record</span>
+    <span class="kw">await</span> prisma.verifyToken.<span class="fn">delete</span>({ where: { email } })
+
+    <span class="cm">// Sign a JWT and return it with the user</span>
+    <span class="kw">const</span> token <span class="op">=</span> jwt.<span class="fn">sign</span>({ id: user.id, role: user.role }, JWT_SECRET, { expiresIn: <span class="str">"7d"</span> })
+    <span class="kw">return</span> { user: <span class="fn">excludePassword</span>(user), token }
+}</pre>
+
+  <h3>Password reset — two-step</h3>
+<pre><span class="cm">// Step 1: requestPasswordReset — user enters email on forgot-password page</span>
+<span class="kw">export async function</span> <span class="fn">requestPasswordReset</span>(email) {
+    <span class="kw">const</span> user <span class="op">=</span> <span class="kw">await</span> prisma.user.<span class="fn">findUnique</span>({ where: { email } })
+
+    <span class="cm">// Always return success — never reveal if the email exists (security)</span>
+    <span class="kw">if</span> (!user) <span class="kw">return</span> { message: <span class="str">"If this email is registered, a reset link has been sent"</span> }
+
+    <span class="cm">// JWT with a special "purpose" field and short 30-min expiry</span>
+    <span class="kw">const</span> resetToken <span class="op">=</span> jwt.<span class="fn">sign</span>(
+        { id: user.id, purpose: <span class="str">"reset-password"</span> },
+        JWT_SECRET,
+        { expiresIn: <span class="str">"30m"</span> }
+    )
+    <span class="kw">const</span> resetLink <span class="op">=</span> <span class="str">`${frontendUrl}/reset-password?token=<span class="op">${</span>resetToken<span class="op">}</span>`</span>
+    <span class="kw">await</span> <span class="fn">sendPasswordResetEmail</span>(email, resetLink)
+    <span class="kw">return</span> { message: <span class="str">"If this email is registered, a reset link has been sent"</span> }
+}
+
+<span class="cm">// Step 2: completePasswordReset — user clicks link, enters new password</span>
+<span class="kw">export async function</span> <span class="fn">completePasswordReset</span>(token, newPassword) {
+    <span class="kw">let</span> decoded: jwt.<span class="tp">JwtPayload</span>
+    <span class="kw">try</span> { decoded <span class="op">=</span> jwt.<span class="fn">verify</span>(token, JWT_SECRET) <span class="kw">as</span> jwt.<span class="tp">JwtPayload</span> }
+    <span class="kw">catch</span> { <span class="kw">throw new</span> <span class="fn">Error</span>(<span class="str">"Invalid or expired reset token"</span>) }
+
+    <span class="cm">// Verify the purpose field — a login JWT must not work as a reset token</span>
+    <span class="kw">if</span> (decoded.purpose !== <span class="str">"reset-password"</span>) <span class="kw">throw new</span> <span class="fn">Error</span>(<span class="str">"Invalid token"</span>)
+
+    <span class="kw">const</span> hashed <span class="op">=</span> <span class="kw">await</span> bcrypt.<span class="fn">hash</span>(newPassword, <span class="nm">10</span>)
+    <span class="kw">await</span> prisma.user.<span class="fn">update</span>({ where: { id: decoded.id }, data: { password: hashed } })
+    <span class="kw">return</span> { message: <span class="str">"Password reset successful"</span> }
+}</pre>
+
+  <h2 id="bcrypt">bcrypt — Password Hashing</h2>
+  <p>Passwords are <strong>never stored as plain text</strong>. bcrypt is a one-way hashing algorithm designed specifically for passwords. Even if the database is leaked, the attacker cannot recover the original passwords.</p>
+
+  <div class="compare">
+    <div class="bad"><div class="compare-label">❌ Never do this</div>
+<pre><span class="cm">// Storing plain text</span>
+<span class="kw">await</span> prisma.user.<span class="fn">create</span>({
+  data: { password: <span class="str">"MyPass123!"</span> }
+})
+<span class="cm">// DB leak → instant compromise</span></pre></div>
+    <div class="good"><div class="compare-label">✅ What the project does</div>
+<pre><span class="cm">// Hash before storing</span>
+<span class="kw">const</span> hashed <span class="op">=</span> <span class="kw">await</span> bcrypt.<span class="fn">hash</span>(<span class="str">"MyPass123!"</span>, <span class="nm">10</span>)
+<span class="kw">await</span> prisma.user.<span class="fn">create</span>({
+  data: { password: hashed }
+})
+<span class="cm">// "$2b$10$K5t4XH..." stored in DB</span></pre></div>
+  </div>
+
+<pre><span class="cm">// Hash a password — "10" is the salt rounds (cost factor)</span>
+<span class="cm">// Higher = slower to hash = slower to brute force</span>
+<span class="cm">// 10 is the industry standard — takes ~100ms</span>
+<span class="kw">const</span> hashed <span class="op">=</span> <span class="kw">await</span> bcrypt.<span class="fn">hash</span>(password, <span class="nm">10</span>)
+<span class="cm">// Output: "$2b$10$K5t4XHuSGgJSO0AuKoGMTe9LWvNFMmZNr4..." (60 chars always)</span>
+
+<span class="cm">// Verify at login — compare plain text to stored hash</span>
+<span class="cm">// bcrypt.compare is the ONLY way to check — you cannot "decrypt" a hash</span>
+<span class="kw">const</span> isValid <span class="op">=</span> <span class="kw">await</span> bcrypt.<span class="fn">compare</span>(plainPassword, user.password)
+<span class="cm">// true if they match, false otherwise</span>
+
+<span class="kw">if</span> (!isValid) <span class="kw">throw new</span> <span class="fn">Error</span>(<span class="str">"Invalid credentials"</span>)</pre>
+
+  <div class="callout info">
+    <strong>Why can't you just hash again and compare?</strong>
+    bcrypt deliberately includes a random <strong>salt</strong> in every hash. The same password hashed twice produces two completely different strings. That's what <code>bcrypt.compare</code> handles internally — it extracts the salt from the stored hash, re-hashes the input with that same salt, then compares.
+  </div>
+
+  <h2 id="jwt-sign">jsonwebtoken — Signing &amp; Verifying</h2>
+  <p>A JWT (JSON Web Token) is a compact, self-contained token that encodes a payload (like a user's id and role) and signs it with a secret. The signature means anyone with the secret can verify the token was not tampered with — without hitting a database.</p>
+
+<pre><span class="cm">// Structure: header.payload.signature
+// Example:   eyJhbGciOiJIUzI1NiJ9.eyJpZCI6Ii4uLiIsInJvbGUiOiJBRE1JTiIsImV4cCI6...}</span>
+
+<span class="cm">// SIGN — create a token after login/registration</span>
+<span class="kw">const</span> token <span class="op">=</span> jwt.<span class="fn">sign</span>(
+    { id: user.id, role: user.role },   <span class="cm">// payload — what to encode</span>
+    JWT_SECRET,                          <span class="cm">// secret — keep this private!</span>
+    { expiresIn: <span class="str">"7d"</span> }                <span class="cm">// options — token expires in 7 days</span>
+)
+<span class="cm">// Returns a string like "eyJhbGci..."</span>
+
+<span class="cm">// VERIFY — check token on every protected request</span>
+<span class="kw">const</span> decoded <span class="op">=</span> jwt.<span class="fn">verify</span>(token, JWT_SECRET) <span class="kw">as</span> { id: <span class="tp">string</span>, role: <span class="tp">string</span> }
+<span class="cm">// Returns the payload object: { id: "...", role: "ADMIN", iat: 1234, exp: 1234 }</span>
+<span class="cm">// Throws if: signature invalid, token expired, token malformed</span>
+
+<span class="cm">// The reset-password token has an extra "purpose" field</span>
+<span class="kw">const</span> resetToken <span class="op">=</span> jwt.<span class="fn">sign</span>(
+    { id: user.id, purpose: <span class="str">"reset-password"</span> },
+    JWT_SECRET,
+    { expiresIn: <span class="str">"30m"</span> }  <span class="cm">// short-lived — only 30 minutes</span>
+)</pre>
+
+  <table>
+    <thead><tr><th>Token type</th><th>Payload</th><th>Expiry</th><th>Used for</th></tr></thead>
+    <tbody>
+      <tr><td>Auth token</td><td><code>{ id, role }</code></td><td>7 days</td><td>Every authenticated request</td></tr>
+      <tr><td>Reset token</td><td><code>{ id, purpose: "reset-password" }</code></td><td>30 min</td><td>Password reset link in email</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout warn">
+    <strong>JWT_SECRET must be kept secret and be long</strong>
+    If someone knows your JWT_SECRET, they can forge tokens and impersonate any user including admins. It should be a long random string (32+ characters), stored only in environment variables — never in code or git.
+  </div>
+
+  <h2 id="google-oauth">Passport.js &amp; Google OAuth</h2>
+  <p>Passport.js is an authentication middleware that supports hundreds of "strategies" — different ways to authenticate. Smart Brief uses the Google OAuth 2.0 strategy. The flow:</p>
+
+  <div class="flow">
+    <div class="flow-box teal">User clicks<br>"Sign in with Google"</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box blue">GET /auth/google<br><small>redirects to Google</small></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box yellow">Google login<br><small>user approves</small></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box purple">GET /auth/google/callback<br><small>Google sends profile</small></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box green">Redirect to<br><small>/?token=eyJ...</small></div>
+  </div>
+
+<pre><span class="file-label">auth-service/middlewares/passport.ts</span>
+passport.<span class="fn">use</span>(
+    <span class="kw">new</span> <span class="fn">GoogleStrategy</span>(
+        {
+            clientID:     process.env.GOOGLE_CLIENT_ID,
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+            callbackURL:  process.env.GOOGLE_CALLBACK_URL,
+            <span class="cm">// callbackURL = "https://gateway.railway.app/auth/google/callback"</span>
+        },
+        <span class="kw">async</span> (_accessToken, _refreshToken, profile, done) <span class="op">=&gt;</span> {
+            <span class="kw">try</span> {
+                <span class="cm">// profile contains: id, emails[0].value, name.givenName, etc.</span>
+                <span class="kw">const</span> result <span class="op">=</span> <span class="kw">await</span> <span class="fn">findOrCreateGoogleUser</span>(profile)
+                <span class="fn">done</span>(<span class="nm">null</span>, result)  <span class="cm">// success — result attached to req.user</span>
+            } <span class="kw">catch</span>(error) {
+                <span class="fn">done</span>(error, <span class="nm">undefined</span>) <span class="cm">// failure</span>
+            }
+        }
+    )
+)</pre>
+
+<pre><span class="file-label">auth-service/services/authServices.ts — findOrCreateGoogleUser</span>
+<span class="kw">export async function</span> <span class="fn">findOrCreateGoogleUser</span>(profile) {
+    <span class="kw">const</span> { id: googleId, emails, name } <span class="op">=</span> profile
+    <span class="kw">const</span> email <span class="op">=</span> emails[<span class="nm">0</span>].value
+
+    <span class="cm">// First try to find by googleId (returning Google user)</span>
+    <span class="kw">let</span> user <span class="op">=</span> <span class="kw">await</span> prisma.user.<span class="fn">findUnique</span>({ where: { googleId } })
+
+    <span class="kw">if</span> (!user) {
+        <span class="cm">// upsert by email: if email exists (LOCAL account), link Google to it</span>
+        <span class="cm">// if email doesn't exist, create a new user entirely</span>
+        user <span class="op">=</span> <span class="kw">await</span> prisma.user.<span class="fn">upsert</span>({
+            where:  { email },
+            update: { googleId, provider: <span class="str">"GOOGLE"</span> },
+            create: {
+                firstName: name.givenName, lastName: name.familyName,
+                email, googleId, provider: <span class="str">"GOOGLE"</span>
+            }
+        })
+    }
+
+    <span class="cm">// Sign a JWT just like regular login</span>
+    <span class="kw">const</span> token <span class="op">=</span> jwt.<span class="fn">sign</span>({ id: user.id, role: user.role }, JWT_SECRET, { expiresIn: <span class="str">"7d"</span> })
+    <span class="kw">return</span> { user: <span class="fn">excludePassword</span>(user), token }
+}</pre>
+
+<pre><span class="file-label">auth-service/src/controllers/authController.ts — googleCallback</span>
+<span class="kw">export async function</span> <span class="fn">googleCallback</span>(req, res) {
+    <span class="cm">// req.user was set by the Google strategy (via done(null, result))</span>
+    <span class="kw">const</span> { token } <span class="op">=</span> req.user <span class="kw">as</span> <span class="kw">any</span>
+    <span class="kw">const</span> frontendUrl <span class="op">=</span> process.env.FRONTEND_URL || <span class="str">"http://localhost:5173"</span>
+    <span class="cm">// Redirect back to React app with the token in the URL</span>
+    <span class="cm">// App.tsx reads this with useSearchParams → saves to localStorage → cleans URL</span>
+    res.<span class="fn">redirect</span>(<span class="str">`<span class="op">${</span>frontendUrl<span class="op">}</span>?token=<span class="op">${</span>token<span class="op">}</span>`</span>)
+}</pre>
+
+  <h2 id="validation-utils">Input Validation Utilities</h2>
+  <p>The auth service uses custom regex-based validation functions in <code>utils/validation.ts</code>. These run in the controller before any DB call — bad input is rejected early.</p>
+
+<pre><span class="file-label">auth-service/utils/validation.ts</span>
+<span class="cm">// Email: must have local@domain.tld structure</span>
+<span class="kw">const</span> EMAIL_REGEX <span class="op">=</span> <span class="str">/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i</span>
+<span class="kw">export function</span> <span class="fn">isValidEmail</span>(email) { <span class="kw">return</span> EMAIL_REGEX.<span class="fn">test</span>(email.<span class="fn">trim</span>()) }
+
+<span class="cm">// Name: letters, spaces, hyphens, apostrophes — 2 to 40 chars</span>
+<span class="kw">const</span> NAME_REGEX <span class="op">=</span> <span class="str">/^[A-Za-z][A-Za-z\s'-]{1,39}$/</span>
+<span class="kw">export function</span> <span class="fn">isValidName</span>(name) { <span class="kw">return</span> NAME_REGEX.<span class="fn">test</span>(name.<span class="fn">trim</span>()) }
+
+<span class="cm">// Password strength: 8+ chars, uppercase, lowercase, digit, special char</span>
+<span class="kw">export function</span> <span class="fn">isStrongPassword</span>(password) {
+    <span class="kw">if</span> (password.length <span class="op">&lt;</span> <span class="nm">8</span>)             <span class="kw">return false</span>
+    <span class="kw">if</span> (!/[A-Z]/<span class="fn">.test</span>(password))        <span class="kw">return false</span>
+    <span class="kw">if</span> (!/[a-z]/<span class="fn">.test</span>(password))        <span class="kw">return false</span>
+    <span class="kw">if</span> (!/\d/<span class="fn">.test</span>(password))           <span class="kw">return false</span>
+    <span class="kw">if</span> (!/[!@#$%^&*(),.?":{}|&lt;&gt;]/<span class="fn">.test</span>(password)) <span class="kw">return false</span>
+    <span class="kw">return true</span>
+}
+
+<span class="cm">// Phone: 9-15 digits (strips non-digits first)</span>
+<span class="kw">export function</span> <span class="fn">isValidPhone</span>(phone) {
+    <span class="kw">const</span> normalized <span class="op">=</span> phone.<span class="fn">replace</span>(<span class="str">/\D/g</span>, <span class="str">""</span>)
+    <span class="kw">return</span> normalized.length <span class="op">&gt;=</span> <span class="nm">9</span> <span class="op">&amp;&amp;</span> normalized.length <span class="op">&lt;=</span> <span class="nm">15</span>
+}
+
+<span class="cm">// Email normalization — lowercase and strip whitespace</span>
+<span class="kw">export function</span> <span class="fn">normalizeEmail</span>(email) { <span class="kw">return</span> email.<span class="fn">trim</span>().<span class="fn">toLowerCase</span>() }
+<span class="cm">// "  Omar@Email.COM  " → "omar@email.com"</span></pre>
+
+  <hr />
+
+  <!-- ═══════════════════════════════════════════════ BRIEF SERVICE -->
+  <h2 id="brief-server">Brief Service — Server Setup</h2>
+
+<pre><span class="file-label">brief-service/src/index.ts</span>
+<span class="kw">import</span> <span class="str">"dotenv/config"</span>;
+<span class="kw">import</span> express <span class="kw">from</span> <span class="str">"express"</span>;
+<span class="kw">import</span> briefRoutes <span class="kw">from</span> <span class="str">"./routes/brief.routes.js"</span>;
+
+<span class="kw">if</span> (!process.env.DATABASE_URL) <span class="kw">throw new</span> <span class="fn">Error</span>(<span class="str">"DATABASE_URL required"</span>)
+
+<span class="kw">const</span> app <span class="op">=</span> <span class="fn">express</span>()
+app.<span class="fn">use</span>(cors({ ... }))
+app.<span class="fn">use</span>(express.<span class="fn">json</span>())
+
+<span class="cm">// Request logging middleware — runs on every request</span>
+app.<span class="fn">use</span>((req, _res, next) <span class="op">=&gt;</span> {
+    console.<span class="fn">log</span>(<span class="str">`Brief-service received: <span class="op">${</span>req.method<span class="op">}</span> <span class="op">${</span>req.path<span class="op">}</span>`</span>)
+    <span class="fn">next</span>()
+})
+
+app.<span class="fn">use</span>(<span class="str">"/briefs"</span>, briefRoutes)
+
+<span class="cm">// Health check — used by Railway/load balancers to verify service is up</span>
+app.<span class="fn">get</span>(<span class="str">"/health"</span>, (req, res) <span class="op">=&gt;</span> {
+    res.<span class="fn">status</span>(<span class="nm">200</span>).<span class="fn">json</span>({ status: <span class="str">"OK"</span>, service: <span class="str">"brief-service"</span> })
+})</pre>
+
+  <h2 id="brief-middleware">requireAuth Middleware</h2>
+  <p>The brief service does not have a database of users and cannot verify JWTs. Instead it <strong>trusts the headers injected by the gateway</strong>. If <code>x-user-id</code> and <code>x-user-role</code> are present, the request is authenticated. If they're missing, the request didn't come through the gateway and must be rejected.</p>
+
+<pre><span class="file-label">brief-service/src/middlewares/auth.middleware.ts</span>
+<span class="kw">export function</span> <span class="fn">requireAuth</span>(req, res, next) {
+    <span class="kw">const</span> userId <span class="op">=</span> req.<span class="fn">header</span>(<span class="str">"x-user-id"</span>)
+    <span class="kw">const</span> role   <span class="op">=</span> req.<span class="fn">header</span>(<span class="str">"x-user-role"</span>) <span class="kw">as</span> <span class="tp">UserRole</span> | <span class="tp">undefined</span>
+
+    <span class="kw">if</span> (!userId || !role) {
+        res.<span class="fn">status</span>(<span class="nm">401</span>).<span class="fn">json</span>({ message: <span class="str">"Unauthorized"</span> })
+        <span class="kw">return</span>
+    }
+
+    <span class="cm">// Attach auth context to req.user for all downstream handlers</span>
+    req.user <span class="op">=</span> { userId, role }
+    <span class="fn">next</span>()
+}</pre>
+
+  <p>Note also the TypeScript module augmentation in this file — it extends the Express <code>Request</code> type to include <code>user</code>:</p>
+
+<pre><span class="cm">// Without this, TypeScript would complain that req.user doesn't exist</span>
+<span class="kw">declare global</span> {
+    <span class="kw">namespace</span> Express {
+        <span class="kw">interface</span> <span class="tp">Request</span> {
+            user?: <span class="tp">AuthContext</span>   <span class="cm">// { userId: string, role: UserRole }</span>
+        }
+    }
+}</pre>
+
+  <h2 id="brief-routes">Brief Routes</h2>
+  <p>The routes file applies <code>requireAuth</code> to all routes at once using <code>router.use()</code>, then defines role-specific and generic endpoints:</p>
+
+<pre><span class="file-label">brief-service/src/routes/brief.routes.ts</span>
+router.<span class="fn">use</span>(requireAuth)  <span class="cm">// every route below requires auth</span>
+
+<span class="cm">// CLIENT routes</span>
+router.<span class="fn">post</span>  (<span class="str">"/"</span>,               createBriefHandler)        <span class="cm">// create a brief</span>
+router.<span class="fn">get</span>   (<span class="str">"/client"</span>,         getClientBriefsHandler)    <span class="cm">// client's own briefs</span>
+router.<span class="fn">patch</span> (<span class="str">"/client/:briefId"</span>,updateClientBriefHandler)  <span class="cm">// edit (PENDING only)</span>
+
+<span class="cm">// ADMIN routes</span>
+router.<span class="fn">get</span>   (<span class="str">"/admin"</span>,              getAllBriefsHandler)       <span class="cm">// all briefs</span>
+router.<span class="fn">patch</span> (<span class="str">"/admin/:briefId/status"</span>, updateBriefStatusHandler)  <span class="cm">// accept/refuse</span>
+router.<span class="fn">patch</span> (<span class="str">"/admin/:briefId/assign"</span>, assignBriefHandler)       <span class="cm">// assign employee</span>
+
+<span class="cm">// EMPLOYEE routes</span>
+router.<span class="fn">get</span>   (<span class="str">"/employee"</span>,             getEmployeeBriefsHandler)       <span class="cm">// assigned briefs</span>
+router.<span class="fn">patch</span> (<span class="str">"/employee/:briefId/status"</span>, updateEmployeeBriefStatusHandler) <span class="cm">// IN_PROGRESS/COMPLETED</span>
+
+<span class="cm">// Generic routes — role-based logic runs inside the handler</span>
+router.<span class="fn">get</span>   (<span class="str">"/"</span>,           getBriefsHandler)        <span class="cm">// returns right briefs per role</span>
+router.<span class="fn">get</span>   (<span class="str">"/:briefId"</span>,   getBriefByIdHandler)     <span class="cm">// fetch single brief</span>
+router.<span class="fn">patch</span> (<span class="str">"/:briefId"</span>,   updateClientBriefHandler)<span class="cm">// client edits own brief</span>
+router.<span class="fn">delete</span>(<span class="str">"/:briefId"</span>,   deleteBriefHandler)      <span class="cm">// admin or client owner</span>
+router.<span class="fn">get</span>   (<span class="str">"/:briefId/export"</span>, exportBriefDataHandler) <span class="cm">// PDF export</span></pre>
+
+  <h2 id="zod">Zod — Schema Validation</h2>
+  <p>The brief service uses <strong>Zod</strong> instead of manual validation. Zod lets you declare the shape of your data as a schema, then call <code>.parse()</code> — it validates and transforms the input in one step, throwing a <code>ZodError</code> with detailed messages if anything is wrong.</p>
+
+<pre><span class="file-label">brief-service/src/schemas/brief.schema.ts</span>
+<span class="kw">import</span> { z } <span class="kw">from</span> <span class="str">"zod"</span>
+
+<span class="cm">// Enum schema — only these values are accepted</span>
+<span class="kw">export const</span> BriefStatusEnum <span class="op">=</span> z.<span class="fn">enum</span>([<span class="str">"PENDING"</span>, <span class="str">"ACCEPTED"</span>, <span class="str">"REFUSED"</span>, <span class="str">"IN_PROGRESS"</span>, <span class="str">"COMPLETED"</span>])
+
+<span class="kw">export const</span> createBriefSchema <span class="op">=</span> z.<span class="fn">object</span>({
+    title:       z.<span class="fn">string</span>().<span class="fn">min</span>(<span class="nm">1</span>, <span class="str">"Title is required"</span>),
+    projectType: ProjectTypeEnum,
+    description: z.<span class="fn">string</span>().<span class="fn">min</span>(<span class="nm">1</span>, <span class="str">"Description is required"</span>),
+    features:    z.<span class="fn">array</span>(z.<span class="fn">string</span>()).<span class="fn">min</span>(<span class="nm">1</span>, <span class="str">"At least one feature"</span>),
+    budgetRange: z.<span class="fn">string</span>().<span class="fn">min</span>(<span class="nm">1</span>),
+    deadline:    z.<span class="fn">string</span>()
+                  .<span class="fn">refine</span>(str <span class="op">=&gt;</span> !isNaN(Date.<span class="fn">parse</span>(str)), <span class="str">"Invalid date"</span>)
+                  .<span class="fn">transform</span>(str <span class="op">=&gt;</span> <span class="kw">new</span> <span class="fn">Date</span>(str)),  <span class="cm">// string → Date object</span>
+    attachments: z.<span class="fn">array</span>(z.<span class="fn">string</span>()).<span class="fn">optional</span>().<span class="fn">default</span>([]),
+})
+
+<span class="kw">export const</span> assignBriefSchema <span class="op">=</span> z.<span class="fn">object</span>({
+    employeeIds: z.<span class="fn">array</span>(z.<span class="fn">string</span>().<span class="fn">uuid</span>(<span class="str">"Invalid employee ID"</span>))
+                  .<span class="fn">min</span>(<span class="nm">1</span>, <span class="str">"At least one employee"</span>),
+})</pre>
+
+<pre><span class="cm">// In a controller — parse throws ZodError on invalid input</span>
+<span class="kw">const</span> body <span class="op">=</span> createBriefSchema.<span class="fn">parse</span>(req.body)
+<span class="cm">// body is now fully typed and validated
+// body.deadline is a Date object (not a string anymore)</span>
+
+<span class="cm">// Catch the ZodError in the controller and return helpful messages</span>
+<span class="kw">try</span> {
+    <span class="kw">const</span> body <span class="op">=</span> createBriefSchema.<span class="fn">parse</span>(req.body)
+    ...
+} <span class="kw">catch</span> (error) {
+    <span class="kw">if</span> (error <span class="kw">instanceof</span> z.<span class="fn">ZodError</span>) {
+        <span class="kw">return</span> res.<span class="fn">status</span>(<span class="nm">400</span>).<span class="fn">json</span>({ errors: error.issues })
+        <span class="cm">// [{ path: ["title"], message: "Title is required" }, ...]</span>
+    }
+}</pre>
+
+  <table>
+    <thead><tr><th>Zod method</th><th>What it validates</th></tr></thead>
+    <tbody>
+      <tr><td><code>z.string().min(1)</code></td><td>Non-empty string</td></tr>
+      <tr><td><code>z.string().uuid()</code></td><td>Valid UUID format</td></tr>
+      <tr><td><code>z.enum([...])</code></td><td>Value must be one of the listed options</td></tr>
+      <tr><td><code>z.array(z.string())</code></td><td>Array of strings</td></tr>
+      <tr><td><code>.optional()</code></td><td>Field is not required</td></tr>
+      <tr><td><code>.default([])</code></td><td>Use this if field is missing</td></tr>
+      <tr><td><code>.refine(fn, msg)</code></td><td>Custom validation function</td></tr>
+      <tr><td><code>.transform(fn)</code></td><td>Transform after validation (string → Date)</td></tr>
+    </tbody>
+  </table>
+
+  <h2 id="brief-controller">Brief Controller — Role Guards &amp; Patterns</h2>
+  <p>The brief controller's handlers follow a consistent pattern: check the role, validate the body with Zod, call the service, optionally send a notification, respond.</p>
+
+<pre><span class="file-label">brief-service/src/controllers/brief.controller.ts</span>
+<span class="cm">// Helper to get auth context from req.user (set by requireAuth middleware)</span>
+<span class="kw">const</span> <span class="fn">getAuth</span> <span class="op">=</span> (req: <span class="tp">Request</span>): briefService.<span class="tp">AuthContext</span> <span class="op">=&gt;</span> req.user <span class="kw">as</span> <span class="kw">any</span>
+
+<span class="cm">// ADMIN ONLY — update brief status (accept/refuse)</span>
+<span class="kw">export const</span> updateBriefStatusHandler <span class="op">=</span> <span class="kw">async</span> (req, res) <span class="op">=&gt;</span> {
+    <span class="kw">try</span> {
+        <span class="kw">const</span> auth    <span class="op">=</span> <span class="fn">getAuth</span>(req)
+        <span class="kw">if</span> (auth.role !== <span class="str">"ADMIN"</span>) <span class="kw">return</span> res.<span class="fn">status</span>(<span class="nm">403</span>).<span class="fn">json</span>({ error: <span class="str">"Forbidden"</span> })
+
+        <span class="kw">const</span> briefId <span class="op">=</span> req.params.briefId
+        <span class="kw">const</span> body    <span class="op">=</span> updateBriefStatusSchema.<span class="fn">parse</span>(req.body)  <span class="cm">// validate</span>
+
+        <span class="kw">const</span> updated <span class="op">=</span> <span class="kw">await</span> briefService.<span class="fn">updateBriefStatus</span>(briefId, body.status, auth.userId, body.reason)
+
+        <span class="cm">// Fire-and-forget notification — don't fail the request if email breaks</span>
+        <span class="kw">try</span> {
+            <span class="kw">const</span> usersMap <span class="op">=</span> <span class="kw">await</span> <span class="fn">fetchUsersFromAuthService</span>([updated.clientId])
+            <span class="kw">const</span> client   <span class="op">=</span> usersMap.<span class="fn">get</span>(updated.clientId)
+            <span class="kw">if</span> (client?.email) {
+                <span class="kw">await</span> <span class="fn">sendBriefStatusEmail</span>(client.email, <span class="str">`<span class="op">${</span>client.firstName<span class="op">}</span> <span class="op">${</span>client.lastName<span class="op">}</span>`</span>, updated.title, updated.status, updated.statusReason)
+            }
+        } <span class="kw">catch</span> (err) { console.<span class="fn">error</span>(<span class="str">"Email error:"</span>, err) }
+
+        res.<span class="fn">status</span>(<span class="nm">200</span>).<span class="fn">json</span>(updated)
+    } <span class="kw">catch</span> (error: <span class="kw">any</span>) {
+        <span class="kw">if</span> (error <span class="kw">instanceof</span> z.<span class="fn">ZodError</span>) <span class="kw">return</span> res.<span class="fn">status</span>(<span class="nm">400</span>).<span class="fn">json</span>({ errors: error.issues })
+        res.<span class="fn">status</span>(<span class="nm">400</span>).<span class="fn">json</span>({ error: error.message })
+    }
+}</pre>
+
+  <h2 id="brief-service-layer">Brief Service Layer — Business Logic</h2>
+  <p>The service layer enforces all business rules. The controller just calls these — it doesn't know anything about permissions or state machine logic.</p>
+
+<pre><span class="file-label">brief-service/src/services/briefService.ts</span>
+<span class="cm">// Clients can only edit briefs in PENDING status</span>
+<span class="kw">const</span> EDITABLE_BY_CLIENT: <span class="tp">BriefStatus</span>[] <span class="op">=</span> [<span class="str">"PENDING"</span>]
+
+<span class="kw">export async function</span> <span class="fn">updateClientBrief</span>(clientId, briefId, input) {
+    <span class="kw">const</span> brief <span class="op">=</span> <span class="kw">await</span> prisma.brief.<span class="fn">findUnique</span>({ where: { id: briefId } })
+    <span class="kw">if</span> (!brief)                                       <span class="kw">throw new</span> <span class="fn">Error</span>(<span class="str">"Brief not found"</span>)
+    <span class="kw">if</span> (brief.clientId !== clientId)                  <span class="kw">throw new</span> <span class="fn">Error</span>(<span class="str">"Forbidden"</span>)
+    <span class="kw">if</span> (!EDITABLE_BY_CLIENT.<span class="fn">includes</span>(brief.status))   <span class="kw">throw new</span> <span class="fn">Error</span>(<span class="str">"Brief cannot be edited in current status"</span>)
+    <span class="kw">return</span> prisma.brief.<span class="fn">update</span>({ where: { id: briefId }, data: input })
+}
+
+<span class="cm">// Employees can only set status to IN_PROGRESS or COMPLETED</span>
+<span class="kw">const</span> EMPLOYEE_ALLOWED_STATUS: <span class="tp">BriefStatus</span>[] <span class="op">=</span> [<span class="str">"IN_PROGRESS"</span>, <span class="str">"COMPLETED"</span>]
+
+<span class="kw">export async function</span> <span class="fn">updateEmployeeBriefStatus</span>(briefId, employeeId, status) {
+    <span class="kw">if</span> (!EMPLOYEE_ALLOWED_STATUS.<span class="fn">includes</span>(status)) <span class="kw">throw new</span> <span class="fn">Error</span>(<span class="str">"Status not allowed for employee"</span>)
+
+    <span class="kw">const</span> brief <span class="op">=</span> <span class="kw">await</span> prisma.brief.<span class="fn">findUnique</span>({ where: { id: briefId } })
+    <span class="kw">if</span> (!brief)                                       <span class="kw">throw new</span> <span class="fn">Error</span>(<span class="str">"Brief not found"</span>)
+    <span class="kw">if</span> (!brief.assignedToIds.<span class="fn">includes</span>(employeeId))    <span class="kw">throw new</span> <span class="fn">Error</span>(<span class="str">"Forbidden"</span>)
+
+    <span class="kw">return</span> prisma.brief.<span class="fn">update</span>({ where: { id: briefId },
+        data: { status, statusUpdatedById: employeeId, statusUpdatedAt: <span class="kw">new</span> <span class="fn">Date</span>() }
+    })
+}
+
+<span class="cm">// assignBrief also sets status to IN_PROGRESS automatically</span>
+<span class="kw">export async function</span> <span class="fn">assignBrief</span>(briefId, employeeIds, adminId) {
+    <span class="kw">return</span> prisma.brief.<span class="fn">update</span>({
+        where: { id: briefId },
+        data: {
+            assignedToIds:      employeeIds,
+            assignedById:       adminId,
+            assignedAt:         <span class="kw">new</span> <span class="fn">Date</span>(),
+            status:             <span class="str">"IN_PROGRESS"</span>,  <span class="cm">// auto-progress on assign</span>
+            statusUpdatedById:  adminId,
+            statusUpdatedAt:    <span class="kw">new</span> <span class="fn">Date</span>(),
+        }
+    })
+}
+
+<span class="cm">// getBriefById enforces per-role access</span>
+<span class="kw">export async function</span> <span class="fn">getBriefById</span>(briefId, requester) {
+    <span class="kw">const</span> brief <span class="op">=</span> <span class="kw">await</span> prisma.brief.<span class="fn">findUnique</span>({ where: { id: briefId } })
+    <span class="kw">if</span> (!brief) <span class="kw">throw new</span> <span class="fn">Error</span>(<span class="str">"Brief not found"</span>)
+
+    <span class="kw">const</span> isClientOwner    <span class="op">=</span> requester.role <span class="op">===</span> <span class="str">"CLIENT"</span>   <span class="op">&amp;&amp;</span> brief.clientId <span class="op">===</span> requester.userId
+    <span class="kw">const</span> isAssignedEmployee <span class="op">=</span> requester.role <span class="op">===</span> <span class="str">"EMPLOYEE"</span> <span class="op">&amp;&amp;</span> brief.assignedToIds.<span class="fn">includes</span>(requester.userId)
+    <span class="kw">const</span> isAdmin          <span class="op">=</span> requester.role <span class="op">===</span> <span class="str">"ADMIN"</span>
+
+    <span class="kw">if</span> (!isClientOwner <span class="op">&amp;&amp;</span> !isAssignedEmployee <span class="op">&amp;&amp;</span> !isAdmin) {
+        <span class="kw">throw new</span> <span class="fn">Error</span>(<span class="str">"Forbidden"</span>)
+    }
+    <span class="kw">return</span> brief
+}</pre>
+
+  <h2 id="auth-client">Service-to-Service Communication</h2>
+  <p>The brief service needs user details (names, emails) to send notification emails — but it has no users database. It calls the auth service through the gateway using plain HTTP with Axios.</p>
+
+<pre><span class="file-label">brief-service/src/utils/authClient.ts</span>
+<span class="kw">export async function</span> <span class="fn">fetchUsersFromAuthService</span>(userIds: <span class="tp">string</span>[]): <span class="tp">Promise</span><span class="op">&lt;</span><span class="tp">Map</span><span class="op">&lt;</span><span class="tp">string</span>, <span class="tp">UserSnapshot</span><span class="op">&gt;&gt;</span> {
+    <span class="cm">// deduplicate IDs</span>
+    <span class="kw">const</span> uniqueIds <span class="op">=</span> [...<span class="kw">new</span> <span class="fn">Set</span>(userIds.<span class="fn">filter</span>(Boolean))]
+    <span class="kw">if</span> (!uniqueIds.length) <span class="kw">return new</span> <span class="fn">Map</span>()
+
+    <span class="kw">const</span> gatewayUrl <span class="op">=</span> process.env.GATEWAY_URL || <span class="str">"http://localhost:8080"</span>
+
+    <span class="kw">const</span> response <span class="op">=</span> <span class="kw">await</span> axios.<span class="fn">get</span><span class="op">&lt;</span><span class="tp">UserSnapshot</span>[]<span class="op">&gt;</span>(
+        <span class="str">`<span class="op">${</span>gatewayUrl<span class="op">}</span>/api/users/internal`</span>,
+        { params: { ids: uniqueIds.<span class="fn">join</span>(<span class="str">","</span>) } }
+        <span class="cm">// GET /api/users/internal?ids=id1,id2,id3</span>
+    )
+
+    <span class="cm">// Convert array to Map for O(1) lookup by ID</span>
+    <span class="kw">return new</span> <span class="fn">Map</span>(response.data.<span class="fn">map</span>(user <span class="op">=&gt;</span> [user.id, user]))
+}
+
+<span class="cm">// Usage in the controller — get one or many users</span>
+<span class="kw">const</span> usersMap <span class="op">=</span> <span class="kw">await</span> <span class="fn">fetchUsersFromAuthService</span>([brief.clientId, ...brief.assignedToIds])
+<span class="kw">const</span> client   <span class="op">=</span> usersMap.<span class="fn">get</span>(brief.clientId)       <span class="cm">// UserSnapshot | undefined</span>
+<span class="kw">const</span> employees <span class="op">=</span> brief.assignedToIds.<span class="fn">map</span>(id <span class="op">=&gt;</span> usersMap.<span class="fn">get</span>(id)).<span class="fn">filter</span>(Boolean)</pre>
+
+  <p>The gateway then proxies this to the auth service's internal endpoint which has no auth check:</p>
+<pre><span class="file-label">auth-service/routes/authRoutes.ts</span>
+<span class="cm">// This is NOT protected by authenticate — it's called service-to-service</span>
+router.<span class="fn">get</span>(<span class="str">"/api/users/internal"</span>, getMultipleUsers)
+
+<span class="cm">// Handler reads ?ids=id1,id2,id3 and returns user objects</span>
+<span class="kw">const</span> userIds <span class="op">=</span> ids.<span class="fn">split</span>(<span class="str">","</span>).<span class="fn">map</span>(id <span class="op">=&gt;</span> id.<span class="fn">trim</span>()).<span class="fn">filter</span>(Boolean)
+<span class="kw">const</span> users <span class="op">=</span> <span class="kw">await</span> prisma.user.<span class="fn">findMany</span>({
+    where:  { id: { in: userIds } },
+    select: { id: <span class="nm">true</span>, firstName: <span class="nm">true</span>, lastName: <span class="nm">true</span>, email: <span class="nm">true</span>, role: <span class="nm">true</span> }
+})</pre>
+
+  <hr />
+
+  <!-- ═══════════════════════════════════════════════ CONCEPTS -->
+  <h2 id="middleware-chain">The Middleware Chain</h2>
+  <p>Middleware is the most important concept in Express. Every <code>app.use()</code> or route handler is middleware. Each one receives <code>(req, res, next)</code> and either:</p>
+  <ul>
+    <li>Calls <code>next()</code> to pass control to the next middleware</li>
+    <li>Sends a response (<code>res.json(...)</code>) which ends the chain</li>
+  </ul>
+
+<pre><span class="cm">// Order matters — they run top to bottom</span>
+app.<span class="fn">use</span>(cors())               <span class="cm">// 1. CORS headers added</span>
+app.<span class="fn">use</span>(express.<span class="fn">json</span>())       <span class="cm">// 2. Body parsed into req.body</span>
+app.<span class="fn">use</span>(logger)               <span class="cm">// 3. Log the request</span>
+app.<span class="fn">use</span>(authenticate)         <span class="cm">// 4. Verify JWT — calls next() or sends 401</span>
+app.<span class="fn">use</span>(<span class="str">"/auth"</span>, authRouter)   <span class="cm">// 5. Route to correct handler</span>
+
+<span class="cm">// Inside a Router, middleware also chains:</span>
+router.<span class="fn">get</span>(<span class="str">"/me"</span>, authenticate, getMe)
+<span class="cm">//              ↑ runs first    ↑ runs if authenticate calls next()</span></pre>
+
+  <div class="callout tip">
+    <strong>Why return after res.json()?</strong>
+    In TypeScript with Express, after sending a response you should <code>return</code> to prevent the function from continuing and accidentally calling <code>next()</code> or sending another response. The project does this consistently: <code>res.status(400).json(...); return;</code>
+  </div>
+
+  <h2 id="http-status">HTTP Status Codes</h2>
+  <table>
+    <thead><tr><th>Code</th><th>Meaning</th><th>Used when</th></tr></thead>
+    <tbody>
+      <tr><td><strong>200</strong></td><td>OK</td><td>Successful GET, successful login, update</td></tr>
+      <tr><td><strong>201</strong></td><td>Created</td><td>User or brief was created (<code>POST</code>)</td></tr>
+      <tr><td><strong>204</strong></td><td>No Content</td><td>Successful DELETE — no body returned</td></tr>
+      <tr><td><strong>400</strong></td><td>Bad Request</td><td>Validation failed, missing fields, wrong format</td></tr>
+      <tr><td><strong>401</strong></td><td>Unauthorized</td><td>No token, invalid token, expired token</td></tr>
+      <tr><td><strong>403</strong></td><td>Forbidden</td><td>Token valid but wrong role or not your resource</td></tr>
+      <tr><td><strong>404</strong></td><td>Not Found</td><td>Brief or user does not exist</td></tr>
+      <tr><td><strong>500</strong></td><td>Internal Server Error</td><td>Unexpected crash, unhandled DB error</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout warn">
+    <strong>401 vs 403 — a common confusion</strong>
+    <strong>401</strong> means "I don't know who you are" — no valid token. <strong>403</strong> means "I know who you are, but you don't have permission". A CLIENT trying to accept a brief gets 403, not 401.
+  </div>
+
+  <h2 id="dotenv">dotenv &amp; Environment Variables</h2>
+  <p>Sensitive configuration (database URLs, API keys, JWT secrets) must never be hardcoded in source code. They live in <code>.env</code> files locally and in the Railway/Vercel dashboard in production. <code>dotenv</code> loads them into <code>process.env</code> at startup.</p>
+
+<pre><span class="cm"># .env file (never commit this to git)</span>
+JWT_SECRET=485db47afd679d6db9cabc4423a06b88757f2607
+AUTH_SERVICE_URL=http://localhost:3000
+BRIEF_SERVICE_URL=http://localhost:4000
+DATABASE_URL=postgresql://user:pass@host:5432/dbname
+GOOGLE_CLIENT_ID=your-google-client-id
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+FRONTEND_URL=https://smartbrief.vercel.app</pre>
+
+<pre><span class="cm">// Load .env file into process.env</span>
+<span class="kw">import</span> dotenv <span class="kw">from</span> <span class="str">"dotenv"</span>
+dotenv.<span class="fn">config</span>()  <span class="cm">// call ONCE at the top of the entry file</span>
+
+<span class="cm">// Or with import side-effect (auth-service, brief-service use this)</span>
+<span class="kw">import</span> <span class="str">"dotenv/config"</span>  <span class="cm">// same effect, more concise</span>
+
+<span class="cm">// Read a variable</span>
+<span class="kw">const</span> secret <span class="op">=</span> process.env.JWT_SECRET
+<span class="kw">if</span> (!secret) <span class="kw">throw new</span> <span class="fn">Error</span>(<span class="str">"JWT_SECRET is required"</span>)  <span class="cm">// fail fast</span></pre>
+
+  <h2 id="module-augmentation">Module Augmentation — declare global</h2>
+  <p>Express's <code>Request</code> type does not have a <code>user</code> property by default. TypeScript would give an error if you tried to access <code>req.user</code>. Module augmentation lets you extend an existing type from a library without modifying the library itself:</p>
+
+<pre><span class="file-label">brief-service/src/middlewares/auth.middleware.ts</span>
+<span class="cm">// Tell TypeScript: the Express Request interface now also has this field</span>
+<span class="kw">declare global</span> {
+    <span class="kw">namespace</span> Express {
+        <span class="kw">interface</span> <span class="tp">Request</span> {
+            user?: <span class="tp">AuthContext</span>   <span class="cm">// { userId: string; role: UserRole }</span>
+        }
+    }
+}
+
+<span class="cm">// Now this works in every file without TypeScript complaining</span>
+req.user <span class="op">=</span> { userId, role }   <span class="cm">// set it in middleware</span>
+<span class="kw">const</span> auth <span class="op">=</span> req.user           <span class="cm">// read it in controllers</span></pre>
+
+  <p>The auth service does the same in its middleware — it sets <code>req.user</code> to the full Prisma <code>User</code> object (minus password). Both services augment the same <code>Express.Request</code> type, each with the shape relevant to their service.</p>
+
+  <h2 id="error-handling">Error Handling Pattern</h2>
+  <p>Every controller in Smart Brief uses the same try/catch structure. Service functions throw plain <code>Error</code> objects with meaningful messages. The controller catches them and decides the right HTTP status:</p>
+
+<pre><span class="cm">// Service function throws with a meaningful message</span>
+<span class="kw">export async function</span> <span class="fn">deleteBrief</span>(briefId, requester) {
+    <span class="kw">const</span> brief <span class="op">=</span> <span class="kw">await</span> prisma.brief.<span class="fn">findUnique</span>({ where: { id: briefId } })
+    <span class="kw">if</span> (!brief) <span class="kw">throw new</span> <span class="fn">Error</span>(<span class="str">"Brief not found"</span>)    <span class="cm">// controller maps to 404</span>
+
+    <span class="kw">const</span> allowed <span class="op">=</span> requester.role <span class="op">===</span> <span class="str">"ADMIN"</span>
+        || (requester.role <span class="op">===</span> <span class="str">"CLIENT"</span> <span class="op">&amp;&amp;</span> brief.clientId <span class="op">===</span> requester.userId <span class="op">&amp;&amp;</span> brief.status <span class="op">===</span> <span class="str">"PENDING"</span>)
+    <span class="kw">if</span> (!allowed) <span class="kw">throw new</span> <span class="fn">Error</span>(<span class="str">"Forbidden"</span>)            <span class="cm">// controller maps to 403</span>
+
+    <span class="kw">return</span> prisma.brief.<span class="fn">delete</span>({ where: { id: briefId } })
+}
+
+<span class="cm">// Controller inspects the error message to choose the right status</span>
+<span class="kw">export const</span> deleteBriefHandler <span class="op">=</span> <span class="kw">async</span> (req, res) <span class="op">=&gt;</span> {
+    <span class="kw">try</span> {
+        <span class="kw">const</span> auth    <span class="op">=</span> <span class="fn">getAuth</span>(req)
+        <span class="kw">const</span> briefId <span class="op">=</span> req.params.briefId
+        <span class="kw">await</span> briefService.<span class="fn">deleteBrief</span>(briefId, auth)
+        res.<span class="fn">status</span>(<span class="nm">204</span>).<span class="fn">send</span>()
+    } <span class="kw">catch</span> (error: <span class="kw">any</span>) {
+        <span class="kw">const</span> status <span class="op">=</span>
+            error.message <span class="op">===</span> <span class="str">"Forbidden"</span>       ? <span class="nm">403</span> :
+            error.message <span class="op">===</span> <span class="str">"Brief not found"</span> ? <span class="nm">404</span> : <span class="nm">500</span>
+        res.<span class="fn">status</span>(status).<span class="fn">json</span>({ error: error.message })
+    }
+}</pre>
+
+  <hr />
+
+  <!-- ═══════════════════════════════════════════════ CHEAT SHEET -->
+  <h2 id="cheatsheet">Cheat Sheet</h2>
+
+  <h3>Project file map</h3>
+  <table>
+    <thead><tr><th>File</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><td><code>gateway/src/index.ts</code></td><td>CORS, JWT verify, reverse proxy to auth/brief</td></tr>
+      <tr><td><code>auth-service/index.ts</code></td><td>Express app setup, mount routes</td></tr>
+      <tr><td><code>auth-service/routes/authRoutes.ts</code></td><td>Route definitions → controllers</td></tr>
+      <tr><td><code>auth-service/middlewares/authMiddleware.ts</code></td><td>Verify JWT + load user from DB</td></tr>
+      <tr><td><code>auth-service/middlewares/passport.ts</code></td><td>Google OAuth strategy setup</td></tr>
+      <tr><td><code>auth-service/src/controllers/authController.ts</code></td><td>Validate input → call service → respond</td></tr>
+      <tr><td><code>auth-service/services/authServices.ts</code></td><td>Business logic: register, login, OAuth, reset</td></tr>
+      <tr><td><code>auth-service/utils/validation.ts</code></td><td>Regex validators for email, name, password, phone</td></tr>
+      <tr><td><code>brief-service/src/index.ts</code></td><td>Express app setup for brief service</td></tr>
+      <tr><td><code>brief-service/src/routes/brief.routes.ts</code></td><td>All brief route definitions</td></tr>
+      <tr><td><code>brief-service/src/middlewares/auth.middleware.ts</code></td><td>Read x-user-id/role from headers</td></tr>
+      <tr><td><code>brief-service/src/controllers/brief.controller.ts</code></td><td>Role checks, Zod validation, call service</td></tr>
+      <tr><td><code>brief-service/src/services/briefService.ts</code></td><td>All brief business logic + Prisma queries</td></tr>
+      <tr><td><code>brief-service/src/schemas/brief.schema.ts</code></td><td>Zod schemas for request validation</td></tr>
+      <tr><td><code>brief-service/src/utils/authClient.ts</code></td><td>HTTP call to auth service to fetch user details</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Libraries used</h3>
+  <table>
+    <thead><tr><th>Package</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td><code>express</code></td><td>HTTP server, routing, middleware</td></tr>
+      <tr><td><code>cors</code></td><td>Cross-Origin Resource Sharing headers</td></tr>
+      <tr><td><code>dotenv</code></td><td>Load .env variables into process.env</td></tr>
+      <tr><td><code>jsonwebtoken</code></td><td>Sign and verify JWTs</td></tr>
+      <tr><td><code>bcryptjs</code></td><td>Hash and compare passwords</td></tr>
+      <tr><td><code>passport</code> + <code>passport-google-oauth20</code></td><td>Google OAuth 2.0 authentication</td></tr>
+      <tr><td><code>zod</code></td><td>Runtime schema validation and transformation</td></tr>
+      <tr><td><code>http-proxy-middleware</code></td><td>Reverse proxy in the gateway</td></tr>
+      <tr><td><code>axios</code></td><td>HTTP client for service-to-service calls</td></tr>
+    </tbody>
+  </table>
+</main>
+
+<script>
+  const sections = document.querySelectorAll('h2[id], h3[id]');
+  const links    = document.querySelectorAll('nav#sidebar a');
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        links.forEach(l => l.classList.remove('active'));
+        const a = document.querySelector(`nav#sidebar a[href="#${entry.target.id}"]`);
+        if (a) a.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px' });
+  sections.forEach(s => obs.observe(s));
+</script>
+</body>
+</html>

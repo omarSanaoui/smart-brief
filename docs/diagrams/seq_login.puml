@@ -1,0 +1,61 @@
+@startuml SmartBrief - Séquence : Connexion d'un utilisateur
+
+skinparam backgroundColor #1A2238
+skinparam participantBackgroundColor #1E2D4A
+skinparam participantBorderColor #6C63FF
+skinparam participantFontColor #FFFFFF
+skinparam sequenceArrowColor #6C63FF
+skinparam sequenceLifeLineBorderColor #2E3A5C
+skinparam sequenceBoxBackgroundColor #12192B
+skinparam sequenceBoxBorderColor #2E3A5C
+skinparam noteBorderColor #00B4D8
+skinparam noteBackgroundColor #0D3A4A
+skinparam noteFontColor #FFFFFF
+
+actor "Utilisateur" as user
+participant "React Frontend" as frontend
+participant "auth-service\n(Express)" as api
+participant "PostgreSQL\n(via Prisma)" as db
+
+user -> frontend : Accède à /login
+activate frontend
+
+user -> frontend : Saisit email + mot de passe
+frontend -> frontend : Validation locale\n(format email, format password)
+
+user -> frontend : Clique "SE CONNECTER"
+frontend -> api : POST /auth/login\n{ email, password }
+activate api
+
+api -> db : SELECT User WHERE email = ?
+activate db
+db --> api : Données utilisateur (hash)
+deactivate db
+
+alt Utilisateur non trouvé ou non vérifié
+  api --> frontend : 401 Unauthorized
+  frontend --> user : Message d'erreur
+else Mot de passe invalide
+  api -> api : bcrypt.compare(password, hash) → false
+  api --> frontend : 401 Unauthorized
+  frontend --> user : Message d'erreur
+else Connexion réussie
+  api -> api : bcrypt.compare(password, hash) → true
+  api -> api : jwt.sign({ userId, role })\n→ accessToken (15min)
+  api -> api : generateRefreshToken()\n→ refreshToken (7 jours)
+  api --> frontend : 200 OK\n{ accessToken, user: { id, role, firstName } }\n+ Cookie refreshToken (httpOnly)
+  deactivate api
+
+  frontend -> frontend : Dispatch setCredentials\n(Redux authSlice)
+  frontend -> frontend : Stocke token\n(localStorage si rememberMe)
+
+  alt role === CLIENT
+    frontend --> user : Redirect → /home
+  else role === ADMIN
+    frontend --> user : Redirect → /home
+  else role === EMPLOYEE
+    frontend --> user : Redirect → /home
+  end
+end
+
+@enduml

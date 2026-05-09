@@ -1,0 +1,1154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Microservices — Smart Brief Docs</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #222536;
+    --border: #2e3249;
+    --accent: #7c6af7;
+    --accent2: #56cfb2;
+    --accent3: #f7c06a;
+    --accent4: #f76a8a;
+    --text: #e2e4f0;
+    --muted: #8b8fa8;
+    --code-bg: #13151f;
+    --sidebar-w: 270px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; font-size: 15px; line-height: 1.7; display: flex; }
+
+  nav {
+    width: var(--sidebar-w); min-height: 100vh; background: var(--surface);
+    border-right: 1px solid var(--border); padding: 24px 0;
+    position: fixed; top: 0; left: 0; overflow-y: auto;
+    display: flex; flex-direction: column; gap: 2px;
+  }
+  nav .logo { padding: 0 20px 20px; font-size: 17px; font-weight: 700; color: var(--accent); border-bottom: 1px solid var(--border); margin-bottom: 10px; }
+  nav .logo span { color: var(--accent2); }
+  nav a { display: block; padding: 7px 20px; color: var(--muted); text-decoration: none; font-size: 13px; border-left: 3px solid transparent; transition: all .15s; }
+  nav a:hover { color: var(--text); background: rgba(124,106,247,.08); }
+  nav a.active { color: var(--accent); border-left-color: var(--accent); background: rgba(124,106,247,.12); }
+  nav .section-title { padding: 14px 20px 4px; font-size: 10px; text-transform: uppercase; letter-spacing: 1.2px; color: var(--muted); font-weight: 600; }
+
+  main { margin-left: var(--sidebar-w); padding: 48px 56px; max-width: 980px; width: 100%; }
+  h1 { font-size: 38px; font-weight: 800; color: #fff; margin-bottom: 12px; }
+  h2 { font-size: 26px; font-weight: 700; color: #fff; margin: 56px 0 18px; padding-top: 16px; border-top: 1px solid var(--border); }
+  h2:first-of-type { border-top: none; }
+  h3 { font-size: 18px; font-weight: 600; color: var(--accent2); margin: 32px 0 12px; }
+  h4 { font-size: 15px; font-weight: 600; color: var(--accent3); margin: 22px 0 8px; }
+  p { color: var(--text); margin-bottom: 14px; }
+  ul, ol { padding-left: 22px; margin-bottom: 14px; }
+  li { margin-bottom: 5px; color: var(--text); }
+  strong { color: #fff; }
+  code { background: var(--code-bg); padding: 2px 7px; border-radius: 4px; font-family: 'Cascadia Code', 'Fira Code', monospace; font-size: 13px; color: var(--accent2); }
+
+  pre {
+    background: var(--code-bg); border: 1px solid var(--border); border-radius: 10px;
+    padding: 20px 22px; overflow-x: auto; margin: 16px 0 24px;
+    font-family: 'Cascadia Code', 'Fira Code', monospace; font-size: 13.5px; line-height: 1.65;
+  }
+  pre .c  { color: #4a5568; }
+  pre .k  { color: #c792ea; }
+  pre .s  { color: #c3e88d; }
+  pre .n  { color: var(--accent2); }
+  pre .t  { color: var(--accent3); }
+  pre .f  { color: #82aaff; }
+  pre .p  { color: var(--text); }
+  pre .num { color: #f78c6c; }
+  pre .attr { color: #ffcb6b; }
+
+  .callout { border-radius: 10px; padding: 16px 20px; margin: 20px 0; border-left: 4px solid; }
+  .callout.info  { background: rgba(86,207,178,.08); border-color: var(--accent2); }
+  .callout.warn  { background: rgba(247,192,106,.08); border-color: var(--accent3); }
+  .callout.error { background: rgba(247,106,138,.08); border-color: var(--accent4); }
+  .callout.tip   { background: rgba(124,106,247,.08); border-color: var(--accent); }
+  .callout strong { display: block; margin-bottom: 6px; font-size: 13px; text-transform: uppercase; letter-spacing: .5px; }
+  .callout.info strong  { color: var(--accent2); }
+  .callout.warn strong  { color: var(--accent3); }
+  .callout.error strong { color: var(--accent4); }
+  .callout.tip strong   { color: var(--accent); }
+
+  .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0; }
+  .compare > div { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 18px; }
+  .compare > div h4 { margin-top: 0; margin-bottom: 10px; }
+
+  table { width: 100%; border-collapse: collapse; margin: 20px 0 28px; }
+  th { background: var(--surface2); color: var(--accent2); font-size: 12px; text-transform: uppercase; letter-spacing: .5px; padding: 10px 14px; text-align: left; border-bottom: 2px solid var(--border); }
+  td { padding: 10px 14px; border-bottom: 1px solid var(--border); font-size: 14px; }
+  tr:hover td { background: rgba(255,255,255,.02); }
+  td code { font-size: 12.5px; }
+
+  /* Architecture diagram */
+  .arch {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+    padding: 32px; margin: 24px 0; display: flex; flex-direction: column; align-items: center; gap: 0;
+  }
+  .arch-row { display: flex; align-items: center; justify-content: center; gap: 20px; }
+  .arch-box {
+    border-radius: 10px; padding: 12px 20px; text-align: center;
+    font-weight: 600; font-size: 13px; min-width: 130px;
+  }
+  .arch-box.client   { background: rgba(124,106,247,.15); border: 1px solid var(--accent); color: var(--accent); }
+  .arch-box.gateway  { background: rgba(247,192,106,.15); border: 1px solid var(--accent3); color: var(--accent3); }
+  .arch-box.auth     { background: rgba(86,207,178,.15); border: 1px solid var(--accent2); color: var(--accent2); }
+  .arch-box.brief    { background: rgba(247,106,138,.15); border: 1px solid var(--accent4); color: var(--accent4); }
+  .arch-box.db       { background: rgba(130,170,255,.12); border: 1px solid #82aaff; color: #82aaff; font-size: 12px; min-width: 110px; }
+  .arch-arrow-down { color: var(--muted); font-size: 22px; margin: 6px 0; }
+  .arch-arrow-h    { color: var(--muted); font-size: 22px; }
+  .arch-label { font-size: 11px; color: var(--muted); margin-top: 4px; }
+  .arch-col { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+
+  /* Flow box */
+  .flow { display: flex; align-items: center; gap: 0; margin: 20px 0; flex-wrap: wrap; }
+  .flow-box { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 8px 16px; font-size: 13px; font-weight: 600; color: var(--text); }
+  .flow-arrow { color: var(--muted); padding: 0 8px; font-size: 18px; }
+
+  /* Step list */
+  .step { display: flex; gap: 16px; margin-bottom: 28px; }
+  .step-num { min-width: 34px; height: 34px; background: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; flex-shrink: 0; margin-top: 2px; }
+  .step-body h4 { margin-top: 0; }
+
+  /* header badge */
+  .badge { display: inline-block; padding: 2px 9px; border-radius: 99px; font-size: 11px; font-weight: 600; margin-left: 8px; vertical-align: middle; }
+  .badge.green  { background: rgba(86,207,178,.15); color: var(--accent2); }
+  .badge.purple { background: rgba(124,106,247,.15); color: var(--accent); }
+  .badge.yellow { background: rgba(247,192,106,.15); color: var(--accent3); }
+  .badge.red    { background: rgba(247,106,138,.15); color: var(--accent4); }
+
+  /* Request trace */
+  .trace { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px 24px; margin: 20px 0; }
+  .trace-row { display: flex; align-items: flex-start; gap: 14px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .trace-row:last-child { border-bottom: none; }
+  .trace-step { min-width: 26px; height: 26px; background: var(--surface2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: var(--accent2); flex-shrink: 0; }
+  .trace-who { min-width: 110px; font-weight: 600; font-size: 13px; }
+  .trace-who.gw   { color: var(--accent3); }
+  .trace-who.auth { color: var(--accent2); }
+  .trace-who.brief{ color: var(--accent4); }
+  .trace-who.client{ color: var(--accent); }
+  .trace-detail { font-size: 13px; color: var(--muted); }
+  .trace-detail code { font-size: 12px; }
+</style>
+</head>
+<body>
+
+<nav id="sidebar">
+  <div class="logo">Smart Brief <span>Docs</span></div>
+
+  <div class="section-title">Concepts</div>
+  <a href="#what-is">What are Microservices?</a>
+  <a href="#monolith-vs-micro">Monolith vs Microservices</a>
+  <a href="#when-to-use">When to use each</a>
+
+  <div class="section-title">Smart Brief Architecture</div>
+  <a href="#architecture">Overview & Diagram</a>
+  <a href="#gateway">The Gateway</a>
+  <a href="#auth-service">Auth Service</a>
+  <a href="#brief-service">Brief Service</a>
+  <a href="#databases">One DB per service</a>
+
+  <div class="section-title">Communication</div>
+  <a href="#how-services-talk">How services talk</a>
+  <a href="#trusted-headers">Trusted headers pattern</a>
+  <a href="#request-trace">Request trace walkthrough</a>
+  <a href="#internal-api">Internal API endpoints</a>
+  <a href="#service-to-service">Service-to-service HTTP</a>
+
+  <div class="section-title">Security</div>
+  <a href="#jwt-at-gateway">JWT decoded at gateway</a>
+  <a href="#public-routes">Public routes</a>
+  <a href="#trust-boundary">Trust boundary</a>
+  <a href="#cors">CORS per service</a>
+
+  <div class="section-title">Build Your Own</div>
+  <a href="#new-service">Creating a new service</a>
+  <a href="#env-vars">Environment variables</a>
+  <a href="#adding-route">Adding a route to gateway</a>
+  <a href="#checklist">Setup checklist</a>
+
+  <div class="section-title">Patterns & Pitfalls</div>
+  <a href="#patterns">Common patterns</a>
+  <a href="#pitfalls">Pitfalls to avoid</a>
+  <a href="#deployment">Deployment (Railway)</a>
+</nav>
+
+<main>
+
+<h1>Microservices</h1>
+<p style="color:var(--muted);font-size:17px;">Everything you need to know — concepts, architecture, inter-service communication, and building new services from scratch.</p>
+
+<!-- ============================================================ WHAT IS -->
+<h2 id="what-is">What are Microservices?</h2>
+
+<p>
+  A <strong>microservice</strong> is a small, independently deployable application that does
+  <em>one specific thing</em>. Instead of one big app that handles everything (authentication,
+  data, emails, payments…), you split it into multiple small services that each handle one
+  responsibility.
+</p>
+
+<p>Each service:</p>
+<ul>
+  <li>Runs as its own process (its own Node.js server)</li>
+  <li>Has its own port and URL</li>
+  <li>Has its own database (no sharing databases between services)</li>
+  <li>Can be deployed, scaled, and updated independently</li>
+  <li>Communicates with other services over HTTP (or message queues)</li>
+</ul>
+
+<!-- ============================================================ MONOLITH VS MICRO -->
+<h2 id="monolith-vs-micro">Monolith vs Microservices</h2>
+
+<div class="compare">
+  <div>
+    <h4 style="color:var(--accent)">Monolith</h4>
+    <p>One application, one codebase, one deployment, one database.</p>
+    <pre style="font-size:12px;"><span class="c">my-app/
+  src/
+    auth/        ← user login
+    products/    ← product catalog
+    orders/      ← order processing
+    payments/    ← payment handling
+  prisma/
+    schema.prisma  ← all tables
+  index.ts         ← one server</span></pre>
+    <ul style="font-size:13px;">
+      <li>Simple to start</li>
+      <li>Easy to run locally (one command)</li>
+      <li>One deploy = entire app</li>
+      <li>As it grows → hard to scale, slow to test</li>
+    </ul>
+  </div>
+  <div>
+    <h4 style="color:var(--accent2)">Microservices</h4>
+    <p>Multiple applications, each with its own codebase, deployment, and database.</p>
+    <pre style="font-size:12px;"><span class="c">services/
+  gateway/           ← port 8080
+  auth-service/      ← port 3000
+  brief-service/     ← port 4000
+  (payment-service)  ← port 5000
+
+Each has its own:
+  index.ts
+  prisma/schema.prisma
+  .env
+  package.json</span></pre>
+    <ul style="font-size:13px;">
+      <li>Each service is small and focused</li>
+      <li>Scale only what needs scaling</li>
+      <li>Deploy auth without touching briefs</li>
+      <li>More complex to set up and run</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ============================================================ WHEN TO USE -->
+<h2 id="when-to-use">When to use each</h2>
+
+<table>
+  <tr><th>Situation</th><th>Use</th><th>Why</th></tr>
+  <tr><td>Side project, early-stage app, solo dev</td><td>Monolith</td><td>Fast to build, easy to run locally</td></tr>
+  <tr><td>Team of 2-4 devs, growing app</td><td>Monolith or light micro</td><td>Modules can be split later</td></tr>
+  <tr><td>Different parts need different scale</td><td>Microservices</td><td>Scale the payment service x10, not the whole app</td></tr>
+  <tr><td>Different parts change at different speeds</td><td>Microservices</td><td>Deploy auth fixes without risky full redeploy</td></tr>
+  <tr><td>Learning / internship project</td><td>Microservices (like Smart Brief)</td><td>Great for understanding real architecture patterns</td></tr>
+</table>
+
+<div class="callout warn">
+  <strong>Microservices are not always better</strong>
+  They add real complexity: multiple servers to run locally, CORS between them, network calls between services that can fail, environment variables for each. Start with a monolith unless you have a clear reason to split.
+</div>
+
+<!-- ============================================================ ARCHITECTURE -->
+<h2 id="architecture">Smart Brief Architecture Overview</h2>
+
+<div class="arch">
+  <div class="arch-row">
+    <div class="arch-col">
+      <div class="arch-box client">React Frontend</div>
+      <div class="arch-label">Vercel · port 5173</div>
+    </div>
+  </div>
+  <div class="arch-arrow-down">↓ HTTP requests</div>
+  <div class="arch-row">
+    <div class="arch-col">
+      <div class="arch-box gateway">API Gateway</div>
+      <div class="arch-label">Railway · port 8080</div>
+    </div>
+  </div>
+  <div style="display:flex;gap:60px;margin-top:6px;">
+    <div class="arch-arrow-down" style="margin:0;">↙</div>
+    <div class="arch-arrow-down" style="margin:0;">↘</div>
+  </div>
+  <div class="arch-row" style="margin-top:0;align-items:flex-start;">
+    <div class="arch-col">
+      <div class="arch-box auth">Auth Service</div>
+      <div class="arch-label">Railway · port 3000</div>
+      <div style="margin-top:12px;">
+        <div class="arch-box db">PostgreSQL DB</div>
+        <div class="arch-label">users, tokens</div>
+      </div>
+    </div>
+    <div style="width:60px;"></div>
+    <div class="arch-col">
+      <div class="arch-box brief">Brief Service</div>
+      <div class="arch-label">Railway · port 4000</div>
+      <div style="margin-top:12px;">
+        <div class="arch-box db">PostgreSQL DB</div>
+        <div class="arch-label">briefs</div>
+      </div>
+    </div>
+  </div>
+  <div style="margin-top:16px;border-top:1px dashed var(--border);padding-top:12px;width:100%;text-align:center;">
+    <span style="font-size:12px;color:var(--muted);">↕ Brief Service → Gateway → Auth Service (internal HTTP for user data)</span>
+  </div>
+</div>
+
+<p>Every request from the frontend goes to the <strong>Gateway</strong>. The gateway decides which service to forward it to — the client never talks directly to auth-service or brief-service.</p>
+
+<!-- ============================================================ GATEWAY -->
+<h2 id="gateway">The Gateway</h2>
+
+<p>
+  The gateway is the <strong>single entry point</strong> for all traffic. It has two jobs:
+</p>
+
+<ol>
+  <li><strong>Authentication</strong> — verify the JWT token on every non-public request</li>
+  <li><strong>Routing (reverse proxy)</strong> — forward the request to the correct service</li>
+</ol>
+
+<pre><span class="c">// services/gateway/src/index.ts — the whole gateway</span>
+<span class="k">import</span> { createProxyMiddleware } <span class="k">from</span> <span class="s">"http-proxy-middleware"</span>
+<span class="k">import</span> jwt <span class="k">from</span> <span class="s">"jsonwebtoken"</span>
+
+<span class="c">// 1. JWT verification middleware</span>
+<span class="k">function</span> <span class="f">authenticate</span>(req, res, next) {
+  <span class="k">const</span> isPublic = publicRoutes.<span class="f">some</span>(r => req.path.<span class="f">startsWith</span>(r.path) && req.method === r.method)
+  <span class="k">if</span> (isPublic) <span class="k">return</span> <span class="f">next</span>()  <span class="c">// skip auth for public routes</span>
+
+  <span class="k">const</span> token = req.headers.authorization?.<span class="f">split</span>(<span class="s">" "</span>)[<span class="num">1</span>]
+  <span class="k">if</span> (!token) <span class="k">return</span> res.<span class="f">status</span>(<span class="num">401</span>).<span class="f">json</span>({ message: <span class="s">"No token"</span> })
+
+  <span class="k">const</span> decoded = jwt.<span class="f">verify</span>(token, JWT_SECRET)
+  <span class="c">// Inject user identity as trusted headers</span>
+  req.headers[<span class="s">"x-user-id"</span>]   = decoded.id
+  req.headers[<span class="s">"x-user-role"</span>] = decoded.role
+  <span class="f">next</span>()
+}
+
+app.<span class="f">use</span>(authenticate)  <span class="c">// runs on EVERY request</span>
+
+<span class="c">// 2. Proxy rules — forward by path prefix</span>
+app.<span class="f">use</span>(<span class="s">"/auth"</span>,   <span class="f">createProxyMiddleware</span>({ target: AUTH_SERVICE_URL }))
+app.<span class="f">use</span>(<span class="s">"/briefs"</span>, <span class="f">createProxyMiddleware</span>({ target: BRIEF_SERVICE_URL }))</pre>
+
+<h3>What createProxyMiddleware does</h3>
+
+<p>It forwards the incoming HTTP request to the target service, preserving all headers, body, and method. The response comes back through the proxy to the original client.</p>
+
+<pre><span class="c">// Client sends:  GET /briefs/admin  (to Gateway :8080)</span>
+<span class="c">// Gateway sends: GET /briefs/admin  (to Brief Service :4000)</span>
+<span class="c">// Brief responds → Gateway returns it to client</span>
+
+app.<span class="f">use</span>(<span class="s">"/briefs"</span>, <span class="f">createProxyMiddleware</span>({
+  target:      process.env.BRIEF_SERVICE_URL,  <span class="c">// http://brief-service:4000</span>
+  changeOrigin: <span class="k">true</span>,                         <span class="c">// rewrites the Host header</span>
+  pathRewrite: (path) => <span class="s">`/briefs</span>${path}<span class="s">`</span>,   <span class="c">// keeps /briefs prefix</span>
+}))</pre>
+
+<div class="callout info">
+  <strong>Why pathRewrite?</strong>
+  When the client requests <code>/briefs/admin</code>, the gateway strips <code>/briefs</code> from the path before forwarding. With <code>pathRewrite</code>, it re-adds it so the brief service sees <code>/briefs/admin</code> (matching its own router).
+</div>
+
+<!-- ============================================================ AUTH SERVICE -->
+<h2 id="auth-service">Auth Service</h2>
+
+<p>Runs on <strong>port 3000</strong>. Owns everything about users: registration, login, Google OAuth, password reset, profile updates.</p>
+
+<pre><span class="c">// services/auth-service/index.ts</span>
+<span class="k">const</span> app = <span class="f">express</span>()
+app.<span class="f">use</span>(express.<span class="f">json</span>())
+app.<span class="f">use</span>(passport.<span class="f">initialize</span>())
+
+app.<span class="f">use</span>(<span class="s">"/auth"</span>, authRoutes)
+<span class="c">// All routes: POST /auth/register, POST /auth/login,</span>
+<span class="c">//             GET /auth/me, PATCH /auth/me, etc.</span>
+
+app.<span class="f">listen</span>(<span class="num">3000</span>)</pre>
+
+<p>The auth service has its <strong>own authentication middleware</strong> for protected routes (like <code>/auth/me</code>). It re-verifies the JWT independently — it doesn't trust the gateway's headers for its own routes.</p>
+
+<pre><span class="c">// Auth service also exposes an INTERNAL endpoint</span>
+<span class="c">// for other services to fetch user data</span>
+router.<span class="f">get</span>(<span class="s">"/api/users/internal"</span>, getMultipleUsers)
+<span class="c">// GET /api/users/internal?ids=uuid1,uuid2,uuid3</span>
+<span class="c">// Returns: [{ id, firstName, lastName, email, role }]</span>
+<span class="c">// No authentication required — internal use only</span></pre>
+
+<!-- ============================================================ BRIEF SERVICE -->
+<h2 id="brief-service">Brief Service</h2>
+
+<p>Runs on <strong>port 4000</strong>. Owns everything about briefs: creation, status updates, assignment, export.</p>
+
+<pre><span class="c">// services/brief-service/src/index.ts</span>
+<span class="k">const</span> app = <span class="f">express</span>()
+app.<span class="f">use</span>(express.<span class="f">json</span>())
+app.<span class="f">use</span>(<span class="s">"/briefs"</span>, briefRoutes)
+app.<span class="f">get</span>(<span class="s">"/health"</span>, (req, res) => res.<span class="f">json</span>({ status: <span class="s">"OK"</span> }))
+
+app.<span class="f">listen</span>(<span class="num">4000</span>)</pre>
+
+<p>
+  The brief service has <strong>no JWT verification</strong>. It trusts the gateway completely.
+  Its auth middleware just reads the headers that the gateway already injected:
+</p>
+
+<pre><span class="c">// services/brief-service/src/middlewares/auth.middleware.ts</span>
+<span class="k">export function</span> <span class="f">requireAuth</span>(req, res, next) {
+  <span class="k">const</span> userId = req.<span class="f">header</span>(<span class="s">"x-user-id"</span>)
+  <span class="k">const</span> role   = req.<span class="f">header</span>(<span class="s">"x-user-role"</span>)
+
+  <span class="k">if</span> (!userId || !role) {
+    <span class="k">return</span> res.<span class="f">status</span>(<span class="num">401</span>).<span class="f">json</span>({ message: <span class="s">"Unauthorized"</span> })
+  }
+
+  req.user = { userId, role }
+  <span class="f">next</span>()
+}</pre>
+
+<!-- ============================================================ DATABASES -->
+<h2 id="databases">One Database per Service</h2>
+
+<p>
+  Each service has its <strong>own separate database</strong>. This is a core rule of microservices.
+  Services never share a database — they can only get data from another service by making an HTTP request.
+</p>
+
+<table>
+  <tr><th>Service</th><th>Database</th><th>Tables</th></tr>
+  <tr><td>Auth Service</td><td>auth-db (PostgreSQL)</td><td><code>User</code>, <code>VerifyToken</code></td></tr>
+  <tr><td>Brief Service</td><td>brief-db (PostgreSQL)</td><td><code>Brief</code></td></tr>
+</table>
+
+<div class="callout warn">
+  <strong>Why can't services share a database?</strong>
+  If auth-service and brief-service shared one database, they'd be coupled — a schema change in auth would break brief. The whole point of microservices is independent deployment. Separate databases enforce this.
+</div>
+
+<p>
+  That's why in the <code>Brief</code> model, <code>clientId</code> is just a <code>String</code> — not a foreign key to the <code>User</code> table. The brief service stores the UUID, and when it needs the user's name or email, it makes an HTTP call to the auth service.
+</p>
+
+<!-- ============================================================ HOW SERVICES TALK -->
+<h2 id="how-services-talk">How Services Talk to Each Other</h2>
+
+<p>There are two main patterns used in Smart Brief:</p>
+
+<h3>Pattern 1 — Trusted headers (gateway → downstream service)</h3>
+
+<p>The gateway decodes the JWT and injects user info as HTTP headers. Downstream services read those headers and trust them.</p>
+
+<div class="flow">
+  <div class="flow-box">Client sends<br/><small>Authorization: Bearer JWT</small></div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-box">Gateway decodes JWT<br/><small>adds x-user-id + x-user-role</small></div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-box">Brief Service reads<br/><small>req.header("x-user-id")</small></div>
+</div>
+
+<h3>Pattern 2 — HTTP call (brief-service → auth-service)</h3>
+
+<p>When the brief service needs user data (names, emails), it makes an HTTP GET to the auth service's internal endpoint via the gateway.</p>
+
+<div class="flow">
+  <div class="flow-box">Brief Service<br/><small>has clientId (UUID)</small></div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-box">HTTP GET<br/><small>/api/users/internal?ids=...</small></div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-box">Gateway</div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-box">Auth Service<br/><small>returns user data</small></div>
+</div>
+
+<!-- ============================================================ TRUSTED HEADERS -->
+<h2 id="trusted-headers">Trusted Headers Pattern</h2>
+
+<p>
+  When the gateway verifies a JWT, it <strong>injects</strong> the decoded user identity into the
+  request headers before forwarding. Downstream services read these headers instead of decoding JWTs themselves.
+</p>
+
+<h3>Gateway side — inject headers</h3>
+
+<pre><span class="c">// services/gateway/src/index.ts</span>
+<span class="k">const</span> decoded = jwt.<span class="f">verify</span>(token, JWT_SECRET) <span class="k">as</span> { id: <span class="t">string</span>, role: <span class="t">string</span> }
+
+<span class="c">// These headers are added to the forwarded request</span>
+req.headers[<span class="s">"x-user-id"</span>]   = decoded.id    <span class="c">// "abc-123-uuid"</span>
+req.headers[<span class="s">"x-user-role"</span>] = decoded.role  <span class="c">// "ADMIN" | "CLIENT" | "EMPLOYEE"</span></pre>
+
+<h3>Service side — read headers</h3>
+
+<pre><span class="c">// services/brief-service/src/middlewares/auth.middleware.ts</span>
+<span class="k">export function</span> <span class="f">requireAuth</span>(req: <span class="t">Request</span>, res: <span class="t">Response</span>, next: <span class="t">NextFunction</span>) {
+  <span class="k">const</span> userId = req.<span class="f">header</span>(<span class="s">"x-user-id"</span>)    <span class="c">// "abc-123-uuid"</span>
+  <span class="k">const</span> role   = req.<span class="f">header</span>(<span class="s">"x-user-role"</span>)  <span class="c">// "CLIENT"</span>
+
+  <span class="k">if</span> (!userId || !role) {
+    res.<span class="f">status</span>(<span class="num">401</span>).<span class="f">json</span>({ message: <span class="s">"Unauthorized"</span> })
+    <span class="k">return</span>
+  }
+
+  req.user = { userId, role }  <span class="c">// attached to request object</span>
+  <span class="f">next</span>()
+}</pre>
+
+<h3>TypeScript: declaring req.user</h3>
+
+<p>Because <code>req.user</code> doesn't exist on Express's <code>Request</code> type by default, you declare it using <strong>module augmentation</strong>:</p>
+
+<pre><span class="c">// Adds req.user to every Express Request in this service</span>
+<span class="k">declare global</span> {
+  <span class="k">namespace</span> <span class="t">Express</span> {
+    <span class="k">interface</span> <span class="t">Request</span> {
+      user?: { userId: <span class="t">string</span>; role: <span class="t">string</span> }
+    }
+  }
+}</pre>
+
+<p>After this, every controller can access <code>req.user.userId</code> and <code>req.user.role</code> with full TypeScript types.</p>
+
+<!-- ============================================================ REQUEST TRACE -->
+<h2 id="request-trace">Full Request Trace Walkthrough</h2>
+
+<p>Let's follow a request: <strong>admin assigns employees to a brief</strong>.</p>
+
+<div class="trace">
+  <div class="trace-row">
+    <div class="trace-step">1</div>
+    <div class="trace-who client">Frontend</div>
+    <div class="trace-detail">
+      Sends <code>PATCH /briefs/admin/brief-123/assign</code> to <code>gateway:8080</code><br/>
+      Header: <code>Authorization: Bearer eyJhbGci...JWT...</code><br/>
+      Body: <code>{ "employeeIds": ["emp-1", "emp-2"] }</code>
+    </div>
+  </div>
+  <div class="trace-row">
+    <div class="trace-step">2</div>
+    <div class="trace-who gw">Gateway</div>
+    <div class="trace-detail">
+      Checks: is <code>PATCH /briefs/admin/.../assign</code> in <code>publicRoutes</code>? No.<br/>
+      Extracts JWT from Authorization header.<br/>
+      Calls <code>jwt.verify(token, JWT_SECRET)</code> → <code>{ id: "admin-uuid", role: "ADMIN" }</code><br/>
+      Injects: <code>x-user-id: "admin-uuid"</code> &amp; <code>x-user-role: "ADMIN"</code><br/>
+      Forwards request to <code>brief-service:4000/briefs/admin/brief-123/assign</code>
+    </div>
+  </div>
+  <div class="trace-row">
+    <div class="trace-step">3</div>
+    <div class="trace-who brief">Brief Service</div>
+    <div class="trace-detail">
+      <code>requireAuth</code> middleware reads <code>x-user-id</code> and <code>x-user-role</code>.<br/>
+      Sets <code>req.user = { userId: "admin-uuid", role: "ADMIN" }</code>.<br/>
+      Route handler checks <code>auth.role !== "ADMIN"</code> → passes.<br/>
+      Calls <code>briefService.assignBrief(briefId, employeeIds, adminId)</code>.<br/>
+      Updates brief in <strong>brief-service's own DB</strong>.
+    </div>
+  </div>
+  <div class="trace-row">
+    <div class="trace-step">4</div>
+    <div class="trace-who brief">Brief Service</div>
+    <div class="trace-detail">
+      Needs employee emails to send notification.<br/>
+      Calls <code>fetchUsersFromAuthService(["emp-1", "emp-2"])</code>.<br/>
+      Makes <code>GET gateway:8080/api/users/internal?ids=emp-1,emp-2</code>
+    </div>
+  </div>
+  <div class="trace-row">
+    <div class="trace-step">5</div>
+    <div class="trace-who gw">Gateway</div>
+    <div class="trace-detail">
+      Receives the internal request from brief-service.<br/>
+      Path is <code>/api/users/internal</code> — proxied directly to auth-service.<br/>
+      Forwards to <code>auth-service:3000/api/users/internal?ids=emp-1,emp-2</code>
+    </div>
+  </div>
+  <div class="trace-row">
+    <div class="trace-step">6</div>
+    <div class="trace-who auth">Auth Service</div>
+    <div class="trace-detail">
+      <code>getMultipleUsers</code> controller runs.<br/>
+      Queries its own DB: <code>prisma.user.findMany({ where: { id: { in: ["emp-1","emp-2"] } } })</code><br/>
+      Returns <code>[{ id, firstName, lastName, email, role }]</code>
+    </div>
+  </div>
+  <div class="trace-row">
+    <div class="trace-step">7</div>
+    <div class="trace-who brief">Brief Service</div>
+    <div class="trace-detail">
+      Receives user data, sends assignment emails to both employees.<br/>
+      Returns <code>200 { brief data }</code> back through gateway to frontend.
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ INTERNAL API -->
+<h2 id="internal-api">Internal API Endpoints</h2>
+
+<p>
+  An <strong>internal endpoint</strong> is an API route that is <em>not meant for the client</em>
+  — it exists for service-to-service calls only. In Smart Brief, the auth service exposes:
+</p>
+
+<pre><span class="c">// services/auth-service/routes/authRoutes.ts</span>
+<span class="c">// Internal API — no authentication required, used by brief-service</span>
+router.<span class="f">get</span>(<span class="s">"/api/users/internal"</span>, getMultipleUsers)</pre>
+
+<pre><span class="c">// The handler: GET /api/users/internal?ids=uuid1,uuid2,uuid3</span>
+<span class="k">export async function</span> <span class="f">getMultipleUsers</span>(req, res) {
+  <span class="k">const</span> { ids } = req.query
+  <span class="k">const</span> userIds = ids.<span class="f">split</span>(<span class="s">","</span>).<span class="f">map</span>(id => id.<span class="f">trim</span>()).<span class="f">filter</span>(Boolean)
+
+  <span class="k">const</span> users = <span class="k">await</span> prisma.user.<span class="f">findMany</span>({
+    <span class="n">where</span>:  { <span class="n">id</span>: { <span class="n">in</span>: userIds } },
+    <span class="n">select</span>: { <span class="n">id</span>: <span class="k">true</span>, <span class="n">firstName</span>: <span class="k">true</span>, <span class="n">lastName</span>: <span class="k">true</span>, <span class="n">email</span>: <span class="k">true</span>, <span class="n">role</span>: <span class="k">true</span> }
+  })
+  res.<span class="f">json</span>(users)
+}</pre>
+
+<div class="callout warn">
+  <strong>Why no auth on the internal endpoint?</strong>
+  This endpoint is called by brief-service, not by the browser. The brief-service doesn't have a user JWT — it's making a server-to-server call. In production, you'd protect this with a shared secret header (e.g. <code>x-internal-secret: mySecret</code>) checked in the handler, or put it in a private network that the public internet can't reach.
+</div>
+
+<!-- ============================================================ SERVICE TO SERVICE HTTP -->
+<h2 id="service-to-service">Service-to-Service HTTP (authClient.ts)</h2>
+
+<p>The brief service has a utility function that wraps all calls to the auth service:</p>
+
+<pre><span class="c">// services/brief-service/src/utils/authClient.ts</span>
+<span class="k">import</span> axios <span class="k">from</span> <span class="s">"axios"</span>
+
+<span class="k">export interface</span> <span class="t">UserSnapshot</span> {
+  id:        <span class="t">string</span>
+  firstName: <span class="t">string</span>
+  lastName:  <span class="t">string</span>
+  email:     <span class="t">string</span>
+  role:      <span class="t">string</span>
+}
+
+<span class="k">export async function</span> <span class="f">fetchUsersFromAuthService</span>(
+  userIds: <span class="t">string</span>[]
+): <span class="t">Promise</span>&lt;<span class="t">Map</span>&lt;<span class="t">string</span>, <span class="t">UserSnapshot</span>&gt;&gt; {
+
+  <span class="c">// Deduplicate and remove empty strings</span>
+  <span class="k">const</span> uniqueIds = [...<span class="k">new</span> <span class="t">Set</span>(userIds.<span class="f">filter</span>(Boolean))]
+  <span class="k">if</span> (!uniqueIds.length) <span class="k">return new</span> <span class="t">Map</span>()
+
+  <span class="k">const</span> gatewayUrl = process.env.GATEWAY_URL || <span class="s">"http://localhost:8080"</span>
+
+  <span class="k">try</span> {
+    <span class="k">const</span> response = <span class="k">await</span> axios.<span class="f">get</span>&lt;<span class="t">UserSnapshot</span>[]&gt;(
+      <span class="s">`</span>${gatewayUrl}<span class="s">/api/users/internal`</span>,
+      { params: { ids: uniqueIds.<span class="f">join</span>(<span class="s">","</span>) } }
+    )
+    <span class="c">// Convert array to Map for fast O(1) lookups by id</span>
+    <span class="k">return new</span> <span class="t">Map</span>(response.data.<span class="f">map</span>(user => [user.id, user]))
+  } <span class="k">catch</span> (error) {
+    console.<span class="f">error</span>(<span class="s">"Error communicating with Auth Service:"</span>, error)
+    <span class="k">return new</span> <span class="t">Map</span>()  <span class="c">// graceful degradation — don't crash</span>
+  }
+}</pre>
+
+<h3>Using the result in a controller</h3>
+
+<pre><span class="c">// Export PDF — needs client + employee names</span>
+<span class="k">const</span> userIdsToFetch = [brief.clientId, ...brief.assignedToIds]
+<span class="k">const</span> usersMap = <span class="k">await</span> <span class="f">fetchUsersFromAuthService</span>(userIdsToFetch)
+
+<span class="c">// Map gives O(1) lookup — no need to loop to find by id</span>
+<span class="k">const</span> clientData = usersMap.<span class="f">get</span>(brief.clientId)      <span class="c">// UserSnapshot | undefined</span>
+<span class="k">const</span> assignees  = brief.assignedToIds
+  .<span class="f">map</span>(id => usersMap.<span class="f">get</span>(id))
+  .<span class="f">filter</span>(Boolean)  <span class="c">// removes undefined for ids not found</span>
+
+<span class="c">// Send brief status email to client</span>
+<span class="k">const</span> usersMap = <span class="k">await</span> <span class="f">fetchUsersFromAuthService</span>([updated.clientId])
+<span class="k">const</span> client = usersMap.<span class="f">get</span>(updated.clientId)
+<span class="k">if</span> (client?.email) {
+  <span class="k">await</span> <span class="f">sendBriefStatusEmail</span>(client.email, <span class="s">`</span>${client.firstName} ${client.lastName}<span class="s">`</span>, ...)
+}</pre>
+
+<div class="callout tip">
+  <strong>Why return a Map instead of an array?</strong>
+  The Map lets you look up a user by ID in O(1) — <code>usersMap.get(id)</code> — instead of scanning an array every time. Since you often need to look up multiple different IDs from the same response, the Map is much more efficient.
+</div>
+
+<!-- ============================================================ JWT AT GATEWAY -->
+<h2 id="jwt-at-gateway">JWT Decoded at the Gateway</h2>
+
+<p>
+  The JWT is only decoded <strong>once</strong> — at the gateway. Every service downstream trusts the headers the gateway injects. This means:
+</p>
+
+<ul>
+  <li>Services don't need the <code>JWT_SECRET</code> environment variable</li>
+  <li>Services don't need to install <code>jsonwebtoken</code></li>
+  <li>JWT verification logic lives in one place</li>
+  <li>If you change JWT format, you update one service</li>
+</ul>
+
+<div class="callout info">
+  <strong>Exception — Auth Service</strong>
+  The auth service is special. Routes like <code>GET /auth/me</code> are protected by the auth service's own <code>authenticate</code> middleware, which does re-verify the JWT. This is because some auth routes (like <code>/auth/me</code>) go through the gateway but the auth service still independently verifies — adding a layer of security.
+</div>
+
+<!-- ============================================================ PUBLIC ROUTES -->
+<h2 id="public-routes">Public Routes</h2>
+
+<p>Public routes are endpoints that don't require authentication. They're defined in the gateway so the JWT check is skipped:</p>
+
+<pre><span class="c">// services/gateway/src/index.ts</span>
+<span class="k">const</span> publicRoutes = [
+  { path: <span class="s">"/auth/register"</span>,       method: <span class="s">"POST"</span> },
+  { path: <span class="s">"/auth/verify-code"</span>,    method: <span class="s">"POST"</span> },
+  { path: <span class="s">"/auth/resend-code"</span>,    method: <span class="s">"POST"</span> },
+  { path: <span class="s">"/auth/login"</span>,          method: <span class="s">"POST"</span> },
+  { path: <span class="s">"/auth/forgot-password"</span>, method: <span class="s">"POST"</span> },
+  { path: <span class="s">"/auth/reset-password"</span>,  method: <span class="s">"POST"</span> },
+  { path: <span class="s">"/auth/google"</span>,          method: <span class="s">"GET"</span> },
+  { path: <span class="s">"/auth/google/callback"</span>, method: <span class="s">"GET"</span> },
+]
+
+<span class="k">function</span> <span class="f">authenticate</span>(req, res, next) {
+  <span class="k">const</span> isPublic = publicRoutes.<span class="f">some</span>(r =>
+    req.path.<span class="f">startsWith</span>(r.path) && req.method === r.method
+  )
+  <span class="k">if</span> (isPublic) <span class="k">return</span> <span class="f">next</span>()  <span class="c">// skip JWT check</span>
+  <span class="c">// ... otherwise verify JWT</span>
+}</pre>
+
+<p>When adding a new public endpoint, add it to this list.</p>
+
+<!-- ============================================================ TRUST BOUNDARY -->
+<h2 id="trust-boundary">Trust Boundary</h2>
+
+<p>
+  The <strong>trust boundary</strong> is the line between "the outside world" and "our internal services."
+  The gateway is that boundary.
+</p>
+
+<pre>
+External internet
+  │
+  ▼
+┌──────────────────────────────────────────────────────┐
+│  GATEWAY (trust boundary)                            │
+│  • Verifies JWT from client                          │
+│  • Blocks unauthenticated requests to private routes │
+│  • Injects x-user-id, x-user-role                   │
+└──────────────────────────────────────────────────────┘
+  │                        │
+  ▼                        ▼
+Auth Service           Brief Service
+(trusted zone)         (trusted zone)
+• Trusts x-user-id     • Trusts x-user-id
+• No JWT verification  • No JWT verification
+  needed on most routes  needed</pre>
+
+<div class="callout error">
+  <strong>Never expose service ports directly to the internet</strong>
+  Auth service port 3000 and brief service port 4000 should only be reachable from within the same private network (or from each other). Only the gateway's port 8080 should be public. On Railway, this is done by making internal services non-public.
+</div>
+
+<!-- ============================================================ CORS -->
+<h2 id="cors">CORS per Service</h2>
+
+<p>Each service configures CORS independently. The rules differ:</p>
+
+<table>
+  <tr><th>Service</th><th>Allowed Origins</th><th>Why</th></tr>
+  <tr><td>Gateway</td><td>Frontend URL + *.vercel.app</td><td>Browsers connect here</td></tr>
+  <tr><td>Auth Service</td><td>localhost:5173 + localhost:8080</td><td>Dev browser + gateway calls</td></tr>
+  <tr><td>Brief Service</td><td>localhost:5173 + localhost:8080</td><td>Dev browser + gateway calls</td></tr>
+</table>
+
+<pre><span class="c">// Gateway — lenient CORS for browser access</span>
+app.<span class="f">use</span>(<span class="f">cors</span>({
+  origin: (origin, callback) => {
+    <span class="k">if</span> (!origin || allowedOrigins.<span class="f">includes</span>(origin) || origin.<span class="f">endsWith</span>(<span class="s">".vercel.app"</span>)) {
+      <span class="f">callback</span>(<span class="k">null</span>, <span class="k">true</span>)
+    } <span class="k">else</span> {
+      <span class="f">callback</span>(<span class="k">new</span> <span class="t">Error</span>(<span class="s">"Not allowed by CORS"</span>))
+    }
+  },
+  credentials: <span class="k">true</span>
+}))
+
+<span class="c">// Auth/Brief service — tight CORS, only gateway and dev frontend</span>
+app.<span class="f">use</span>(<span class="f">cors</span>({
+  origin: [<span class="s">"http://localhost:5173"</span>, <span class="s">"http://localhost:8080"</span>],
+  credentials: <span class="k">true</span>
+}))</pre>
+
+<!-- ============================================================ NEW SERVICE -->
+<h2 id="new-service">Creating a New Service from Scratch</h2>
+
+<p>Let's say you want to add a <strong>notification-service</strong>. Here's the full process:</p>
+
+<div class="step">
+  <div class="step-num">1</div>
+  <div class="step-body">
+    <h4>Create the folder structure</h4>
+    <pre><span class="c">services/
+  notification-service/
+    src/
+      controllers/
+        notification.controller.ts
+      routes/
+        notification.routes.ts
+      services/
+        notificationService.ts
+      middlewares/
+        auth.middleware.ts     ← copy from brief-service
+    db/
+      prisma.ts
+    prisma/
+      schema.prisma
+    .env
+    package.json
+    tsconfig.json
+    index.ts</span></pre>
+  </div>
+</div>
+
+<div class="step">
+  <div class="step-num">2</div>
+  <div class="step-body">
+    <h4>package.json</h4>
+    <pre>{
+  <span class="s">"name"</span>: <span class="s">"notification-service"</span>,
+  <span class="s">"type"</span>: <span class="s">"module"</span>,
+  <span class="s">"scripts"</span>: {
+    <span class="s">"dev"</span>:      <span class="s">"tsx watch src/index.ts"</span>,
+    <span class="s">"build"</span>:   <span class="s">"tsc"</span>,
+    <span class="s">"start"</span>:   <span class="s">"node dist/index.js"</span>,
+    <span class="s">"generate"</span>: <span class="s">"prisma generate"</span>,
+    <span class="s">"migrate"</span>:  <span class="s">"prisma migrate dev"</span>
+  },
+  <span class="s">"dependencies"</span>: {
+    <span class="s">"express"</span>:         <span class="s">"^4"</span>,
+    <span class="s">"@prisma/client"</span>:  <span class="s">"^5"</span>,
+    <span class="s">"@prisma/adapter-pg"</span>: <span class="s">"^5"</span>,
+    <span class="s">"pg"</span>: <span class="s">"^8"</span>,
+    <span class="s">"dotenv"</span>: <span class="s">"^16"</span>,
+    <span class="s">"axios"</span>: <span class="s">"^1"</span>
+  },
+  <span class="s">"devDependencies"</span>: {
+    <span class="s">"prisma"</span>:    <span class="s">"^5"</span>,
+    <span class="s">"typescript"</span>: <span class="s">"^5"</span>,
+    <span class="s">"tsx"</span>:       <span class="s">"^4"</span>,
+    <span class="s">"@types/express"</span>: <span class="s">"^4"</span>
+  }
+}</pre>
+  </div>
+</div>
+
+<div class="step">
+  <div class="step-num">3</div>
+  <div class="step-body">
+    <h4>index.ts — the entry point</h4>
+    <pre><span class="k">import</span> <span class="s">"dotenv/config"</span>
+<span class="k">import</span> express <span class="k">from</span> <span class="s">"express"</span>
+<span class="k">import</span> cors <span class="k">from</span> <span class="s">"cors"</span>
+<span class="k">import</span> notificationRoutes <span class="k">from</span> <span class="s">"./routes/notification.routes.js"</span>
+
+<span class="k">if</span> (!process.env.DATABASE_URL) <span class="k">throw new</span> <span class="t">Error</span>(<span class="s">"DATABASE_URL required"</span>)
+
+<span class="k">const</span> app = <span class="f">express</span>()
+app.<span class="f">use</span>(<span class="f">cors</span>({ origin: [<span class="s">"http://localhost:5173"</span>, <span class="s">"http://localhost:8080"</span>], credentials: <span class="k">true</span> }))
+app.<span class="f">use</span>(express.<span class="f">json</span>())
+app.<span class="f">use</span>(<span class="s">"/notifications"</span>, notificationRoutes)
+app.<span class="f">get</span>(<span class="s">"/health"</span>, (req, res) => res.<span class="f">json</span>({ status: <span class="s">"OK"</span> }))
+
+app.<span class="f">listen</span>(process.env.PORT || <span class="num">5000</span>,
+  () => console.<span class="f">log</span>(<span class="s">"Notification service running on :5000"</span>)
+)</pre>
+  </div>
+</div>
+
+<div class="step">
+  <div class="step-num">4</div>
+  <div class="step-body">
+    <h4>auth.middleware.ts — copy the pattern from brief-service</h4>
+    <pre><span class="k">import</span> { Request, Response, NextFunction } <span class="k">from</span> <span class="s">"express"</span>
+
+<span class="k">declare global</span> {
+  <span class="k">namespace</span> <span class="t">Express</span> {
+    <span class="k">interface</span> <span class="t">Request</span> {
+      user?: { userId: <span class="t">string</span>; role: <span class="t">string</span> }
+    }
+  }
+}
+
+<span class="k">export function</span> <span class="f">requireAuth</span>(req: <span class="t">Request</span>, res: <span class="t">Response</span>, next: <span class="t">NextFunction</span>) {
+  <span class="k">const</span> userId = req.<span class="f">header</span>(<span class="s">"x-user-id"</span>)
+  <span class="k">const</span> role   = req.<span class="f">header</span>(<span class="s">"x-user-role"</span>)
+  <span class="k">if</span> (!userId || !role) <span class="k">return</span> res.<span class="f">status</span>(<span class="num">401</span>).<span class="f">json</span>({ message: <span class="s">"Unauthorized"</span> })
+  req.user = { userId, role }
+  <span class="f">next</span>()
+}</pre>
+  </div>
+</div>
+
+<div class="step">
+  <div class="step-num">5</div>
+  <div class="step-body">
+    <h4>prisma/schema.prisma — the service's own models</h4>
+    <pre><span class="k">generator</span> <span class="n">client</span> {
+  <span class="attr">provider</span> = <span class="s">"prisma-client-js"</span>
+  <span class="attr">output</span>   = <span class="s">"../src/generated/prisma"</span>
+}
+<span class="k">datasource</span> <span class="n">db</span> {
+  <span class="attr">provider</span> = <span class="s">"postgresql"</span>
+  <span class="attr">url</span>      = <span class="f">env</span>(<span class="s">"DATABASE_URL"</span>)
+}
+
+<span class="k">model</span> <span class="t">Notification</span> {
+  <span class="n">id</span>        <span class="t">String</span>   <span class="attr">@id @default</span>(<span class="f">uuid</span>())
+  <span class="n">userId</span>    <span class="t">String</span>              <span class="c">// from auth service</span>
+  <span class="n">message</span>   <span class="t">String</span>
+  <span class="n">read</span>      <span class="t">Boolean</span>  <span class="attr">@default</span>(<span class="k">false</span>)
+  <span class="n">createdAt</span> <span class="t">DateTime</span> <span class="attr">@default</span>(<span class="f">now</span>())
+
+  <span class="attr">@@index</span>([<span class="n">userId</span>])
+}</pre>
+  </div>
+</div>
+
+<div class="step">
+  <div class="step-num">6</div>
+  <div class="step-body">
+    <h4>Add the route to the gateway</h4>
+    <pre><span class="c">// services/gateway/src/index.ts</span>
+app.<span class="f">use</span>(<span class="s">"/notifications"</span>, <span class="f">createProxyMiddleware</span>({
+  target: process.env.NOTIFICATION_SERVICE_URL || <span class="s">"http://localhost:5000"</span>,
+  changeOrigin: <span class="k">true</span>,
+  pathRewrite: (path) => <span class="s">`/notifications</span>${path}<span class="s">`</span>,
+}))</pre>
+  </div>
+</div>
+
+<div class="step">
+  <div class="step-num">7</div>
+  <div class="step-body">
+    <h4>Add the URL to gateway's .env</h4>
+    <pre>NOTIFICATION_SERVICE_URL=http://localhost:5000</pre>
+  </div>
+</div>
+
+<!-- ============================================================ ENV VARS -->
+<h2 id="env-vars">Environment Variables per Service</h2>
+
+<p>Each service has its <strong>own <code>.env</code></strong>. They don't share one.</p>
+
+<table>
+  <tr><th>Variable</th><th>Gateway</th><th>Auth Service</th><th>Brief Service</th></tr>
+  <tr><td><code>JWT_SECRET</code></td><td>✅ (decodes JWT)</td><td>✅ (signs + verifies)</td><td>❌ (trusts headers)</td></tr>
+  <tr><td><code>DATABASE_URL</code></td><td>❌</td><td>✅ (user DB)</td><td>✅ (brief DB)</td></tr>
+  <tr><td><code>AUTH_SERVICE_URL</code></td><td>✅</td><td>❌</td><td>❌</td></tr>
+  <tr><td><code>BRIEF_SERVICE_URL</code></td><td>✅</td><td>❌</td><td>❌</td></tr>
+  <tr><td><code>GATEWAY_URL</code></td><td>❌</td><td>❌</td><td>✅ (for internal calls)</td></tr>
+  <tr><td><code>FRONTEND_URL</code></td><td>✅ (CORS)</td><td>✅ (reset link)</td><td>❌</td></tr>
+  <tr><td><code>GOOGLE_CLIENT_ID</code></td><td>❌</td><td>✅</td><td>❌</td></tr>
+</table>
+
+<div class="callout info">
+  <strong>Important: JWT_SECRET must be the same value in gateway and auth-service</strong>
+  Auth service signs the token with the secret. Gateway verifies it with the same secret. If they differ, every request will fail with "Invalid token."
+</div>
+
+<!-- ============================================================ ADDING ROUTE TO GATEWAY -->
+<h2 id="adding-route">Adding a Route to the Gateway</h2>
+
+<p>Every new service needs a proxy rule in the gateway. Here's the full pattern:</p>
+
+<pre><span class="c">// Step 1: Define any new public routes (if the service has any)</span>
+<span class="k">const</span> publicRoutes = [
+  <span class="c">// existing routes...</span>
+  { path: <span class="s">"/notifications/unread-count"</span>, method: <span class="s">"GET"</span> }, <span class="c">// example</span>
+]
+
+<span class="c">// Step 2: Add the proxy rule</span>
+app.<span class="f">use</span>(<span class="s">"/notifications"</span>, <span class="f">createProxyMiddleware</span>({
+  target:      process.env.NOTIFICATION_SERVICE_URL || <span class="s">"http://localhost:5000"</span>,
+  changeOrigin: <span class="k">true</span>,
+  pathRewrite: (path) => <span class="s">`/notifications</span>${path}<span class="s">`</span>,
+  on: {
+    proxyReq: (_proxyReq, req) => {
+      console.<span class="f">log</span>(<span class="s">`Forwarding: </span>${req.method} ${req.url}<span class="s">`</span>)
+    },
+    error: (err) => {
+      console.<span class="f">log</span>(<span class="s">"Proxy error:"</span>, err.message)
+    }
+  }
+}))</pre>
+
+<div class="callout warn">
+  <strong>Order matters in Express</strong>
+  The gateway's proxy rules are matched in order. Put more specific paths before more generic ones. For example, put <code>/api/users/internal</code> before <code>/api/users</code>, or the specific one will never match.
+</div>
+
+<!-- ============================================================ CHECKLIST -->
+<h2 id="checklist">New Service Checklist</h2>
+
+<table>
+  <tr><th>Step</th><th>What to do</th><th>File</th></tr>
+  <tr><td>1</td><td>Create folder structure</td><td><code>services/new-service/</code></td></tr>
+  <tr><td>2</td><td>Copy <code>package.json</code> and update name + port</td><td><code>package.json</code></td></tr>
+  <tr><td>3</td><td>Copy <code>tsconfig.json</code> from another service</td><td><code>tsconfig.json</code></td></tr>
+  <tr><td>4</td><td>Write <code>index.ts</code> with Express, CORS, routes</td><td><code>index.ts</code></td></tr>
+  <tr><td>5</td><td>Copy <code>auth.middleware.ts</code> (reads x-user-id headers)</td><td><code>middlewares/auth.middleware.ts</code></td></tr>
+  <tr><td>6</td><td>Write schema.prisma with your models</td><td><code>prisma/schema.prisma</code></td></tr>
+  <tr><td>7</td><td>Write <code>db/prisma.ts</code> singleton</td><td><code>db/prisma.ts</code></td></tr>
+  <tr><td>8</td><td>Run <code>npm install</code> and <code>npx prisma generate</code></td><td>terminal</td></tr>
+  <tr><td>9</td><td>Add <code>SERVICE_URL</code> to gateway's .env</td><td><code>services/gateway/.env</code></td></tr>
+  <tr><td>10</td><td>Add proxy rule to gateway <code>index.ts</code></td><td><code>services/gateway/src/index.ts</code></td></tr>
+  <tr><td>11</td><td>Add <code>DATABASE_URL</code> to new service's .env</td><td><code>services/new-service/.env</code></td></tr>
+  <tr><td>12</td><td>Run <code>npx prisma migrate dev</code></td><td>terminal</td></tr>
+</table>
+
+<!-- ============================================================ PATTERNS -->
+<h2 id="patterns">Common Patterns</h2>
+
+<h3>Graceful degradation on inter-service failure</h3>
+
+<p>
+  Network calls between services <em>can fail</em>. Always handle errors gracefully — don't let
+  a failed user-fetch crash the whole request:
+</p>
+
+<pre><span class="c">// If auth service is down, still return the brief</span>
+<span class="k">try</span> {
+  <span class="k">const</span> usersMap = <span class="k">await</span> <span class="f">fetchUsersFromAuthService</span>([updated.clientId])
+  <span class="k">const</span> client = usersMap.<span class="f">get</span>(updated.clientId)
+  <span class="k">if</span> (client?.email) <span class="k">await</span> <span class="f">sendBriefStatusEmail</span>(...)
+} <span class="k">catch</span> (err) {
+  console.<span class="f">error</span>(<span class="s">"Could not send email"</span>, err)
+  <span class="c">// Don't throw! The brief was updated successfully.</span>
+}
+
+res.<span class="f">status</span>(<span class="num">200</span>).<span class="f">json</span>(updated)  <span class="c">// always return</span></pre>
+
+<h3>Health endpoint on every service</h3>
+
+<pre><span class="c">// Add this to every service's index.ts</span>
+app.<span class="f">get</span>(<span class="s">"/health"</span>, (req, res) => {
+  res.<span class="f">status</span>(<span class="num">200</span>).<span class="f">json</span>({ status: <span class="s">"OK"</span>, service: <span class="s">"notification-service"</span> })
+})</pre>
+
+<p>Hosting providers (Railway, AWS ECS) ping <code>/health</code> to check if the service is alive. If it returns non-200, the service is restarted.</p>
+
+<h3>Store only the foreign key — fetch data on demand</h3>
+
+<pre><span class="c">// Brief stores clientId (a string UUID)</span>
+<span class="c">// NOT a Prisma relation — the User is in a different service</span>
+<span class="k">model</span> <span class="t">Brief</span> {
+  clientId <span class="t">String</span>   <span class="c">// just the ID — no @relation</span>
+}
+
+<span class="c">// When you need the name/email, fetch it at request time:</span>
+<span class="k">const</span> usersMap = <span class="k">await</span> <span class="f">fetchUsersFromAuthService</span>([brief.clientId])</pre>
+
+<h3>Role-based access within a service</h3>
+
+<pre><span class="c">// The role comes from x-user-role header</span>
+<span class="c">// Controllers enforce role-based access:</span>
+
+<span class="k">export const</span> <span class="f">getAllBriefsHandler</span> = <span class="k">async</span> (req, res) => {
+  <span class="k">const</span> auth = req.user
+  <span class="k">if</span> (auth.role !== <span class="s">"ADMIN"</span>) <span class="k">return</span> res.<span class="f">status</span>(<span class="num">403</span>).<span class="f">json</span>({ error: <span class="s">"Forbidden"</span> })
+  <span class="c">// proceed...</span>
+}</pre>
+
+<!-- ============================================================ PITFALLS -->
+<h2 id="pitfalls">Pitfalls to Avoid</h2>
+
+<table>
+  <tr><th>Pitfall</th><th>Problem</th><th>Fix</th></tr>
+  <tr><td>Sharing a database</td><td>Tight coupling — schema changes break multiple services</td><td>One DB per service, always</td></tr>
+  <tr><td>Calling services directly (bypassing gateway)</td><td>No authentication, no logging</td><td>All traffic goes through the gateway</td></tr>
+  <tr><td>Different JWT_SECRET values</td><td>Gateway can't verify tokens signed by auth</td><td>Use the same secret in both</td></tr>
+  <tr><td>Missing CORS on a service</td><td>Requests from browser fail in dev</td><td>Add CORS to every service's index.ts</td></tr>
+  <tr><td>No error handling on inter-service calls</td><td>Auth service down → entire request crashes</td><td>Wrap in try/catch, fail gracefully</td></tr>
+  <tr><td>Not using <code>pathRewrite</code> in proxy</td><td>Brief service receives <code>/briefs/briefs/admin</code></td><td>Always check pathRewrite in createProxyMiddleware</td></tr>
+  <tr><td>Forgetting <code>changeOrigin: true</code></td><td>Proxy sends wrong Host header, some servers reject it</td><td>Always set changeOrigin: true</td></tr>
+  <tr><td>Hardcoding service URLs</td><td>Works locally, breaks in production</td><td>Use <code>process.env.SERVICE_URL || "http://localhost:PORT"</code></td></tr>
+</table>
+
+<!-- ============================================================ DEPLOYMENT -->
+<h2 id="deployment">Deployment on Railway</h2>
+
+<p>Each service is deployed as a separate Railway service. The setup:</p>
+
+<h3>Each service gets:</h3>
+<ul>
+  <li>Its own Railway "service" with its own URL (e.g. <code>https://auth-service-production.up.railway.app</code>)</li>
+  <li>Its own environment variables set in Railway dashboard</li>
+  <li>A PostgreSQL database addon (or a shared cluster with different <code>DATABASE_URL</code>s)</li>
+</ul>
+
+<h3>Environment variables in Railway</h3>
+
+<table>
+  <tr><th>Gateway service</th><th>Value</th></tr>
+  <tr><td><code>AUTH_SERVICE_URL</code></td><td><code>https://auth-service.railway.app</code></td></tr>
+  <tr><td><code>BRIEF_SERVICE_URL</code></td><td><code>https://brief-service.railway.app</code></td></tr>
+  <tr><td><code>JWT_SECRET</code></td><td>same secret as auth service</td></tr>
+  <tr><td><code>FRONTEND_URL</code></td><td><code>https://smart-brief.vercel.app</code></td></tr>
+</table>
+
+<table>
+  <tr><th>Brief service</th><th>Value</th></tr>
+  <tr><td><code>DATABASE_URL</code></td><td>Railway PostgreSQL connection string</td></tr>
+  <tr><td><code>GATEWAY_URL</code></td><td><code>https://gateway.railway.app</code></td></tr>
+</table>
+
+<h3>Run migrations on deploy</h3>
+
+<pre><span class="c"># In Railway's "Start Command" for each service:</span>
+npx prisma migrate deploy && node dist/index.js
+
+<span class="c"># This runs any pending migrations before starting the server</span></pre>
+
+<div class="callout tip">
+  <strong>Private networking on Railway</strong>
+  Railway supports internal DNS — services can reach each other at <code>service-name.railway.internal</code> without going through the public internet. This is faster and more secure than using public URLs for service-to-service calls.
+</div>
+
+</main>
+
+<script>
+  const sections = document.querySelectorAll('h2[id], h3[id]');
+  const links    = document.querySelectorAll('nav a');
+
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        links.forEach(l => l.classList.remove('active'));
+        const active = document.querySelector(`nav a[href="#${entry.target.id}"]`);
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-10% 0px -80% 0px' });
+
+  sections.forEach(s => io.observe(s));
+</script>
+</body>
+</html>

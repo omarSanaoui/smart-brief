@@ -2,6 +2,7 @@ import { Router } from "express";
 import { requireAuth } from "../middlewares/auth.middleware.js";
 import * as briefController from "../controllers/brief.controller.js";
 import * as taskController from "../controllers/task.controller.js";
+import { upload } from "../middlewares/upload.middleware.js";
 
 const router = Router();
 
@@ -35,6 +36,18 @@ router.patch("/:briefId/status", (req, res, next) => {
     if (role === "EMPLOYEE") return briefController.updateEmployeeBriefStatusHandler(req, res);
     next();
 });
+
+// File upload & download
+router.post("/upload", (req, res, next) => {
+  upload.array("files", 20)(req, res, (err) => {
+    if (err) {
+      console.error("[upload] multer error:", err);
+      return res.status(400).json({ error: err.message });
+    }
+    next();
+  });
+}, briefController.uploadAttachmentsHandler);
+router.get("/:briefId/attachments/zip", briefController.downloadAttachmentsZipHandler);
 
 // Multi-role/Export route
 router.get("/:briefId/export", briefController.exportBriefDataHandler);

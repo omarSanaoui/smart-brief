@@ -283,7 +283,7 @@ export default function EditBriefModal({ brief, isOpen, onClose }: EditBriefModa
               <DatePicker.Root
                 value={form.deadline ? [fromDate(form.deadline, timeZone)] : []}
                 onValueChange={({ value }) =>
-                  setForm((prev) => ({ ...prev, deadline: value[0]?.toDate(timeZone) ?? null }))
+                  setForm((prev) => ({ ...prev, deadline: value[0] ? new Date(Date.UTC(value[0].year, value[0].month - 1, value[0].day, 12, 0, 0)) : null }))
                 }
                 min={fromDate(new Date(), timeZone)}
                 closeOnSelect

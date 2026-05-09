@@ -1,0 +1,64 @@
+@startuml SmartBrief - Séquence : Acceptation et assignation d'un brief
+
+skinparam backgroundColor #1A2238
+skinparam participantBackgroundColor #1E2D4A
+skinparam participantBorderColor #6C63FF
+skinparam participantFontColor #FFFFFF
+skinparam sequenceArrowColor #6C63FF
+skinparam sequenceLifeLineBorderColor #2E3A5C
+skinparam sequenceBoxBackgroundColor #12192B
+skinparam sequenceBoxBorderColor #2E3A5C
+skinparam noteBorderColor #00B4D8
+skinparam noteBackgroundColor #0D3A4A
+skinparam noteFontColor #FFFFFF
+
+actor "Administrateur" as admin
+participant "React Frontend" as frontend
+participant "brief-service\n(Express)" as briefApi
+participant "auth-service\n(Express)" as authApi
+participant "PostgreSQL\n(via Prisma)" as db
+
+admin -> frontend : Consulte un brief PENDING\n(depuis /briefs)
+activate frontend
+
+admin -> frontend : Ouvre la BriefModal
+frontend -> briefApi : GET /briefs/:id
+activate briefApi
+briefApi -> db : SELECT Brief + Assignments
+db --> briefApi : Données du brief
+briefApi --> frontend : 200 OK { brief, assignedUsers }
+deactivate briefApi
+
+admin -> frontend : Clique "Accepter le projet"
+frontend -> briefApi : PATCH /briefs/:id/status\n{ status: "ACCEPTED" } + JWT
+activate briefApi
+briefApi -> db : UPDATE Brief\nstatus = ACCEPTED
+db --> briefApi : Brief mis à jour
+briefApi --> frontend : 200 OK
+deactivate briefApi
+
+frontend --> admin : Statut mis à jour → ACCEPTÉ
+
+admin -> frontend : Ouvre "Assigner des ressources"
+frontend -> authApi : GET /users?role=EMPLOYEE\n(JWT Admin)
+activate authApi
+authApi -> db : SELECT Users WHERE role = EMPLOYEE
+db --> authApi : Liste des employés
+authApi --> frontend : 200 OK [{ id, firstName, lastName }]
+deactivate authApi
+
+frontend --> admin : Affiche la liste des employés
+
+admin -> frontend : Sélectionne des employés\net clique "Assigner"
+frontend -> briefApi : POST /briefs/:id/assign\n{ userIds: [...] } + JWT
+activate briefApi
+briefApi -> db : INSERT BriefAssignment(s)\nUPDATE Brief status = IN_PROGRESS
+db --> briefApi : Assignations créées
+briefApi --> frontend : 200 OK { brief, assignedUsers }
+deactivate briefApi
+
+frontend --> admin : Brief en statut IN_PROGRESS\navec équipe assignée
+
+note over frontend : Les employés assignés\nvoient le brief dans\nleur tableau /assigned-briefs
+
+@enduml

@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vite – Smart Brief Docs</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', sans-serif; background: #0f1117; color: #c9d1d9; line-height: 1.7; }
+    a { color: #7c84e8; text-decoration: none; }
+    .layout { display: flex; min-height: 100vh; }
+
+    /* Sidebar */
+    .sidebar {
+      width: 260px; flex-shrink: 0; background: #141824;
+      border-right: 1px solid #1e2a3a; padding: 24px 0;
+      position: sticky; top: 0; height: 100vh; overflow-y: auto;
+    }
+    .sidebar-logo {
+      padding: 0 20px 20px; font-size: 18px; font-weight: 700;
+      color: #fff; border-bottom: 1px solid #1e2a3a; margin-bottom: 12px;
+    }
+    .sidebar-logo span { color: #646cff; }
+    .sidebar-section { padding: 8px 20px 4px; font-size: 11px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: .08em; color: #5a6478; }
+    .sidebar a {
+      display: block; padding: 6px 20px; font-size: 13.5px; color: #8b949e;
+      border-left: 2px solid transparent; transition: all .15s;
+    }
+    .sidebar a:hover { color: #c9d1d9; border-left-color: #646cff; background: #1a2030; }
+
+    /* Content */
+    .content { flex: 1; max-width: 900px; padding: 48px 52px; }
+    h1 { font-size: 2.2rem; font-weight: 800; color: #fff; margin-bottom: 8px; }
+    h2 { font-size: 1.35rem; font-weight: 700; color: #fff; margin: 40px 0 14px;
+      padding-bottom: 8px; border-bottom: 1px solid #1e2a3a; }
+    h3 { font-size: 1.05rem; font-weight: 600; color: #e6edf3; margin: 24px 0 10px; }
+    h4 { font-size: .9rem; font-weight: 600; color: #8b949e; margin: 16px 0 8px; text-transform: uppercase; letter-spacing: .06em; }
+    p { margin-bottom: 12px; color: #b0bac9; }
+    .subtitle { color: #8b949e; font-size: 1.05rem; margin-bottom: 32px; }
+
+    /* Code */
+    pre {
+      background: #161b22; border: 1px solid #1e2a3a; border-radius: 8px;
+      padding: 18px 20px; overflow-x: auto; margin: 12px 0 20px; font-size: 13.5px;
+    }
+    code { font-family: 'Consolas', 'Fira Code', monospace; }
+    p code, li code, td code {
+      background: #1c2333; border: 1px solid #1e2a3a; border-radius: 4px;
+      padding: 1px 6px; font-size: 13px; color: #e6edf3;
+    }
+
+    /* Syntax colors */
+    .kw  { color: #ff7b72; }
+    .fn  { color: #d2a8ff; }
+    .str { color: #a5d6ff; }
+    .cm  { color: #5a6e87; font-style: italic; }
+    .num { color: #f2cc60; }
+    .prop{ color: #7ee787; }
+    .tag { color: #7ee787; }
+    .atr { color: #79c0ff; }
+    .typ { color: #ffa657; }
+
+    /* Callouts */
+    .info { background: #0d1f38; border-left: 3px solid #646cff; border-radius: 0 6px 6px 0; padding: 12px 16px; margin: 16px 0; font-size: 14px; }
+    .warn { background: #2a1f0a; border-left: 3px solid #e3b341; border-radius: 0 6px 6px 0; padding: 12px 16px; margin: 16px 0; font-size: 14px; }
+    .tip  { background: #0d2b1a; border-left: 3px solid #3fb950; border-radius: 0 6px 6px 0; padding: 12px 16px; margin: 16px 0; font-size: 14px; }
+    .info strong, .warn strong, .tip strong { color: #fff; }
+
+    /* Tables */
+    table { width: 100%; border-collapse: collapse; margin: 16px 0 24px; font-size: 13.5px; }
+    th { background: #1a2030; color: #e6edf3; font-weight: 600; text-align: left; padding: 10px 14px; border: 1px solid #1e2a3a; }
+    td { padding: 9px 14px; border: 1px solid #1e2a3a; color: #b0bac9; vertical-align: top; }
+    tr:nth-child(even) td { background: #0d1117; }
+
+    /* Pills */
+    .badge { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 11.5px; font-weight: 700; margin-left: 8px; }
+    .badge-purple { background: #2d2f6e; color: #a5b4fc; }
+    .badge-green  { background: #0d2b1a; color: #3fb950; }
+    .badge-orange { background: #2a1a0a; color: #ffa657; }
+
+    /* Command block */
+    .cmd-block { background: #0d1117; border: 1px solid #1e2a3a; border-radius: 8px; overflow: hidden; margin: 12px 0 20px; }
+    .cmd-block .cmd-row { display: flex; align-items: center; padding: 12px 18px; border-bottom: 1px solid #1e2a3a; gap: 14px; }
+    .cmd-block .cmd-row:last-child { border-bottom: none; }
+    .cmd-block .cmd { font-family: 'Consolas', monospace; font-size: 13.5px; color: #a5d6ff; }
+    .cmd-block .desc { font-size: 13px; color: #8b949e; margin-left: auto; }
+
+    /* Dep grid */
+    .dep-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 12px; margin: 16px 0 24px; }
+    .dep-card { background: #141824; border: 1px solid #1e2a3a; border-radius: 8px; padding: 14px 16px; }
+    .dep-card .dep-name { font-family: monospace; font-size: 13px; color: #7c84e8; font-weight: 600; }
+    .dep-card .dep-ver  { font-size: 11px; color: #5a6478; margin-left: 6px; }
+    .dep-card .dep-desc { font-size: 13px; color: #8b949e; margin-top: 6px; }
+    .dep-card .dep-used { font-size: 11px; color: #3fb950; margin-top: 4px; }
+
+    /* Flow diagram */
+    .flow { display: flex; align-items: center; gap: 0; margin: 16px 0 24px; flex-wrap: wrap; }
+    .flow-box { background: #141824; border: 1px solid #1e2a3a; border-radius: 6px; padding: 10px 16px; font-size: 13px; color: #c9d1d9; text-align: center; }
+    .flow-arrow { color: #646cff; font-size: 18px; padding: 0 8px; }
+
+    /* File tree */
+    .file-tree { background: #161b22; border: 1px solid #1e2a3a; border-radius: 8px; padding: 16px 20px; font-family: monospace; font-size: 13.5px; margin: 12px 0 20px; line-height: 1.9; }
+    .file-tree .dir  { color: #79c0ff; }
+    .file-tree .file { color: #c9d1d9; }
+    .file-tree .note { color: #5a6e87; }
+
+    /* Env table special */
+    .env-key { font-family: monospace; color: #a5d6ff; }
+    .env-val { font-family: monospace; color: #7ee787; }
+
+    ul, ol { padding-left: 22px; margin-bottom: 12px; }
+    li { margin-bottom: 4px; color: #b0bac9; font-size: 14px; }
+
+    /* Breadcrumb */
+    .breadcrumb { font-size: 12px; color: #5a6478; margin-bottom: 24px; }
+    .breadcrumb span { color: #3a4358; margin: 0 6px; }
+
+    hr { border: none; border-top: 1px solid #1e2a3a; margin: 36px 0; }
+  </style>
+</head>
+<body>
+<div class="layout">
+
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <div class="sidebar-logo">smart<span>brief</span> docs</div>
+
+    <div class="sidebar-section">Navigation</div>
+    <a href="index.html">← All Docs</a>
+
+    <div class="sidebar-section">Vite</div>
+    <a href="#what-is-vite">What is Vite?</a>
+    <a href="#commands">Commands</a>
+    <a href="#project-structure">Project Structure</a>
+    <a href="#config">vite.config.ts</a>
+    <a href="#plugins">Plugins</a>
+    <a href="#env">Environment Variables</a>
+    <a href="#env-files">Env File Loading</a>
+    <a href="#env-typescript">TypeScript Typing</a>
+    <a href="#imports">Imports & Assets</a>
+    <a href="#alias">Path Aliases</a>
+    <a href="#build">Build & Preview</a>
+    <a href="#hmr">HMR</a>
+    <a href="#dependencies">Dependencies</a>
+  </nav>
+
+  <!-- Main content -->
+  <main class="content">
+    <div class="breadcrumb">Smart Brief Docs <span>›</span> Frontend <span>›</span> Vite</div>
+
+    <h1>Vite</h1>
+    <p class="subtitle">Next-generation frontend build tool. Dev server + bundler. Used by the entire <code>client/</code> app.</p>
+
+    <!-- WHAT IS VITE -->
+    <h2 id="what-is-vite">What Is Vite?</h2>
+    <p>Vite is the tool that powers your <code>npm run dev</code>. It does two things:</p>
+    <ul>
+      <li><strong>Dev server</strong> — serves your files instantly using native ES modules. No bundling needed during development. Changes are reflected in milliseconds via HMR.</li>
+      <li><strong>Production bundler</strong> — uses Rollup under the hood to create an optimized <code>dist/</code> folder for deployment.</li>
+    </ul>
+
+    <div class="flow">
+      <div class="flow-box">your <code>src/</code></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box">Vite dev server<br><small style="color:#5a6478">native ESM, no bundle</small></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box">browser<br><small style="color:#5a6478">:5173</small></div>
+    </div>
+    <div class="flow">
+      <div class="flow-box">your <code>src/</code></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box">vite build (Rollup)<br><small style="color:#5a6478">tree-shake, minify</small></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box"><code>dist/</code><br><small style="color:#5a6478">deploy this</small></div>
+    </div>
+
+    <p>Smart Brief uses <strong>Vite 8</strong> with React + TypeScript. Entry point: <code>client/index.html</code> → <code>src/main.tsx</code>.</p>
+
+    <!-- COMMANDS -->
+    <h2 id="commands">Commands</h2>
+    <p>All run from the <code>client/</code> directory (or with <code>--prefix client</code> from root).</p>
+
+    <div class="cmd-block">
+      <div class="cmd-row">
+        <div class="cmd">npm run dev</div>
+        <div class="desc">Start dev server at <strong>http://localhost:5173</strong> — hot reload on every save</div>
+      </div>
+      <div class="cmd-row">
+        <div class="cmd">npm run build</div>
+        <div class="desc">Type-check (tsc) then bundle to <code>dist/</code> for production</div>
+      </div>
+      <div class="cmd-row">
+        <div class="cmd">npm run preview</div>
+        <div class="desc">Serve the <code>dist/</code> folder locally — simulates production before deploy</div>
+      </div>
+      <div class="cmd-row">
+        <div class="cmd">npm run lint</div>
+        <div class="desc">Run ESLint across all source files</div>
+      </div>
+      <div class="cmd-row">
+        <div class="cmd">npx vite --port 3000</div>
+        <div class="desc">Dev server on a custom port</div>
+      </div>
+      <div class="cmd-row">
+        <div class="cmd">npx vite build --mode staging</div>
+        <div class="desc">Build using <code>.env.staging</code> variables</div>
+      </div>
+      <div class="cmd-row">
+        <div class="cmd">npx vite build --watch</div>
+        <div class="desc">Rebuild on every file change (for library authors)</div>
+      </div>
+    </div>
+
+    <div class="info">
+      <strong>Dev vs Preview:</strong> <code>npm run dev</code> serves raw source via native ESM — no bundle.
+      <code>npm run preview</code> serves the actual <code>dist/</code> output, which is what Vercel/Netlify will serve.
+      Use preview to catch asset or routing issues before deploying.
+    </div>
+
+    <!-- PROJECT STRUCTURE -->
+    <h2 id="project-structure">Project Structure</h2>
+    <div class="file-tree">
+      <span class="dir">client/</span><br>
+      ├── <span class="file">index.html</span>         <span class="note">&lt;!-- Vite entry point — not in src/ --&gt;</span><br>
+      ├── <span class="file">vite.config.ts</span>     <span class="note">&lt;!-- Vite configuration --&gt;</span><br>
+      ├── <span class="file">tsconfig.json</span>      <span class="note">&lt;!-- TypeScript config --&gt;</span><br>
+      ├── <span class="file">.env</span>               <span class="note">&lt;!-- shared env vars (committed) --&gt;</span><br>
+      ├── <span class="file">.env.local</span>         <span class="note">&lt;!-- local overrides (git-ignored) --&gt;</span><br>
+      ├── <span class="file">.env.production</span>    <span class="note">&lt;!-- production-only vars --&gt;</span><br>
+      ├── <span class="dir">src/</span><br>
+      │   ├── <span class="file">main.tsx</span>       <span class="note">&lt;!-- ReactDOM.createRoot entry --&gt;</span><br>
+      │   ├── <span class="file">index.css</span>      <span class="note">&lt;!-- @import "tailwindcss" + @theme --&gt;</span><br>
+      │   ├── <span class="file">vite-env.d.ts</span>  <span class="note">&lt;!-- /// &lt;reference types="vite/client" /&gt; --&gt;</span><br>
+      │   └── <span class="dir">...</span><br>
+      └── <span class="dir">dist/</span>              <span class="note">&lt;!-- generated by vite build — deploy this --&gt;</span>
+    </div>
+
+    <div class="warn">
+      <strong>index.html is in the root of client/, not in src/.</strong>
+      Vite uses it as the application entry point. It contains
+      <code>&lt;script type="module" src="/src/main.tsx"&gt;&lt;/script&gt;</code>.
+    </div>
+
+    <!-- CONFIG -->
+    <h2 id="config">vite.config.ts</h2>
+    <p>This is the Smart Brief config exactly as it is:</p>
+    <pre><code><span class="kw">import</span> { <span class="fn">defineConfig</span> } <span class="kw">from</span> <span class="str">'vite'</span>
+<span class="kw">import</span> <span class="typ">react</span> <span class="kw">from</span> <span class="str">'@vitejs/plugin-react'</span>
+<span class="kw">import</span> <span class="typ">svgr</span> <span class="kw">from</span> <span class="str">'vite-plugin-svgr'</span>
+<span class="kw">import</span> <span class="typ">tailwindcss</span> <span class="kw">from</span> <span class="str">'@tailwindcss/vite'</span>
+
+<span class="kw">export default</span> <span class="fn">defineConfig</span>({
+  <span class="prop">plugins</span>: [
+    <span class="fn">react</span>(),        <span class="cm">// JSX transform + React Fast Refresh (HMR)</span>
+    <span class="fn">svgr</span>(),         <span class="cm">// import SVGs as React components</span>
+    <span class="fn">tailwindcss</span>()  <span class="cm">// Tailwind v4 processing</span>
+  ],
+})</code></pre>
+
+    <p>The config can accept many more options. Here is the full shape with the most useful ones:</p>
+    <pre><code><span class="kw">export default</span> <span class="fn">defineConfig</span>({
+  <span class="prop">plugins</span>: [...],
+
+  <span class="prop">server</span>: {
+    <span class="prop">port</span>: <span class="num">3000</span>,         <span class="cm">// change dev port (default 5173)</span>
+    <span class="prop">open</span>: <span class="kw">true</span>,         <span class="cm">// auto-open browser on start</span>
+    <span class="prop">proxy</span>: {            <span class="cm">// forward /api calls to backend (avoids CORS in dev)</span>
+      <span class="str">'/api'</span>: {
+        <span class="prop">target</span>: <span class="str">'http://localhost:8080'</span>,
+        <span class="prop">changeOrigin</span>: <span class="kw">true</span>,
+      }
+    }
+  },
+
+  <span class="prop">resolve</span>: {
+    <span class="prop">alias</span>: {
+      <span class="str">'@'</span>: <span class="str">'/src'</span>        <span class="cm">// import Component from '@/components/X'</span>
+    }
+  },
+
+  <span class="prop">build</span>: {
+    <span class="prop">outDir</span>: <span class="str">'dist'</span>,    <span class="cm">// output folder (default)</span>
+    <span class="prop">sourcemap</span>: <span class="kw">true</span>,  <span class="cm">// include source maps for debugging prod errors</span>
+  },
+
+  <span class="prop">base</span>: <span class="str">'/'</span>,           <span class="cm">// public base path; change for sub-path deploys (/app/)</span>
+})</code></pre>
+
+    <!-- PLUGINS -->
+    <h2 id="plugins">Plugins</h2>
+
+    <h3>@vitejs/plugin-react</h3>
+    <p>Handles JSX transformation and enables <strong>React Fast Refresh</strong> — the HMR mechanism that preserves component state when you edit a file.</p>
+    <pre><code><span class="kw">import</span> <span class="typ">react</span> <span class="kw">from</span> <span class="str">'@vitejs/plugin-react'</span>
+
+<span class="fn">react</span>()
+<span class="cm">// or with options:</span>
+<span class="fn">react</span>({ <span class="prop">babel</span>: { <span class="prop">plugins</span>: [<span class="str">'@emotion/babel-plugin'</span>] } })</code></pre>
+
+    <h3>vite-plugin-svgr</h3>
+    <p>Transforms SVG files into React components. Without this you can only use SVGs as image URLs.</p>
+    <pre><code><span class="cm">// Without svgr — SVG as URL</span>
+<span class="kw">import</span> <span class="typ">logoUrl</span> <span class="kw">from</span> <span class="str">'./logo.svg'</span>
+<span class="kw">const</span> el = &lt;<span class="tag">img</span> <span class="atr">src</span>={logoUrl} /&gt;
+
+<span class="cm">// With svgr — SVG as React component (can style with currentColor etc.)</span>
+<span class="kw">import</span> { <span class="typ">ReactComponent</span> <span class="kw">as</span> <span class="typ">Logo</span> } <span class="kw">from</span> <span class="str">'./logo.svg'</span>
+<span class="kw">const</span> el = &lt;<span class="tag">Logo</span> <span class="atr">className</span>=<span class="str">"w-8 h-8 fill-current"</span> /&gt;</code></pre>
+
+    <h3>@tailwindcss/vite</h3>
+    <p>Integrates Tailwind CSS v4 directly into Vite's transform pipeline — no PostCSS config needed. Just call <code>tailwindcss()</code> in plugins.</p>
+
+    <!-- ENVIRONMENT VARIABLES -->
+    <h2 id="env">Environment Variables</h2>
+    <p>Vite exposes env vars through <code>import.meta.env</code> — NOT <code>process.env</code>. Only variables prefixed with <code>VITE_</code> are exposed to the browser. Everything else stays server-side only.</p>
+
+    <div class="warn">
+      <strong>Never put secrets in VITE_ variables.</strong> They are baked into the JS bundle and visible to anyone who opens DevTools.
+      API keys, database URLs, and private tokens belong in server-side env vars only.
+    </div>
+
+    <h3>The import.meta.env Object</h3>
+    <table>
+      <tr>
+        <th>Property</th>
+        <th>Type</th>
+        <th>Value</th>
+      </tr>
+      <tr>
+        <td><code>import.meta.env.VITE_*</code></td>
+        <td>string</td>
+        <td>Your custom vars from .env files</td>
+      </tr>
+      <tr>
+        <td><code>import.meta.env.MODE</code></td>
+        <td>string</td>
+        <td><code>"development"</code> | <code>"production"</code> | custom</td>
+      </tr>
+      <tr>
+        <td><code>import.meta.env.DEV</code></td>
+        <td>boolean</td>
+        <td><code>true</code> during dev server, <code>false</code> in build</td>
+      </tr>
+      <tr>
+        <td><code>import.meta.env.PROD</code></td>
+        <td>boolean</td>
+        <td><code>true</code> in build, <code>false</code> in dev server</td>
+      </tr>
+      <tr>
+        <td><code>import.meta.env.BASE_URL</code></td>
+        <td>string</td>
+        <td>The <code>base</code> config option (default <code>"/"</code>)</td>
+      </tr>
+      <tr>
+        <td><code>import.meta.env.SSR</code></td>
+        <td>boolean</td>
+        <td><code>true</code> only during SSR (not used in Smart Brief)</td>
+      </tr>
+    </table>
+
+    <h3>Smart Brief Usage — VITE_API_URL</h3>
+    <pre><code><span class="cm">// client/.env</span>
+<span class="prop">VITE_API_URL</span>=<span class="str">http://localhost:8080</span>
+
+<span class="cm">// client/src/api/axiosAuth.ts</span>
+<span class="kw">const</span> <span class="typ">AuthApi</span> = <span class="fn">axios.create</span>({
+  <span class="prop">baseURL</span>: <span class="typ">import.meta.env</span>.<span class="prop">VITE_API_URL</span> || <span class="str">"http://localhost:8080"</span>,
+  <span class="prop">headers</span>: { <span class="str">"Content-Type"</span>: <span class="str">"application/json"</span> }
+})</code></pre>
+
+    <p>On Vercel, <code>VITE_API_URL</code> is set to the Railway gateway URL. At build time, Vite inlines the value into the JS bundle.</p>
+
+    <h3>Conditional Code Based on Mode</h3>
+    <pre><code><span class="cm">// Show extra debug info in dev only</span>
+<span class="kw">if</span> (<span class="typ">import.meta.env</span>.<span class="prop">DEV</span>) {
+  <span class="fn">console.log</span>(<span class="str">'Debug:'</span>, data)
+}
+
+<span class="cm">// Different API URL per mode</span>
+<span class="kw">const</span> apiUrl = <span class="typ">import.meta.env</span>.<span class="prop">PROD</span>
+  ? <span class="typ">import.meta.env</span>.<span class="prop">VITE_API_URL</span>
+  : <span class="str">'http://localhost:8080'</span></code></pre>
+
+    <!-- ENV FILES -->
+    <h2 id="env-files">Env File Loading Order</h2>
+    <p>Vite loads these files and merges them. Later files win over earlier ones.</p>
+
+    <table>
+      <tr>
+        <th>File</th>
+        <th>When Loaded</th>
+        <th>Committed?</th>
+      </tr>
+      <tr>
+        <td><code>.env</code></td>
+        <td>Always</td>
+        <td>Yes — shared defaults</td>
+      </tr>
+      <tr>
+        <td><code>.env.local</code></td>
+        <td>Always (overrides .env)</td>
+        <td>No — git-ignored, personal overrides</td>
+      </tr>
+      <tr>
+        <td><code>.env.development</code></td>
+        <td>Only in dev (<code>vite</code>)</td>
+        <td>Yes — dev-specific defaults</td>
+      </tr>
+      <tr>
+        <td><code>.env.development.local</code></td>
+        <td>Only in dev (overrides .env.development)</td>
+        <td>No — personal dev overrides</td>
+      </tr>
+      <tr>
+        <td><code>.env.production</code></td>
+        <td>Only in build (<code>vite build</code>)</td>
+        <td>Yes — production defaults</td>
+      </tr>
+      <tr>
+        <td><code>.env.production.local</code></td>
+        <td>Only in build (overrides .env.production)</td>
+        <td>No — personal prod overrides</td>
+      </tr>
+      <tr>
+        <td><code>.env.staging</code></td>
+        <td>Only with <code>--mode staging</code></td>
+        <td>Yes — staging env</td>
+      </tr>
+    </table>
+
+    <div class="tip">
+      <strong>Smart Brief setup:</strong> Only <code>.env</code> exists with <code>VITE_API_URL=http://localhost:8080</code>.
+      On Vercel, environment variables are set in the dashboard — Vite reads them during the build step.
+    </div>
+
+    <h3>Example Multi-Environment Setup</h3>
+    <pre><code><span class="cm"># .env (committed — safe defaults)</span>
+<span class="prop">VITE_APP_NAME</span>=<span class="str">Smart Brief</span>
+
+<span class="cm"># .env.development (committed)</span>
+<span class="prop">VITE_API_URL</span>=<span class="str">http://localhost:8080</span>
+
+<span class="cm"># .env.production (committed)</span>
+<span class="prop">VITE_API_URL</span>=<span class="str">https://gateway.railway.app</span>
+
+<span class="cm"># .env.local (git-ignored — override for your machine)</span>
+<span class="prop">VITE_API_URL</span>=<span class="str">http://localhost:9000</span>  <span class="cm"># your custom port</span></code></pre>
+
+    <!-- TYPESCRIPT TYPING -->
+    <h2 id="env-typescript">TypeScript Typing for Env Vars</h2>
+    <p>By default, <code>import.meta.env.VITE_*</code> is typed as <code>string | undefined</code>. To get autocomplete and proper types, declare them in a <code>.d.ts</code> file:</p>
+
+    <pre><code><span class="cm">// src/vite-env.d.ts  (this file already exists)</span>
+<span class="cm">/// &lt;reference types="vite/client" /&gt;</span>
+<span class="cm">/// &lt;reference types="vite-plugin-svgr/client" /&gt;</span>
+
+<span class="cm">// Add this interface to type your custom vars:</span>
+<span class="kw">interface</span> <span class="typ">ImportMetaEnv</span> {
+  <span class="kw">readonly</span> <span class="prop">VITE_API_URL</span>: <span class="typ">string</span>
+  <span class="cm">// add more here as you add VITE_ vars</span>
+}
+
+<span class="kw">interface</span> <span class="typ">ImportMeta</span> {
+  <span class="kw">readonly</span> <span class="prop">env</span>: <span class="typ">ImportMetaEnv</span>
+}</code></pre>
+
+    <p>After this, <code>import.meta.env.VITE_API_URL</code> is typed as <code>string</code> (not <code>string | undefined</code>) and you get autocomplete.</p>
+
+    <!-- IMPORTS & ASSETS -->
+    <h2 id="imports">Imports &amp; Static Assets</h2>
+
+    <h3>Importing Images</h3>
+    <pre><code><span class="cm">// Import as URL — Vite hashes the filename on build</span>
+<span class="kw">import</span> <span class="typ">logoUrl</span> <span class="kw">from</span> <span class="str">'./logo.png'</span>
+<span class="cm">// logoUrl = "/assets/logo-Bv3a9kY.png" in prod</span>
+
+&lt;<span class="tag">img</span> <span class="atr">src</span>={logoUrl} <span class="atr">alt</span>=<span class="str">"Logo"</span> /&gt;</code></pre>
+
+    <h3>Public Folder</h3>
+    <p>Files in <code>client/public/</code> are served as-is at the root. Not hashed. Use for favicons, robots.txt, etc.</p>
+    <pre><code><span class="cm">// client/public/favicon.ico → available at /favicon.ico</span>
+<span class="cm">// Reference in HTML or code as:</span>
+&lt;<span class="tag">link</span> <span class="atr">rel</span>=<span class="str">"icon"</span> <span class="atr">href</span>=<span class="str">"/favicon.ico"</span> /&gt;
+<span class="kw">const</span> url = <span class="str">'/logo.png'</span> <span class="cm">// always works, never hashed</span></code></pre>
+
+    <h3>Importing SVGs (with svgr plugin)</h3>
+    <pre><code><span class="cm">// As React component (uses ?react suffix or ReactComponent named export)</span>
+<span class="kw">import</span> { <span class="typ">ReactComponent</span> <span class="kw">as</span> <span class="typ">ArrowIcon</span> } <span class="kw">from</span> <span class="str">'./arrow.svg'</span>
+<span class="kw">import</span> <span class="typ">ArrowIcon</span> <span class="kw">from</span> <span class="str">'./arrow.svg?react'</span>   <span class="cm">// same, explicit query</span>
+
+<span class="cm">// As URL</span>
+<span class="kw">import</span> <span class="typ">arrowUrl</span> <span class="kw">from</span> <span class="str">'./arrow.svg'</span></code></pre>
+
+    <h3>Importing CSS</h3>
+    <pre><code><span class="cm">// Import global CSS in main.tsx</span>
+<span class="kw">import</span> <span class="str">'./index.css'</span>
+
+<span class="cm">// CSS Modules — scoped styles</span>
+<span class="kw">import</span> <span class="typ">styles</span> <span class="kw">from</span> <span class="str">'./Button.module.css'</span>
+&lt;<span class="tag">button</span> <span class="atr">className</span>={styles.primary}&gt;...&lt;/<span class="tag">button</span>&gt;</code></pre>
+
+    <h3>Raw Imports</h3>
+    <pre><code><span class="cm">// Import file contents as a string</span>
+<span class="kw">import</span> <span class="typ">shaderCode</span> <span class="kw">from</span> <span class="str">'./shader.glsl?raw'</span>
+
+<span class="cm">// Import as URL string without inlining</span>
+<span class="kw">import</span> <span class="typ">workerUrl</span> <span class="kw">from</span> <span class="str">'./heavy-worker.js?url'</span></code></pre>
+
+    <!-- PATH ALIASES -->
+    <h2 id="alias">Path Aliases</h2>
+    <p>Smart Brief doesn't currently use aliases, but they're extremely useful for avoiding <code>../../../</code> hell.</p>
+    <pre><code><span class="cm">// vite.config.ts</span>
+<span class="kw">import</span> <span class="prop">path</span> <span class="kw">from</span> <span class="str">'path'</span>
+
+<span class="kw">export default</span> <span class="fn">defineConfig</span>({
+  <span class="prop">resolve</span>: {
+    <span class="prop">alias</span>: {
+      <span class="str">'@'</span>: <span class="prop">path</span>.<span class="fn">resolve</span>(<span class="fn">__dirname</span>, <span class="str">'./src'</span>)
+    }
+  }
+})</code></pre>
+
+    <pre><code><span class="cm">// tsconfig.json — also add this for TS to understand the alias</span>
+{
+  <span class="prop">"compilerOptions"</span>: {
+    <span class="prop">"baseUrl"</span>: <span class="str">"."</span>,
+    <span class="prop">"paths"</span>: {
+      <span class="str">"@/*"</span>: [<span class="str">"./src/*"</span>]
+    }
+  }
+}</code></pre>
+
+    <pre><code><span class="cm">// Before alias</span>
+<span class="kw">import</span> { <span class="typ">Button</span> } <span class="kw">from</span> <span class="str">'../../../components/ui/Button'</span>
+
+<span class="cm">// After alias</span>
+<span class="kw">import</span> { <span class="typ">Button</span> } <span class="kw">from</span> <span class="str">'@/components/ui/Button'</span></code></pre>
+
+    <!-- BUILD -->
+    <h2 id="build">Build &amp; Preview</h2>
+    <pre><code><span class="cm"># Run type checking then build</span>
+npm run build
+
+<span class="cm"># Output:</span>
+<span class="cm"># dist/</span>
+<span class="cm">#   index.html</span>
+<span class="cm">#   assets/</span>
+<span class="cm">#     index-Cv3a9kY.js   ← hashed for cache busting</span>
+<span class="cm">#     index-BH3b8nX.css</span>
+<span class="cm">#     logo-Av9bK3m.png</span></code></pre>
+
+    <p><strong>What build does:</strong></p>
+    <ul>
+      <li>Runs <code>tsc -b</code> for TypeScript type checking first (will error on type issues)</li>
+      <li>Tree-shakes unused code</li>
+      <li>Minifies JS with esbuild and CSS with lightningcss</li>
+      <li>Hashes asset filenames for long-term caching</li>
+      <li>Inlines small assets (&lt;4kb) as base64</li>
+    </ul>
+
+    <pre><code><span class="cm"># Preview the built output locally</span>
+npm run preview
+<span class="cm"># Serves dist/ at http://localhost:4173</span>
+<span class="cm"># Use this to check routing, 404s, env vars before deploying</span></code></pre>
+
+    <div class="info">
+      <strong>On Vercel:</strong> The build command is <code>npm run build</code>, output directory is <code>dist</code>.
+      Vercel sets <code>NODE_ENV=production</code> automatically, so Vite uses <code>.env.production</code> vars during the build.
+    </div>
+
+    <!-- HMR -->
+    <h2 id="hmr">Hot Module Replacement (HMR)</h2>
+    <p>During dev, when you save a file:</p>
+    <ul>
+      <li>Only the changed module and its direct importers are re-evaluated</li>
+      <li>React component state is preserved (Fast Refresh)</li>
+      <li>CSS changes are applied instantly without a page reload</li>
+      <li>Non-React JS modules do a full page reload</li>
+    </ul>
+
+    <div class="warn">
+      <strong>State preservation caveat:</strong> If you edit a file that exports both a React component and a non-component (like a hook + a constant), Fast Refresh may fall back to a full reload. Keep components in their own files for best HMR behavior.
+    </div>
+
+    <!-- DEPENDENCIES -->
+    <h2 id="dependencies">Dependencies Reference</h2>
+
+    <h3>Smart Brief — What's Installed &amp; Why</h3>
+    <div class="dep-grid">
+      <div class="dep-card">
+        <div class="dep-name">vite <span class="dep-ver">^8.0.1</span></div>
+        <div class="dep-desc">The build tool itself — dev server + bundler</div>
+        <div class="dep-used">✓ Used — core tool</div>
+      </div>
+      <div class="dep-card">
+        <div class="dep-name">@vitejs/plugin-react <span class="dep-ver">^6.0.1</span></div>
+        <div class="dep-desc">JSX transform + React Fast Refresh HMR</div>
+        <div class="dep-used">✓ Used — required for React</div>
+      </div>
+      <div class="dep-card">
+        <div class="dep-name">tailwindcss <span class="dep-ver">^4.2.2</span></div>
+        <div class="dep-desc">Utility-first CSS framework</div>
+        <div class="dep-used">✓ Used — all styling</div>
+      </div>
+      <div class="dep-card">
+        <div class="dep-name">@tailwindcss/vite <span class="dep-ver">^4.2.2</span></div>
+        <div class="dep-desc">Tailwind v4 Vite plugin — replaces PostCSS config</div>
+        <div class="dep-used">✓ Used — Tailwind integration</div>
+      </div>
+      <div class="dep-card">
+        <div class="dep-name">vite-plugin-svgr <span class="dep-ver">^5.0.0</span></div>
+        <div class="dep-desc">Import SVGs as React components</div>
+        <div class="dep-used">✓ Used — SVG icons</div>
+      </div>
+      <div class="dep-card">
+        <div class="dep-name">typescript <span class="dep-ver">~5.9.3</span></div>
+        <div class="dep-desc">Type checking — runs via tsc during build</div>
+        <div class="dep-used">✓ Used — strict mode</div>
+      </div>
+      <div class="dep-card">
+        <div class="dep-name">@types/node <span class="dep-ver">^24.12.0</span></div>
+        <div class="dep-desc">Node.js types — needed for path.resolve() in config</div>
+        <div class="dep-used">✓ Used — vite.config.ts</div>
+      </div>
+      <div class="dep-card">
+        <div class="dep-name">eslint <span class="dep-ver">^9.39.4</span></div>
+        <div class="dep-desc">Static code analysis — catches errors and style issues</div>
+        <div class="dep-used">✓ Used — npm run lint</div>
+      </div>
+      <div class="dep-card">
+        <div class="dep-name">autoprefixer <span class="dep-ver">^10.4.27</span></div>
+        <div class="dep-desc">PostCSS plugin — adds vendor prefixes to CSS automatically</div>
+        <div class="dep-used">✓ Installed — for CSS compatibility</div>
+      </div>
+      <div class="dep-card">
+        <div class="dep-name">postcss <span class="dep-ver">^8.5.8</span></div>
+        <div class="dep-desc">CSS transformation pipeline — used by autoprefixer</div>
+        <div class="dep-used">✓ Installed</div>
+      </div>
+      <div class="dep-card">
+        <div class="dep-name">axios <span class="dep-ver">^1.14.0</span></div>
+        <div class="dep-desc">HTTP client — all API calls use axios.create() instances</div>
+        <div class="dep-used">✓ Used — axiosAuth.ts, briefAxios.ts</div>
+      </div>
+      <div class="dep-card">
+        <div class="dep-name">react-router-dom <span class="dep-ver">^7.13.2</span></div>
+        <div class="dep-desc">Client-side routing — BrowserRouter, Route, Link, useNavigate</div>
+        <div class="dep-used">✓ Used — all navigation</div>
+      </div>
+      <div class="dep-card">
+        <div class="dep-name">@reduxjs/toolkit <span class="dep-ver">^2.11.2</span></div>
+        <div class="dep-desc">Redux state management — createSlice, createAsyncThunk</div>
+        <div class="dep-used">✓ Used — auth + brief state</div>
+      </div>
+      <div class="dep-card">
+        <div class="dep-name">react-redux <span class="dep-ver">^9.2.0</span></div>
+        <div class="dep-desc">React bindings for Redux — useSelector, useDispatch</div>
+        <div class="dep-used">✓ Used — all components</div>
+      </div>
+      <div class="dep-card">
+        <div class="dep-name">lucide-react <span class="dep-ver">^1.7.0</span></div>
+        <div class="dep-desc">Icon library — SVG icons as React components</div>
+        <div class="dep-used">✓ Used — all icons</div>
+      </div>
+      <div class="dep-card">
+        <div class="dep-name">@chakra-ui/react <span class="dep-ver">^3.34.0</span></div>
+        <div class="dep-desc">Component library — used for DatePicker/calendar</div>
+        <div class="dep-used">✓ Used — date inputs</div>
+      </div>
+      <div class="dep-card">
+        <div class="dep-name">@emotion/react <span class="dep-ver">^11.14.0</span></div>
+        <div class="dep-desc">CSS-in-JS peer dependency of Chakra UI</div>
+        <div class="dep-used">✓ Required by Chakra</div>
+      </div>
+      <div class="dep-card">
+        <div class="dep-name">react-select <span class="dep-ver">^5.10.2</span></div>
+        <div class="dep-desc">Advanced select/multiselect dropdown component</div>
+        <div class="dep-used">✓ Used — employee assignment</div>
+      </div>
+      <div class="dep-card">
+        <div class="dep-name">react-datepicker <span class="dep-ver">^9.1.0</span></div>
+        <div class="dep-desc">Date picker component with calendar popup</div>
+        <div class="dep-used">✓ Used — brief deadline</div>
+      </div>
+      <div class="dep-card">
+        <div class="dep-name">date-fns <span class="dep-ver">^4.1.0</span></div>
+        <div class="dep-desc">Date utility library — format, parse, compare dates</div>
+        <div class="dep-used">✓ Used — date formatting</div>
+      </div>
+      <div class="dep-card">
+        <div class="dep-name">react-phone-number-input <span class="dep-ver">^3.4.16</span></div>
+        <div class="dep-desc">International phone number input with country flags</div>
+        <div class="dep-used">✓ Used — auth forms</div>
+      </div>
+    </div>
+
+    <h3>Recommended Additions (not in project)</h3>
+    <div class="dep-grid">
+      <div class="dep-card">
+        <div class="dep-name">clsx</div>
+        <div class="dep-desc">Conditionally join class names. Replaces template literal conditionals.</div>
+        <div class="dep-used" style="color: #e3b341">Recommended — used via cn() pattern</div>
+      </div>
+      <div class="dep-card">
+        <div class="dep-name">tailwind-merge</div>
+        <div class="dep-desc">Merge Tailwind classes without conflicts (e.g. p-2 and p-4 → p-4)</div>
+        <div class="dep-used" style="color: #e3b341">Recommended — pair with clsx</div>
+      </div>
+      <div class="dep-card">
+        <div class="dep-name">react-query / @tanstack/react-query</div>
+        <div class="dep-desc">Server state management — caching, loading states, refetching. Alternative to Redux thunks for API data.</div>
+        <div class="dep-used" style="color: #e3b341">Recommended if replacing Redux</div>
+      </div>
+      <div class="dep-card">
+        <div class="dep-name">react-hook-form</div>
+        <div class="dep-desc">Performant form state management — validation, errors, submit handling</div>
+        <div class="dep-used" style="color: #e3b341">Recommended for complex forms</div>
+      </div>
+      <div class="dep-card">
+        <div class="dep-name">zod</div>
+        <div class="dep-desc">TypeScript-first schema validation — validate API responses and form data</div>
+        <div class="dep-used" style="color: #e3b341">Recommended for type-safe validation</div>
+      </div>
+      <div class="dep-card">
+        <div class="dep-name">vitest</div>
+        <div class="dep-desc">Unit testing framework built for Vite — same config, very fast</div>
+        <div class="dep-used" style="color: #e3b341">Recommended if adding tests</div>
+      </div>
+    </div>
+
+    <!-- INSTALL COMMANDS -->
+    <h2>Install Commands</h2>
+    <pre><code><span class="cm"># Create a brand new Vite + React + TypeScript project</span>
+npm create vite@latest my-app -- --template react-ts
+cd my-app && npm install
+
+<span class="cm"># Add Tailwind v4</span>
+npm install tailwindcss @tailwindcss/vite
+<span class="cm"># Then add tailwindcss() to plugins in vite.config.ts</span>
+<span class="cm"># Then add @import "tailwindcss"; to your CSS entry file</span>
+
+<span class="cm"># Add SVGR</span>
+npm install vite-plugin-svgr
+<span class="cm"># Then add svgr() to plugins in vite.config.ts</span>
+
+<span class="cm"># Add path alias support</span>
+npm install -D @types/node
+
+<span class="cm"># Useful extras</span>
+npm install clsx tailwind-merge
+npm install axios react-router-dom
+npm install @reduxjs/toolkit react-redux
+npm install lucide-react</code></pre>
+
+    <hr>
+    <p style="color:#3a4358; font-size:13px;">Smart Brief Docs — Vite + Environment Variables</p>
+  </main>
+</div>
+</body>
+</html>

@@ -1,7 +1,11 @@
-import "dotenv/config"; 
+import "dotenv/config";
 import express from "express";
 import cors from "cors";
+import path from "path";
+import { fileURLToPath } from "url";
 import briefRoutes from "./routes/brief.routes.js";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 
 if (!process.env.DATABASE_URL) {
@@ -23,8 +27,9 @@ app.use((req, _res, next) => {
     next()
 })
 app.use("/briefs", briefRoutes);
+app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
-app.get("/health", (req, res) => {
+app.get("/health", (_req, res) => {
   res.status(200).json({ status: "OK", service: "brief-service" });
 });
 

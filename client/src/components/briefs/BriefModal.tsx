@@ -99,6 +99,12 @@ export default function BriefModal({ brief, isOpen, onClose, userRole }: BriefMo
     }
   };
 
+  const handleDownloadFile = (filename: string) => {
+    const base = import.meta.env.VITE_API_URL || "http://localhost:8080";
+    window.open(`${base}/uploads/${filename}`, "_blank");
+  };
+
+
 
   return (
     <div className="fixed inset-0 z-100 flex items-center justify-center px-4 py-6 sm:p-0">
@@ -336,7 +342,10 @@ export default function BriefModal({ brief, isOpen, onClose, userRole }: BriefMo
                            <div className="bg-[#2D3652] p-2 rounded-lg text-white/40"><FileText size={16}/></div>
                            <span className="text-sm font-medium text-white/70 truncate max-w-[200px] sm:max-w-md">{file}</span>
                          </div>
-                         <button className="bg-sbteal/10 hover:bg-sbteal text-sbteal hover:text-[#0F1528] p-2.5 rounded-lg transition-all group-hover:scale-105">
+                         <button
+                           onClick={() => handleDownloadFile(file)}
+                           className="bg-sbteal/10 hover:bg-sbteal text-sbteal hover:text-[#0F1528] p-2.5 rounded-lg transition-all group-hover:scale-105"
+                         >
                            <Download size={14}/>
                          </button>
                        </div>

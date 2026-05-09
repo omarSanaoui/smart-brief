@@ -1,0 +1,1072 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PostgreSQL — Smart Brief Docs</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0d1117; --surface: #161b27; --card: #1a2238; --border: #2e3a5c;
+      --teal: #62d2b2; --purple: #4a55d0; --blue: #4a9edd; --red: #f47068;
+      --yellow: #f0c060; --green: #5cb85c; --text: #cdd9f5; --muted: #6b7a99;
+      --sidebar-w: 270px;
+    }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); display: flex; min-height: 100vh; line-height: 1.7; }
+    nav#sidebar { position: fixed; top: 0; left: 0; width: var(--sidebar-w); height: 100vh; background: var(--surface); border-right: 1px solid var(--border); overflow-y: auto; padding: 28px 0 40px; }
+    nav#sidebar .logo { font-size: 1rem; font-weight: 700; color: var(--teal); padding: 0 22px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; }
+    nav#sidebar .logo span { color: var(--purple); }
+    nav#sidebar .section-label { font-size: .65rem; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); padding: 18px 22px 6px; }
+    nav#sidebar a { display: block; padding: 7px 22px; color: var(--muted); text-decoration: none; font-size: .83rem; border-left: 2px solid transparent; transition: all .15s; }
+    nav#sidebar a:hover { color: var(--text); background: rgba(255,255,255,.03); }
+    nav#sidebar a.active { color: var(--teal); border-left-color: var(--teal); background: rgba(98,210,178,.06); }
+    main { margin-left: var(--sidebar-w); padding: 60px 64px 120px; max-width: calc(var(--sidebar-w) + 900px); width: 100%; }
+    h1 { font-size: 2.6rem; color: #fff; font-weight: 800; line-height: 1.15; }
+    h1 .hl-teal { color: var(--teal); } h1 .hl-purple { color: var(--purple); } h1 .hl-blue { color: var(--blue); }
+    .page-sub { color: var(--muted); font-size: 1.05rem; margin-top: 10px; margin-bottom: 48px; max-width: 640px; }
+    h2 { font-size: 1.6rem; color: #fff; font-weight: 700; margin: 64px 0 18px; padding-bottom: 10px; border-bottom: 1px solid var(--border); scroll-margin-top: 32px; }
+    h3 { font-size: 1.1rem; color: var(--teal); font-weight: 600; margin: 32px 0 10px; scroll-margin-top: 32px; }
+    h4 { font-size: .9rem; color: var(--yellow); font-weight: 600; margin: 24px 0 8px; text-transform: uppercase; letter-spacing: .05em; }
+    p { margin-bottom: 14px; }
+    ul, ol { padding-left: 22px; margin-bottom: 14px; }
+    li { margin-bottom: 5px; }
+    strong { color: #fff; }
+    code { font-family: 'Cascadia Code','Fira Code',monospace; background: rgba(255,255,255,.07); color: var(--teal); padding: 1px 6px; border-radius: 4px; font-size: .88em; }
+
+    /* code blocks */
+    pre { background: #0a0e1a; border: 1px solid var(--border); border-radius: 10px; padding: 20px 22px; overflow-x: auto; font-family: 'Cascadia Code','Fira Code',monospace; font-size: .82rem; line-height: 1.65; margin: 12px 0 22px; position: relative; }
+    pre .file-label { position: absolute; top: 10px; right: 14px; font-size: .68rem; color: var(--muted); background: var(--surface); border: 1px solid var(--border); padding: 2px 8px; border-radius: 4px; font-family: inherit; }
+
+    /* SQL syntax highlighting */
+    .kw  { color: #c792ea; font-weight: 600; }   /* SQL keywords */
+    .tp  { color: #82b1ff; }                       /* types */
+    .str { color: #c3e88d; }                       /* strings */
+    .fn  { color: var(--teal); }                   /* functions */
+    .cm  { color: #546e7a; font-style: italic; }   /* comments */
+    .nm  { color: #f78c6c; }                       /* numbers */
+    .op  { color: #89ddff; }                       /* operators */
+    .cn  { color: var(--yellow); font-weight:600; } /* constraint/clause keywords */
+    .tb  { color: #ff9e80; }                       /* table/column names */
+
+    /* callouts */
+    .callout { border-radius: 10px; padding: 16px 20px; margin: 18px 0; border-left: 4px solid; font-size: .9rem; }
+    .callout.info   { background: rgba(74,158,221,.1);  border-color: var(--blue); }
+    .callout.warn   { background: rgba(240,192,96,.1);  border-color: var(--yellow); }
+    .callout.tip    { background: rgba(98,210,178,.1);  border-color: var(--teal); }
+    .callout.danger { background: rgba(244,112,104,.1); border-color: var(--red); }
+    .callout strong { display: block; margin-bottom: 4px; font-size: .8rem; text-transform: uppercase; letter-spacing: .07em; }
+    .callout.info   strong { color: var(--blue); }
+    .callout.warn   strong { color: var(--yellow); }
+    .callout.tip    strong { color: var(--teal); }
+    .callout.danger strong { color: var(--red); }
+
+    /* compare */
+    .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 12px 0 22px; }
+    .compare > div { border-radius: 10px; overflow: hidden; }
+    .compare > div > .compare-label { font-size: .7rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; padding: 8px 16px; }
+    .compare .bad  .compare-label { background: rgba(244,112,104,.2); color: var(--red); }
+    .compare .good .compare-label { background: rgba(98,210,178,.2);  color: var(--teal); }
+    .compare .info-side .compare-label { background: rgba(74,158,221,.2); color: var(--blue); }
+    .compare pre { margin: 0; border-radius: 0 0 10px 10px; border-top: none; }
+
+    /* table */
+    table { width: 100%; border-collapse: collapse; margin: 16px 0 24px; font-size: .87rem; }
+    th { background: var(--card); color: var(--teal); font-weight: 600; padding: 10px 14px; text-align: left; border-bottom: 2px solid var(--border); }
+    td { padding: 9px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
+    tr:last-child td { border-bottom: none; }
+
+    /* data preview table */
+    .data-table { overflow-x: auto; margin: 16px 0 22px; }
+    .data-table table { font-size: .8rem; }
+    .data-table th { background: #1a2238; color: var(--purple); font-size: .75rem; }
+    .data-table td { font-family: 'Cascadia Code', monospace; background: #0a0e1a; color: #c3e88d; }
+    .data-table td.null { color: var(--muted); font-style: italic; }
+
+    hr { border: none; border-top: 1px solid var(--border); margin: 40px 0; }
+    ::-webkit-scrollbar { width: 6px; } ::-webkit-scrollbar-track { background: var(--bg); } ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  </style>
+</head>
+<body>
+
+<nav id="sidebar">
+  <div class="logo">🐘 <span>Smart</span>Brief · PostgreSQL</div>
+
+  <div class="section-label">What is a Database</div>
+  <a href="#what-is-db">What is a database?</a>
+  <a href="#relational">Relational vs NoSQL</a>
+  <a href="#what-is-postgres">PostgreSQL</a>
+  <a href="#connection">Connection String</a>
+
+  <div class="section-label">Core Concepts</div>
+  <a href="#tables">Tables, Rows &amp; Columns</a>
+  <a href="#data-types">Data Types</a>
+  <a href="#constraints">Constraints</a>
+  <a href="#null">NULL</a>
+  <a href="#primary-key">Primary Keys &amp; UUIDs</a>
+  <a href="#foreign-key">Foreign Keys</a>
+  <a href="#indexes">Indexes</a>
+
+  <div class="section-label">The Project's Tables</div>
+  <a href="#table-user">User Table</a>
+  <a href="#table-verifytoken">VerifyToken Table</a>
+  <a href="#table-brief">Brief Table</a>
+  <a href="#enums">Enums</a>
+  <a href="#arrays">Arrays</a>
+
+  <div class="section-label">SQL — Reading Data</div>
+  <a href="#select">SELECT</a>
+  <a href="#where">WHERE &amp; Operators</a>
+  <a href="#order-limit">ORDER BY / LIMIT / OFFSET</a>
+  <a href="#joins">JOINs</a>
+  <a href="#aggregates">Aggregates &amp; GROUP BY</a>
+  <a href="#subqueries">Subqueries</a>
+
+  <div class="section-label">SQL — Writing Data</div>
+  <a href="#insert">INSERT</a>
+  <a href="#update">UPDATE</a>
+  <a href="#delete">DELETE</a>
+  <a href="#upsert">UPSERT (ON CONFLICT)</a>
+
+  <div class="section-label">Advanced</div>
+  <a href="#transactions">Transactions &amp; ACID</a>
+  <a href="#schema-ddl">Schema DDL (CREATE / ALTER)</a>
+  <a href="#array-ops">Array Operations</a>
+  <a href="#timestamps">Timestamps &amp; now()</a>
+  <a href="#psql">psql — The CLI</a>
+  <a href="#railway-db">Railway &amp; DATABASE_URL</a>
+  <a href="#cheatsheet">Cheat Sheet</a>
+</nav>
+
+<main>
+  <h1><span class="hl-blue">Post</span><span class="hl-teal">gre</span><span class="hl-purple">SQL</span></h1>
+  <p class="page-sub">Everything about PostgreSQL as a database engine — what it is, how it stores data, how SQL works, and how the Smart Brief tables are structured. No ORM — pure SQL.</p>
+
+  <!-- ═══════════════════════════════════════ WHAT IS A DATABASE -->
+  <h2 id="what-is-db">What is a Database?</h2>
+  <p>A database is a program dedicated to <strong>storing, organizing, and retrieving data reliably</strong>. Your Node.js server is stateless — every time it restarts, all variables in memory are gone. The database is where data lives permanently.</p>
+  <p>Without a database, when a user registers, their account only exists until the server restarts. The database gives you durability — data survives crashes, restarts, and deployments.</p>
+
+  <h2 id="relational">Relational vs NoSQL</h2>
+  <div class="compare">
+    <div class="bad"><div class="compare-label">NoSQL (MongoDB, DynamoDB)</div>
+<pre><span class="cm">// Documents — free-form JSON</span>
+{
+  _id: "abc123",
+  firstName: "Omar",
+  role: "ADMIN",
+  briefs: [
+    { title: "Website", status: "PENDING" },
+    ...
+  ]
+}
+<span class="cm">// Flexible — no fixed schema
+// Hard to query across documents
+// Can get inconsistent fast</span></pre></div>
+    <div class="good"><div class="compare-label">Relational (PostgreSQL)</div>
+<pre><span class="cm">-- Tables — fixed columns, typed data</span>
+<span class="kw">users</span> table:
+  id | firstName | role
+  ---|-----------|------
+  1  | Omar      | ADMIN
+
+<span class="kw">briefs</span> table:
+  id | client_id | title   | status
+  ---|-----------|---------|-------
+  1  | 1         | Website | PENDING
+
+<span class="cm">-- Relationships, constraints,
+-- guaranteed consistency</span></pre></div>
+  </div>
+
+  <p>Smart Brief uses PostgreSQL because the data is highly <strong>structured and relational</strong> — users have briefs, briefs have statuses, admins assign employees. Relational databases enforce these relationships at the database level, not just in application code.</p>
+
+  <h2 id="what-is-postgres">PostgreSQL</h2>
+  <p>PostgreSQL (often called "Postgres") is a free, open-source relational database system. It has been in active development since 1986 and is one of the most powerful and standards-compliant SQL databases available. Key reasons it's used in Smart Brief:</p>
+  <ul>
+    <li><strong>Native array columns</strong> — the <code>Brief</code> table stores <code>features</code>, <code>attachments</code>, and <code>assignedToIds</code> as real array columns, not a JSON string or a separate join table</li>
+    <li><strong>Native enums</strong> — <code>Role</code>, <code>BriefStatus</code>, <code>ProjectType</code> are database-level types</li>
+    <li><strong>Full ACID compliance</strong> — transactions are safe even on crashes</li>
+    <li><strong>Excellent Railway integration</strong> — one-click provisioning</li>
+  </ul>
+
+  <h2 id="connection">Connection String — DATABASE_URL</h2>
+  <p>Postgres is a separate process. Your Node.js app connects to it using a <strong>connection string</strong> — a URL that contains everything needed to connect:</p>
+
+<pre><span class="cm">-- Format:</span>
+postgresql://<span class="tb">username</span>:<span class="tb">password</span>@<span class="tb">host</span>:<span class="tb">port</span>/<span class="tb">database_name</span>
+
+<span class="cm">-- Local development example:</span>
+postgresql://postgres:mypassword@localhost:5432/smartbrief_auth
+
+<span class="cm">-- Railway production example:</span>
+postgresql://postgres:Abc123xyz@roundhouse.proxy.rlwy.net:12345/railway
+
+<span class="cm">-- In .env:</span>
+DATABASE_URL=postgresql://postgres:Abc123xyz@roundhouse.proxy.rlwy.net:12345/railway</pre>
+
+  <table>
+    <thead><tr><th>Part</th><th>Meaning</th><th>Default</th></tr></thead>
+    <tbody>
+      <tr><td><code>postgresql://</code></td><td>Protocol</td><td>—</td></tr>
+      <tr><td><code>postgres</code></td><td>Username</td><td><code>postgres</code></td></tr>
+      <tr><td><code>mypassword</code></td><td>Password</td><td>set on install</td></tr>
+      <tr><td><code>localhost</code></td><td>Host (server address)</td><td><code>localhost</code></td></tr>
+      <tr><td><code>5432</code></td><td>Port</td><td><code>5432</code></td></tr>
+      <tr><td><code>smartbrief_auth</code></td><td>Database name</td><td>—</td></tr>
+    </tbody>
+  </table>
+
+  <hr />
+
+  <!-- ═══════════════════════════════════════ CORE CONCEPTS -->
+  <h2 id="tables">Tables, Rows &amp; Columns</h2>
+  <p>Everything in a relational database lives in <strong>tables</strong>. A table is like a spreadsheet:</p>
+  <ul>
+    <li><strong>Columns</strong> define the structure — what kind of data each field holds (name, type, constraints)</li>
+    <li><strong>Rows</strong> are the actual records — one row = one user, one brief, one token</li>
+  </ul>
+
+  <div class="data-table">
+    <table>
+      <thead><tr><th>id</th><th>firstName</th><th>lastName</th><th>email</th><th>role</th><th>createdAt</th></tr></thead>
+      <tbody>
+        <tr><td>550e8400-e29b-41d4...</td><td>Omar</td><td>Sanaoui</td><td>omar@...</td><td>ADMIN</td><td>2026-01-15 10:23:45</td></tr>
+        <tr><td>6ba7b810-9dad-11d1...</td><td>Mehdi</td><td>Zaki</td><td>mehdi@...</td><td>EMPLOYEE</td><td>2026-01-20 14:02:11</td></tr>
+        <tr><td>7c9e6679-7425-40de...</td><td>Youssef</td><td>Alami</td><td>youssef@...</td><td>CLIENT</td><td>2026-02-03 09:15:30</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2 id="data-types">Data Types</h2>
+  <p>Every column has a <strong>type</strong>. PostgreSQL enforces it — you cannot store the string <code>"hello"</code> in an integer column.</p>
+
+  <table>
+    <thead><tr><th>PostgreSQL type</th><th>What it stores</th><th>Used in Smart Brief</th></tr></thead>
+    <tbody>
+      <tr><td><code>TEXT</code></td><td>Variable-length string, no limit</td><td><code>firstName</code>, <code>title</code>, <code>description</code>, <code>password</code></td></tr>
+      <tr><td><code>VARCHAR(n)</code></td><td>String up to <em>n</em> characters</td><td>Not used directly (Prisma maps <code>String</code> → <code>TEXT</code>)</td></tr>
+      <tr><td><code>INTEGER</code></td><td>Whole number (32-bit)</td><td>Not used</td></tr>
+      <tr><td><code>BIGINT</code></td><td>Whole number (64-bit)</td><td>Not used</td></tr>
+      <tr><td><code>BOOLEAN</code></td><td><code>true</code> / <code>false</code></td><td>Not used directly</td></tr>
+      <tr><td><code>TIMESTAMP</code></td><td>Date + time, no timezone</td><td><code>createdAt</code>, <code>updatedAt</code>, <code>deadline</code></td></tr>
+      <tr><td><code>TIMESTAMPTZ</code></td><td>Date + time with timezone</td><td>Prisma's <code>DateTime</code> maps to this</td></tr>
+      <tr><td><code>UUID</code></td><td>128-bit unique identifier string</td><td><code>id</code> on every table</td></tr>
+      <tr><td><code>TEXT[]</code></td><td>Array of text values</td><td><code>features</code>, <code>attachments</code>, <code>assignedToIds</code></td></tr>
+      <tr><td><code>ENUM</code></td><td>One of a fixed list of values</td><td><code>Role</code>, <code>Provider</code>, <code>BriefStatus</code>, <code>ProjectType</code></td></tr>
+    </tbody>
+  </table>
+
+  <h2 id="constraints">Constraints</h2>
+  <p>Constraints are rules enforced by the database engine. If your application code has a bug and tries to insert invalid data, the constraint rejects it — the database is the last line of defense.</p>
+
+  <table>
+    <thead><tr><th>Constraint</th><th>Meaning</th><th>Example in project</th></tr></thead>
+    <tbody>
+      <tr><td><code>NOT NULL</code></td><td>Column must have a value — cannot be empty</td><td><code>firstName</code>, <code>email</code>, <code>title</code></td></tr>
+      <tr><td><code>UNIQUE</code></td><td>No two rows can have the same value</td><td><code>email</code>, <code>googleId</code></td></tr>
+      <tr><td><code>PRIMARY KEY</code></td><td>Unique + Not Null — identifies a row</td><td><code>id</code> on every table</td></tr>
+      <tr><td><code>DEFAULT</code></td><td>Value used when column is not provided</td><td><code>role DEFAULT 'CLIENT'</code>, <code>createdAt DEFAULT now()</code></td></tr>
+      <tr><td><code>REFERENCES</code></td><td>Foreign key — value must exist in another table</td><td>Not explicit in Smart Brief (done in app logic)</td></tr>
+      <tr><td><code>CHECK</code></td><td>Custom condition that must be true</td><td>Not used directly</td></tr>
+    </tbody>
+  </table>
+
+<pre><span class="cm">-- Example: what happens when constraints are violated</span>
+
+<span class="kw">INSERT INTO</span> <span class="tb">"User"</span> (id, <span class="tb">firstName</span>, <span class="tb">email</span>)
+<span class="kw">VALUES</span> (<span class="str">'abc'</span>, <span class="str">'Omar'</span>, <span class="kw">NULL</span>);
+<span class="cm">-- ERROR: null value in column "email" violates not-null constraint</span>
+
+<span class="kw">INSERT INTO</span> <span class="tb">"User"</span> (id, <span class="tb">firstName</span>, <span class="tb">lastName</span>, <span class="tb">email</span>, <span class="tb">role</span>, <span class="tb">provider</span>)
+<span class="kw">VALUES</span> (<span class="fn">gen_random_uuid</span>(), <span class="str">'Omar'</span>, <span class="str">'S'</span>, <span class="str">'omar@example.com'</span>, <span class="str">'CLIENT'</span>, <span class="str">'LOCAL'</span>);
+
+<span class="kw">INSERT INTO</span> <span class="tb">"User"</span> (id, <span class="tb">firstName</span>, <span class="tb">lastName</span>, <span class="tb">email</span>, <span class="tb">role</span>, <span class="tb">provider</span>)
+<span class="kw">VALUES</span> (<span class="fn">gen_random_uuid</span>(), <span class="str">'Omar2'</span>, <span class="str">'S'</span>, <span class="str">'omar@example.com'</span>, <span class="str">'CLIENT'</span>, <span class="str">'LOCAL'</span>);
+<span class="cm">-- ERROR: duplicate key value violates unique constraint "User_email_key"</span></pre>
+
+  <h2 id="null">NULL — The Absence of a Value</h2>
+  <p>NULL means "no value" — it is not the same as empty string <code>''</code>, zero <code>0</code>, or false. NULL represents unknown or absent data. In Smart Brief: <code>phone</code>, <code>password</code>, <code>googleId</code>, <code>statusReason</code> are all nullable — they can be NULL.</p>
+
+<pre><span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tb">"User"</span>
+<span class="kw">WHERE</span> <span class="tb">phone</span> <span class="kw">IS NULL</span>;          <span class="cm">-- users who didn't provide a phone</span>
+
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tb">"User"</span>
+<span class="kw">WHERE</span> <span class="tb">googleId</span> <span class="kw">IS NOT NULL</span>;  <span class="cm">-- users who signed in with Google</span>
+
+<span class="cm">-- NULL comparisons with = always return NULL (not true or false!)</span>
+<span class="kw">SELECT</span> <span class="kw">NULL</span> = <span class="kw">NULL</span>;  <span class="cm">-- returns NULL, not true</span>
+<span class="kw">SELECT</span> <span class="kw">NULL</span> <span class="op">=</span> <span class="str">'hello'</span>; <span class="cm">-- returns NULL, not false</span>
+<span class="cm">-- Always use IS NULL or IS NOT NULL</span>
+
+<span class="cm">-- COALESCE: return first non-NULL value</span>
+<span class="kw">SELECT</span> <span class="fn">COALESCE</span>(<span class="tb">phone</span>, <span class="str">'No phone'</span>) <span class="kw">FROM</span> <span class="tb">"User"</span>;</pre>
+
+  <h2 id="primary-key">Primary Keys &amp; UUIDs</h2>
+  <p>Every table must have a <strong>primary key</strong> — a column (or combination of columns) that uniquely identifies each row. Smart Brief uses <strong>UUID</strong> (Universally Unique Identifier) for all primary keys instead of auto-incrementing integers.</p>
+
+  <div class="compare">
+    <div class="info-side"><div class="compare-label">Integer ID (sequential)</div>
+<pre>id = 1
+id = 2
+id = 3
+<span class="cm">-- Problems:
+-- /briefs/1 exposes how many briefs exist
+-- /briefs/2 is easily guessable
+-- Merging databases causes conflicts</span></pre></div>
+    <div class="good"><div class="compare-label">UUID (random)</div>
+<pre>id = 550e8400-e29b-41d4-a716-446655440000
+id = 6ba7b810-9dad-11d1-80b4-00c04fd430c8
+id = 7c9e6679-7425-40de-8ad8-24ac059b69e4
+<span class="cm">-- No sequential information revealed
+-- Safe to use in public URLs
+-- Globally unique across databases</span></pre></div>
+  </div>
+
+<pre><span class="cm">-- Generate a UUID in PostgreSQL</span>
+<span class="kw">SELECT</span> <span class="fn">gen_random_uuid</span>();
+<span class="cm">-- → '550e8400-e29b-41d4-a716-446655440000'</span>
+
+<span class="cm">-- In the CREATE TABLE, this is set as the default</span>
+<span class="tb">id</span> <span class="tp">UUID</span> <span class="cn">PRIMARY KEY DEFAULT</span> <span class="fn">gen_random_uuid</span>()</pre>
+
+  <h2 id="foreign-key">Foreign Keys</h2>
+  <p>A foreign key is a column in one table that <strong>references the primary key of another table</strong>. It enforces referential integrity — you cannot have a brief pointing to a user that doesn't exist.</p>
+
+<pre><span class="cm">-- Classic foreign key example (Smart Brief handles this in app logic)</span>
+<span class="kw">CREATE TABLE</span> <span class="tb">briefs</span> (
+    <span class="tb">id</span>        <span class="tp">UUID</span>    <span class="cn">PRIMARY KEY DEFAULT</span> <span class="fn">gen_random_uuid</span>(),
+    <span class="tb">client_id</span> <span class="tp">UUID</span>    <span class="cn">NOT NULL REFERENCES</span> <span class="tb">"User"</span>(<span class="tb">id</span>) <span class="cn">ON DELETE CASCADE</span>,
+    <span class="tb">title</span>     <span class="tp">TEXT</span>    <span class="cn">NOT NULL</span>
+);
+<span class="cm">-- ON DELETE CASCADE means: if the user is deleted, their briefs are also deleted
+-- ON DELETE RESTRICT means: cannot delete a user who has briefs</span>
+
+<span class="cm">-- Smart Brief stores clientId as plain TEXT, not a hard FK constraint.
+-- Referential integrity is enforced by the application logic instead.</span></pre>
+
+  <h2 id="indexes">Indexes</h2>
+  <p>Without an index, every query that searches by a column must <strong>scan the entire table</strong> row by row. For a table with millions of rows, this is very slow. An index is a separate data structure (like a book's index) that lets PostgreSQL find rows in <code>O(log n)</code> time instead of <code>O(n)</code>.</p>
+
+<pre><span class="cm">-- The Brief table in Smart Brief has two explicit indexes:</span>
+<span class="cm">-- @@index([clientId]) and @@index([status]) in the Prisma schema</span>
+<span class="cm">-- These generate:</span>
+
+<span class="kw">CREATE INDEX</span> <span class="tb">Brief_clientId_idx</span> <span class="kw">ON</span> <span class="tb">"Brief"</span>(<span class="tb">"clientId"</span>);
+<span class="kw">CREATE INDEX</span> <span class="tb">Brief_status_idx</span>   <span class="kw">ON</span> <span class="tb">"Brief"</span>(<span class="tb">"status"</span>);
+
+<span class="cm">-- Why these two?
+-- "Get all briefs for client X" → WHERE clientId = 'xxx'   → uses clientId index
+-- "Get all PENDING briefs"      → WHERE status = 'PENDING' → uses status index</span>
+
+<span class="cm">-- Unique constraint automatically creates an index too:</span>
+<span class="cm">-- email UNIQUE → unique index on email for fast lookups during login</span>
+
+<span class="cm">-- Check if indexes are being used (EXPLAIN shows the query plan)</span>
+<span class="kw">EXPLAIN</span> <span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tb">"Brief"</span> <span class="kw">WHERE</span> <span class="tb">"clientId"</span> = <span class="str">'abc'</span>;
+<span class="cm">-- Index Scan using "Brief_clientId_idx" (fast ✓)
+-- vs Seq Scan (full table scan, slow ✗)</span></pre>
+
+  <div class="callout tip">
+    <strong>Rule of thumb for indexing</strong>
+    Index columns you frequently use in <code>WHERE</code>, <code>JOIN ON</code>, or <code>ORDER BY</code>. Don't over-index — every index slows down <code>INSERT</code> and <code>UPDATE</code> because the index must also be updated.
+  </div>
+
+  <hr />
+
+  <!-- ═══════════════════════════════════════ PROJECT TABLES -->
+  <h2 id="table-user">The User Table (auth database)</h2>
+  <p>Here is the actual SQL that PostgreSQL executes when Prisma runs <code>prisma migrate</code> — the raw CREATE TABLE statement for the <code>User</code> model:</p>
+
+<pre><span class="cm">-- Enums must be created before the table that uses them</span>
+<span class="kw">CREATE TYPE</span> <span class="tb">"Role"</span> <span class="kw">AS ENUM</span> (<span class="str">'ADMIN'</span>, <span class="str">'CLIENT'</span>, <span class="str">'EMPLOYEE'</span>);
+<span class="kw">CREATE TYPE</span> <span class="tb">"Provider"</span> <span class="kw">AS ENUM</span> (<span class="str">'LOCAL'</span>, <span class="str">'GOOGLE'</span>);
+
+<span class="kw">CREATE TABLE</span> <span class="tb">"User"</span> (
+    <span class="tb">id</span>          <span class="tp">TEXT</span>        <span class="cn">PRIMARY KEY</span>,          <span class="cm">-- UUID stored as text by Prisma</span>
+    <span class="tb">"firstName"</span> <span class="tp">TEXT</span>        <span class="cn">NOT NULL</span>,
+    <span class="tb">"lastName"</span>  <span class="tp">TEXT</span>        <span class="cn">NOT NULL</span>,
+    <span class="tb">phone</span>       <span class="tp">TEXT</span>,                               <span class="cm">-- nullable (no NOT NULL)</span>
+    <span class="tb">email</span>       <span class="tp">TEXT</span>        <span class="cn">NOT NULL UNIQUE</span>,
+    <span class="tb">password</span>    <span class="tp">TEXT</span>,                               <span class="cm">-- nullable (Google users have no password)</span>
+    <span class="tb">provider</span>    <span class="tb">"Provider"</span>  <span class="cn">NOT NULL DEFAULT</span> <span class="str">'LOCAL'</span>,
+    <span class="tb">"googleId"</span>  <span class="tp">TEXT</span>        <span class="cn">UNIQUE</span>,                <span class="cm">-- nullable, unique when set</span>
+    <span class="tb">role</span>        <span class="tb">"Role"</span>      <span class="cn">NOT NULL DEFAULT</span> <span class="str">'CLIENT'</span>,
+    <span class="tb">"createdAt"</span> <span class="tp">TIMESTAMPTZ</span> <span class="cn">NOT NULL DEFAULT</span> <span class="fn">now</span>(),
+    <span class="tb">"updatedAt"</span> <span class="tp">TIMESTAMPTZ</span> <span class="cn">NOT NULL</span>                <span class="cm">-- updated by Prisma middleware</span>
+);
+
+<span class="cm">-- Prisma names indexes automatically:</span>
+<span class="kw">CREATE UNIQUE INDEX</span> <span class="tb">"User_email_key"</span>    <span class="kw">ON</span> <span class="tb">"User"</span>(<span class="tb">email</span>);
+<span class="kw">CREATE UNIQUE INDEX</span> <span class="tb">"User_googleId_key"</span> <span class="kw">ON</span> <span class="tb">"User"</span>(<span class="tb">"googleId"</span>);</pre>
+
+  <div class="data-table">
+    <table>
+      <thead><tr><th>id</th><th>firstName</th><th>email</th><th>password</th><th>role</th><th>provider</th><th>googleId</th></tr></thead>
+      <tbody>
+        <tr><td>550e8400...</td><td>Omar</td><td>omar@...</td><td>$2b$10$K5...</td><td>ADMIN</td><td>LOCAL</td><td class="null">NULL</td></tr>
+        <tr><td>6ba7b810...</td><td>Youssef</td><td>youssef@...</td><td class="null">NULL</td><td>CLIENT</td><td>GOOGLE</td><td>1234567890</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2 id="table-verifytoken">The VerifyToken Table</h2>
+  <p>This is a <strong>temporary staging table</strong>. When a user registers, their data is stored here with a 6-digit code. Once they verify, the row is moved to <code>"User"</code> and deleted here. It acts like a waiting room.</p>
+
+<pre><span class="kw">CREATE TABLE</span> <span class="tb">"VerifyToken"</span> (
+    <span class="tb">id</span>          <span class="tp">TEXT</span>        <span class="cn">PRIMARY KEY</span>,
+    <span class="tb">email</span>       <span class="tp">TEXT</span>        <span class="cn">NOT NULL UNIQUE</span>,  <span class="cm">-- one pending registration per email</span>
+    <span class="tb">code</span>        <span class="tp">TEXT</span>        <span class="cn">NOT NULL</span>,         <span class="cm">-- the 6-digit code e.g. "847291"</span>
+    <span class="tb">"firstName"</span> <span class="tp">TEXT</span>        <span class="cn">NOT NULL</span>,
+    <span class="tb">"lastName"</span>  <span class="tp">TEXT</span>        <span class="cn">NOT NULL</span>,
+    <span class="tb">password</span>    <span class="tp">TEXT</span>        <span class="cn">NOT NULL</span>,         <span class="cm">-- already bcrypt-hashed</span>
+    <span class="tb">phone</span>       <span class="tp">TEXT</span>,                           <span class="cm">-- optional</span>
+    <span class="tb">"expiresAt"</span> <span class="tp">TIMESTAMPTZ</span> <span class="cn">NOT NULL</span>           <span class="cm">-- now() + 10 minutes</span>
+);
+<span class="cm">-- Note: no createdAt / updatedAt — this table is truly temporary</span></pre>
+
+  <h2 id="table-brief">The Brief Table (brief database)</h2>
+  <p>The most complex table in the project — it uses PostgreSQL's native <code>TEXT[]</code> arrays and two custom enums:</p>
+
+<pre><span class="kw">CREATE TYPE</span> <span class="tb">"ProjectType"</span> <span class="kw">AS ENUM</span> (
+    <span class="str">'SITE_WEB'</span>, <span class="str">'SEO'</span>, <span class="str">'GOOGLE_ADS'</span>, <span class="str">'SOCIAL_MEDIA'</span>,
+    <span class="str">'PHOTO_VIDEO'</span>, <span class="str">'EMAIL_MARKETING'</span>, <span class="str">'COMMUNITY_MANAGER'</span>,
+    <span class="str">'BRANDING'</span>, <span class="str">'OTHER'</span>
+);
+<span class="kw">CREATE TYPE</span> <span class="tb">"BriefStatus"</span> <span class="kw">AS ENUM</span> (
+    <span class="str">'PENDING'</span>, <span class="str">'ACCEPTED'</span>, <span class="str">'REFUSED'</span>, <span class="str">'IN_PROGRESS'</span>, <span class="str">'COMPLETED'</span>
+);
+
+<span class="kw">CREATE TABLE</span> <span class="tb">"Brief"</span> (
+    <span class="tb">id</span>                  <span class="tp">TEXT</span>            <span class="cn">PRIMARY KEY</span>,
+    <span class="tb">"clientId"</span>          <span class="tp">TEXT</span>            <span class="cn">NOT NULL</span>,      <span class="cm">-- UUID of the client user</span>
+    <span class="tb">"assignedToIds"</span>     <span class="tp">TEXT[]</span>          <span class="cn">NOT NULL DEFAULT</span> <span class="str">'{}'</span>,  <span class="cm">-- array of employee UUIDs</span>
+    <span class="tb">"assignedById"</span>      <span class="tp">TEXT</span>,                           <span class="cm">-- admin who assigned it</span>
+    <span class="tb">"assignedAt"</span>        <span class="tp">TIMESTAMPTZ</span>,
+    <span class="tb">title</span>               <span class="tp">TEXT</span>            <span class="cn">NOT NULL</span>,
+    <span class="tb">"projectType"</span>       <span class="tb">"ProjectType"</span>   <span class="cn">NOT NULL</span>,
+    <span class="tb">description</span>         <span class="tp">TEXT</span>            <span class="cn">NOT NULL</span>,
+    <span class="tb">features</span>            <span class="tp">TEXT[]</span>          <span class="cn">NOT NULL DEFAULT</span> <span class="str">'{}'</span>,  <span class="cm">-- list of feature strings</span>
+    <span class="tb">"budgetRange"</span>       <span class="tp">TEXT</span>            <span class="cn">NOT NULL</span>,
+    <span class="tb">deadline</span>            <span class="tp">TIMESTAMPTZ</span>     <span class="cn">NOT NULL</span>,
+    <span class="tb">status</span>              <span class="tb">"BriefStatus"</span>   <span class="cn">NOT NULL DEFAULT</span> <span class="str">'PENDING'</span>,
+    <span class="tb">"statusReason"</span>      <span class="tp">TEXT</span>,                           <span class="cm">-- admin's reason for REFUSED</span>
+    <span class="tb">"statusUpdatedById"</span> <span class="tp">TEXT</span>,
+    <span class="tb">"statusUpdatedAt"</span>   <span class="tp">TIMESTAMPTZ</span>,
+    <span class="tb">attachments</span>         <span class="tp">TEXT[]</span>          <span class="cn">NOT NULL DEFAULT</span> <span class="str">'{}'</span>,  <span class="cm">-- file URLs</span>
+    <span class="tb">"createdAt"</span>         <span class="tp">TIMESTAMPTZ</span>     <span class="cn">NOT NULL DEFAULT</span> <span class="fn">now</span>(),
+    <span class="tb">"updatedAt"</span>         <span class="tp">TIMESTAMPTZ</span>     <span class="cn">NOT NULL</span>
+);
+
+<span class="kw">CREATE INDEX</span> <span class="tb">"Brief_clientId_idx"</span> <span class="kw">ON</span> <span class="tb">"Brief"</span>(<span class="tb">"clientId"</span>);
+<span class="kw">CREATE INDEX</span> <span class="tb">"Brief_status_idx"</span>   <span class="kw">ON</span> <span class="tb">"Brief"</span>(<span class="tb">status</span>);</pre>
+
+  <h2 id="enums">Enums in PostgreSQL</h2>
+  <p>An enum (enumerated type) is a data type that only accepts a fixed list of values. The database enforces this — you cannot accidentally store <code>'APROVED'</code> (typo) when the column is declared as <code>"BriefStatus"</code>.</p>
+
+<pre><span class="cm">-- Create the enum type</span>
+<span class="kw">CREATE TYPE</span> <span class="tb">"Role"</span> <span class="kw">AS ENUM</span> (<span class="str">'ADMIN'</span>, <span class="str">'CLIENT'</span>, <span class="str">'EMPLOYEE'</span>);
+
+<span class="cm">-- Use it in a table</span>
+<span class="tb">role</span> <span class="tb">"Role"</span> <span class="cn">NOT NULL DEFAULT</span> <span class="str">'CLIENT'</span>
+
+<span class="cm">-- Valid insert</span>
+<span class="kw">UPDATE</span> <span class="tb">"User"</span> <span class="kw">SET</span> role = <span class="str">'ADMIN'</span> <span class="kw">WHERE</span> email = <span class="str">'omar@example.com'</span>;
+
+<span class="cm">-- Invalid insert — enum rejects it</span>
+<span class="kw">UPDATE</span> <span class="tb">"User"</span> <span class="kw">SET</span> role = <span class="str">'SUPERADMIN'</span> <span class="kw">WHERE</span> id = <span class="str">'...'</span>;
+<span class="cm">-- ERROR: invalid input value for enum "Role": "SUPERADMIN"</span>
+
+<span class="cm">-- List all values of an enum</span>
+<span class="kw">SELECT</span> <span class="fn">unnest</span>(<span class="fn">enum_range</span>(<span class="kw">NULL</span>::<span class="tb">"Role"</span>));
+<span class="cm">-- ADMIN, CLIENT, EMPLOYEE</span>
+
+<span class="cm">-- Add a new value to an enum (can't remove values!)</span>
+<span class="kw">ALTER TYPE</span> <span class="tb">"Role"</span> <span class="kw">ADD VALUE</span> <span class="str">'MANAGER'</span>;</pre>
+
+  <h2 id="arrays">Arrays in PostgreSQL</h2>
+  <p>PostgreSQL natively supports array columns — a single column that stores multiple values. Smart Brief uses this for <code>features</code>, <code>attachments</code>, and <code>assignedToIds</code> on the <code>Brief</code> table. Without this feature, you would need a separate join table.</p>
+
+<pre><span class="cm">-- Inserting an array</span>
+<span class="kw">INSERT INTO</span> <span class="tb">"Brief"</span> (<span class="tb">id</span>, <span class="tb">"clientId"</span>, <span class="tb">title</span>, <span class="tb">"projectType"</span>, <span class="tb">description</span>,
+                    <span class="tb">features</span>, <span class="tb">"budgetRange"</span>, <span class="tb">deadline</span>, <span class="tb">status</span>,
+                    <span class="tb">"assignedToIds"</span>, <span class="tb">attachments</span>, <span class="tb">"updatedAt"</span>)
+<span class="kw">VALUES</span> (
+    <span class="fn">gen_random_uuid</span>(), <span class="str">'client-uuid'</span>, <span class="str">'New Website'</span>, <span class="str">'SITE_WEB'</span>, <span class="str">'We need a website'</span>,
+    <span class="cn">ARRAY</span>[<span class="str">'Contact form'</span>, <span class="str">'Blog'</span>, <span class="str">'E-commerce'</span>],  <span class="cm">-- features array</span>
+    <span class="str">'5000-10000 MAD'</span>, <span class="str">'2026-06-01'</span>, <span class="str">'PENDING'</span>,
+    <span class="cn">ARRAY</span>[]<span class="op">::</span><span class="tp">TEXT[]</span>,                                  <span class="cm">-- empty array for assignedToIds</span>
+    <span class="cn">ARRAY</span>[]<span class="op">::</span><span class="tp">TEXT[]</span>,                                  <span class="cm">-- empty array for attachments</span>
+    <span class="fn">now</span>()
+);
+
+<span class="cm">-- Reading array elements (1-indexed in PostgreSQL!)</span>
+<span class="kw">SELECT</span> features[<span class="nm">1</span>] <span class="kw">FROM</span> <span class="tb">"Brief"</span>;          <span class="cm">-- first feature: 'Contact form'</span>
+<span class="kw">SELECT</span> <span class="fn">array_length</span>(features, <span class="nm">1</span>) <span class="kw">FROM</span> <span class="tb">"Brief"</span>; <span class="cm">-- number of features</span>
+
+<span class="cm">-- Check if a value IS in an array (used for assigned employees)</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tb">"Brief"</span>
+<span class="kw">WHERE</span> <span class="str">'employee-uuid-here'</span> <span class="op">=</span> <span class="cn">ANY</span>(<span class="tb">"assignedToIds"</span>);
+<span class="cm">-- This is what Prisma translates { assignedToIds: { has: employeeId } } to</span>
+
+<span class="cm">-- Add an element to an array</span>
+<span class="kw">UPDATE</span> <span class="tb">"Brief"</span>
+<span class="kw">SET</span> features = features || <span class="cn">ARRAY</span>[<span class="str">'New feature'</span>]
+<span class="kw">WHERE</span> id = <span class="str">'...'</span>;
+
+<span class="cm">-- Replace entire array</span>
+<span class="kw">UPDATE</span> <span class="tb">"Brief"</span>
+<span class="kw">SET</span> <span class="tb">"assignedToIds"</span> = <span class="cn">ARRAY</span>[<span class="str">'emp1-uuid'</span>, <span class="str">'emp2-uuid'</span>]
+<span class="kw">WHERE</span> id = <span class="str">'brief-uuid'</span>;</pre>
+
+  <hr />
+
+  <!-- ═══════════════════════════════════════ SQL — READING -->
+  <h2 id="select">SELECT — Reading Data</h2>
+  <p>SELECT is how you ask the database a question. Every SELECT returns a <strong>result set</strong> — a table of matching rows.</p>
+
+<pre><span class="cm">-- Get everything from a table</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tb">"User"</span>;
+
+<span class="cm">-- Get specific columns only</span>
+<span class="kw">SELECT</span> <span class="tb">id</span>, <span class="tb">"firstName"</span>, <span class="tb">email</span>, <span class="tb">role</span>
+<span class="kw">FROM</span> <span class="tb">"User"</span>;
+
+<span class="cm">-- Alias a column name in the result</span>
+<span class="kw">SELECT</span> <span class="tb">"firstName"</span> <span class="kw">AS</span> name, <span class="tb">email</span> <span class="kw">AS</span> contact
+<span class="kw">FROM</span> <span class="tb">"User"</span>;
+
+<span class="cm">-- Count how many rows exist</span>
+<span class="kw">SELECT COUNT</span>(*) <span class="kw">FROM</span> <span class="tb">"User"</span>;
+
+<span class="cm">-- Get distinct values (no duplicates)</span>
+<span class="kw">SELECT DISTINCT</span> role <span class="kw">FROM</span> <span class="tb">"User"</span>;
+<span class="cm">-- → ADMIN, CLIENT, EMPLOYEE</span>
+
+<span class="cm">-- Computed column</span>
+<span class="kw">SELECT</span> <span class="tb">"firstName"</span> || <span class="str">' '</span> || <span class="tb">"lastName"</span> <span class="kw">AS</span> fullName
+<span class="kw">FROM</span> <span class="tb">"User"</span>;
+<span class="cm">-- || is string concatenation in PostgreSQL</span></pre>
+
+  <h2 id="where">WHERE &amp; Operators</h2>
+  <p>WHERE filters which rows are returned. Without WHERE, you get every row in the table.</p>
+
+<pre><span class="cm">-- Basic equality</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tb">"User"</span> <span class="kw">WHERE</span> role = <span class="str">'ADMIN'</span>;
+
+<span class="cm">-- Find a user by email (done on every login)</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tb">"User"</span>
+<span class="kw">WHERE</span> email = <span class="str">'omar@example.com'</span>;
+
+<span class="cm">-- Multiple conditions with AND</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tb">"Brief"</span>
+<span class="kw">WHERE</span> <span class="tb">"clientId"</span> = <span class="str">'client-uuid'</span>
+  <span class="kw">AND</span> status = <span class="str">'PENDING'</span>;
+
+<span class="cm">-- OR</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tb">"Brief"</span>
+<span class="kw">WHERE</span> status = <span class="str">'ACCEPTED'</span> <span class="kw">OR</span> status = <span class="str">'IN_PROGRESS'</span>;
+
+<span class="cm">-- IN — cleaner way to match multiple values</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tb">"Brief"</span>
+<span class="kw">WHERE</span> status <span class="kw">IN</span> (<span class="str">'ACCEPTED'</span>, <span class="str">'IN_PROGRESS'</span>);
+
+<span class="cm">-- NOT IN — everything except these</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tb">"Brief"</span>
+<span class="kw">WHERE</span> status <span class="kw">NOT IN</span> (<span class="str">'COMPLETED'</span>, <span class="str">'REFUSED'</span>);
+
+<span class="cm">-- Range — deadline in the next 30 days</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tb">"Brief"</span>
+<span class="kw">WHERE</span> deadline <span class="kw">BETWEEN</span> <span class="fn">now</span>() <span class="kw">AND</span> <span class="fn">now</span>() + <span class="kw">INTERVAL</span> <span class="str">'30 days'</span>;
+
+<span class="cm">-- LIKE — pattern matching (* = any chars, _ = one char)</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tb">"User"</span>
+<span class="kw">WHERE</span> email <span class="kw">LIKE</span> <span class="str">'%@gmail.com'</span>;   <span class="cm">-- ends with @gmail.com</span>
+
+<span class="cm">-- ILIKE — case-insensitive LIKE</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tb">"User"</span>
+<span class="kw">WHERE</span> <span class="tb">"firstName"</span> <span class="kw">ILIKE</span> <span class="str">'omar%'</span>;   <span class="cm">-- Omar, omar, OMAR...</span>
+
+<span class="cm">-- NULL checks</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tb">"User"</span> <span class="kw">WHERE</span> <span class="tb">password</span> <span class="kw">IS NULL</span>;     <span class="cm">-- Google users</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tb">"User"</span> <span class="kw">WHERE</span> <span class="tb">"googleId"</span> <span class="kw">IS NOT NULL</span>; <span class="cm">-- linked Google accounts</span>
+
+<span class="cm">-- Array contains — find briefs assigned to a specific employee</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tb">"Brief"</span>
+<span class="kw">WHERE</span> <span class="str">'employee-id-here'</span> <span class="op">=</span> <span class="cn">ANY</span>(<span class="tb">"assignedToIds"</span>);</pre>
+
+  <h2 id="order-limit">ORDER BY / LIMIT / OFFSET</h2>
+
+<pre><span class="cm">-- Sort by creation date, newest first</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tb">"Brief"</span>
+<span class="kw">ORDER BY</span> <span class="tb">"createdAt"</span> <span class="kw">DESC</span>;   <span class="cm">-- DESC = newest first, ASC = oldest first</span>
+
+<span class="cm">-- Multiple sort criteria</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tb">"Brief"</span>
+<span class="kw">ORDER BY</span> status <span class="kw">ASC</span>, <span class="tb">"createdAt"</span> <span class="kw">DESC</span>;
+
+<span class="cm">-- LIMIT — get at most N rows (pagination)</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tb">"Brief"</span>
+<span class="kw">ORDER BY</span> <span class="tb">"createdAt"</span> <span class="kw">DESC</span>
+<span class="kw">LIMIT</span> <span class="nm">10</span>;   <span class="cm">-- only the 10 newest</span>
+
+<span class="cm">-- OFFSET — skip N rows (for page 2, 3, etc.)</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tb">"Brief"</span>
+<span class="kw">ORDER BY</span> <span class="tb">"createdAt"</span> <span class="kw">DESC</span>
+<span class="kw">LIMIT</span> <span class="nm">10</span> <span class="kw">OFFSET</span> <span class="nm">20</span>;  <span class="cm">-- rows 21-30 (page 3)</span></pre>
+
+  <h2 id="joins">JOINs — Combining Tables</h2>
+  <p>A JOIN combines rows from two tables based on a matching column. Smart Brief doesn't use SQL JOINs (it does service-to-service HTTP calls instead), but this is fundamental SQL knowledge.</p>
+
+<pre><span class="cm">-- Imagine you had a traditional foreign key setup:</span>
+<span class="cm">-- User table in the SAME database as Brief</span>
+
+<span class="cm">-- INNER JOIN — only rows that match in BOTH tables</span>
+<span class="kw">SELECT</span>
+    b.id        <span class="kw">AS</span> brief_id,
+    b.title,
+    b.status,
+    u.<span class="tb">"firstName"</span> || <span class="str">' '</span> || u.<span class="tb">"lastName"</span> <span class="kw">AS</span> client_name
+<span class="kw">FROM</span> <span class="tb">"Brief"</span> b
+<span class="kw">INNER JOIN</span> <span class="tb">"User"</span> u <span class="kw">ON</span> b.<span class="tb">"clientId"</span> = u.id;
+<span class="cm">-- Returns only briefs that have a matching user</span>
+
+<span class="cm">-- LEFT JOIN — all rows from left table, match from right if it exists</span>
+<span class="kw">SELECT</span>
+    u.<span class="tb">"firstName"</span>,
+    u.email,
+    <span class="fn">COUNT</span>(b.id) <span class="kw">AS</span> brief_count
+<span class="kw">FROM</span> <span class="tb">"User"</span> u
+<span class="kw">LEFT JOIN</span> <span class="tb">"Brief"</span> b <span class="kw">ON</span> b.<span class="tb">"clientId"</span> = u.id
+<span class="kw">GROUP BY</span> u.id, u.<span class="tb">"firstName"</span>, u.email
+<span class="kw">ORDER BY</span> brief_count <span class="kw">DESC</span>;
+<span class="cm">-- Users with zero briefs still appear (brief_count = 0)</span></pre>
+
+  <table>
+    <thead><tr><th>Join type</th><th>What it returns</th></tr></thead>
+    <tbody>
+      <tr><td><code>INNER JOIN</code></td><td>Only rows where the join condition matches in both tables</td></tr>
+      <tr><td><code>LEFT JOIN</code></td><td>All rows from the left table, plus matches from the right (NULL if no match)</td></tr>
+      <tr><td><code>RIGHT JOIN</code></td><td>All rows from the right table, plus matches from the left</td></tr>
+      <tr><td><code>FULL JOIN</code></td><td>All rows from both tables, NULLs where no match</td></tr>
+      <tr><td><code>CROSS JOIN</code></td><td>Every combination of rows (cartesian product) — rarely useful</td></tr>
+    </tbody>
+  </table>
+
+  <h2 id="aggregates">Aggregates &amp; GROUP BY</h2>
+  <p>Aggregate functions compute a single value from a group of rows.</p>
+
+<pre><span class="cm">-- Count total users</span>
+<span class="kw">SELECT COUNT</span>(*) <span class="kw">FROM</span> <span class="tb">"User"</span>;  <span class="cm">-- 42</span>
+
+<span class="cm">-- Count users per role</span>
+<span class="kw">SELECT</span> role, <span class="fn">COUNT</span>(*) <span class="kw">AS</span> total
+<span class="kw">FROM</span> <span class="tb">"User"</span>
+<span class="kw">GROUP BY</span> role;
+<span class="cm">-- role     | total
+-- ADMIN    | 2
+-- CLIENT   | 35
+-- EMPLOYEE | 5</span>
+
+<span class="cm">-- Count briefs per status</span>
+<span class="kw">SELECT</span> status, <span class="fn">COUNT</span>(*) <span class="kw">AS</span> total
+<span class="kw">FROM</span> <span class="tb">"Brief"</span>
+<span class="kw">GROUP BY</span> status
+<span class="kw">ORDER BY</span> total <span class="kw">DESC</span>;
+
+<span class="cm">-- HAVING — filter groups (like WHERE but for aggregates)</span>
+<span class="kw">SELECT</span> <span class="tb">"clientId"</span>, <span class="fn">COUNT</span>(*) <span class="kw">AS</span> brief_count
+<span class="kw">FROM</span> <span class="tb">"Brief"</span>
+<span class="kw">GROUP BY</span> <span class="tb">"clientId"</span>
+<span class="kw">HAVING</span> <span class="fn">COUNT</span>(*) <span class="op">&gt;</span> <span class="nm">5</span>;   <span class="cm">-- only clients with more than 5 briefs</span>
+
+<span class="cm">-- Other aggregate functions</span>
+<span class="kw">SELECT</span>
+    <span class="fn">MIN</span>(<span class="tb">"createdAt"</span>)  <span class="kw">AS</span> first_brief,
+    <span class="fn">MAX</span>(<span class="tb">"createdAt"</span>)  <span class="kw">AS</span> latest_brief,
+    <span class="fn">COUNT</span>(*)          <span class="kw">AS</span> total
+<span class="kw">FROM</span> <span class="tb">"Brief"</span>;</pre>
+
+  <h2 id="subqueries">Subqueries</h2>
+  <p>A subquery is a SELECT inside another SELECT. Used when you need the result of one query to filter another.</p>
+
+<pre><span class="cm">-- Find all briefs created by ADMIN users</span>
+<span class="cm">-- (if clientId and users were in the same DB)</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tb">"Brief"</span>
+<span class="kw">WHERE</span> <span class="tb">"clientId"</span> <span class="kw">IN</span> (
+    <span class="kw">SELECT</span> id <span class="kw">FROM</span> <span class="tb">"User"</span> <span class="kw">WHERE</span> role = <span class="str">'ADMIN'</span>
+);
+
+<span class="cm">-- Subquery in SELECT — how many briefs each user has</span>
+<span class="kw">SELECT</span>
+    u.email,
+    u.role,
+    (<span class="kw">SELECT COUNT</span>(*) <span class="kw">FROM</span> <span class="tb">"Brief"</span> b <span class="kw">WHERE</span> b.<span class="tb">"clientId"</span> = u.id) <span class="kw">AS</span> brief_count
+<span class="kw">FROM</span> <span class="tb">"User"</span> u;</pre>
+
+  <hr />
+
+  <!-- ═══════════════════════════════════════ SQL — WRITING -->
+  <h2 id="insert">INSERT — Creating Rows</h2>
+
+<pre><span class="cm">-- Insert a single row</span>
+<span class="kw">INSERT INTO</span> <span class="tb">"User"</span> (<span class="tb">id</span>, <span class="tb">"firstName"</span>, <span class="tb">"lastName"</span>, <span class="tb">email</span>, <span class="tb">password</span>, <span class="tb">role</span>, <span class="tb">provider</span>, <span class="tb">"createdAt"</span>, <span class="tb">"updatedAt"</span>)
+<span class="kw">VALUES</span> (
+    <span class="fn">gen_random_uuid</span>(),
+    <span class="str">'Omar'</span>,
+    <span class="str">'Sanaoui'</span>,
+    <span class="str">'omar@example.com'</span>,
+    <span class="str">'$2b$10$hashed...'</span>,
+    <span class="str">'CLIENT'</span>,
+    <span class="str">'LOCAL'</span>,
+    <span class="fn">now</span>(),
+    <span class="fn">now</span>()
+);
+
+<span class="cm">-- Columns with DEFAULT can be omitted</span>
+<span class="kw">INSERT INTO</span> <span class="tb">"User"</span> (<span class="tb">"firstName"</span>, <span class="tb">"lastName"</span>, <span class="tb">email</span>, <span class="tb">password</span>, <span class="tb">provider</span>, <span class="tb">"updatedAt"</span>)
+<span class="kw">VALUES</span> (<span class="str">'Omar'</span>, <span class="str">'Sanaoui'</span>, <span class="str">'omar@example.com'</span>, <span class="str">'$2b$10$...'</span>, <span class="str">'LOCAL'</span>, <span class="fn">now</span>());
+<span class="cm">-- id auto-generated via DEFAULT gen_random_uuid()
+-- role defaults to 'CLIENT'
+-- createdAt defaults to now()</span>
+
+<span class="cm">-- Insert and immediately return the created row</span>
+<span class="kw">INSERT INTO</span> <span class="tb">"User"</span> (<span class="tb">"firstName"</span>, <span class="tb">"lastName"</span>, <span class="tb">email</span>, <span class="tb">provider</span>, <span class="tb">"updatedAt"</span>)
+<span class="kw">VALUES</span> (<span class="str">'Youssef'</span>, <span class="str">'Alami'</span>, <span class="str">'y@example.com'</span>, <span class="str">'GOOGLE'</span>, <span class="fn">now</span>())
+<span class="kw">RETURNING</span> *;   <span class="cm">-- returns the full inserted row including generated id</span>
+
+<span class="cm">-- Insert multiple rows at once</span>
+<span class="kw">INSERT INTO</span> <span class="tb">"User"</span> (<span class="tb">"firstName"</span>, <span class="tb">"lastName"</span>, <span class="tb">email</span>, <span class="tb">provider</span>, <span class="tb">"updatedAt"</span>)
+<span class="kw">VALUES</span>
+    (<span class="str">'Alice'</span>, <span class="str">'D'</span>, <span class="str">'alice@...'</span>, <span class="str">'LOCAL'</span>, <span class="fn">now</span>()),
+    (<span class="str">'Bob'</span>,   <span class="str">'M'</span>, <span class="str">'bob@...'</span>,   <span class="str">'LOCAL'</span>, <span class="fn">now</span>()),
+    (<span class="str">'Carol'</span>, <span class="str">'T'</span>, <span class="str">'carol@...'</span>, <span class="str">'LOCAL'</span>, <span class="fn">now</span>());</pre>
+
+  <h2 id="update">UPDATE — Modifying Rows</h2>
+
+<pre><span class="cm">-- ALWAYS use WHERE — without it you update every row in the table!</span>
+
+<span class="cm">-- Change a user's role to ADMIN (the fix from the bug session)</span>
+<span class="kw">UPDATE</span> <span class="tb">"User"</span>
+<span class="kw">SET</span> role = <span class="str">'ADMIN'</span>, <span class="tb">"updatedAt"</span> = <span class="fn">now</span>()
+<span class="kw">WHERE</span> email = <span class="str">'omarsanaoui5@gmail.com'</span>;
+
+<span class="cm">-- Update brief status when admin accepts</span>
+<span class="kw">UPDATE</span> <span class="tb">"Brief"</span>
+<span class="kw">SET</span>
+    status              = <span class="str">'ACCEPTED'</span>,
+    <span class="tb">"statusReason"</span>      = <span class="kw">NULL</span>,
+    <span class="tb">"statusUpdatedById"</span> = <span class="str">'admin-uuid'</span>,
+    <span class="tb">"statusUpdatedAt"</span>   = <span class="fn">now</span>(),
+    <span class="tb">"updatedAt"</span>         = <span class="fn">now</span>()
+<span class="kw">WHERE</span> id = <span class="str">'brief-uuid'</span>;
+
+<span class="cm">-- Assign employees to a brief + auto-set IN_PROGRESS</span>
+<span class="kw">UPDATE</span> <span class="tb">"Brief"</span>
+<span class="kw">SET</span>
+    <span class="tb">"assignedToIds"</span>     = <span class="cn">ARRAY</span>[<span class="str">'emp1-uuid'</span>, <span class="str">'emp2-uuid'</span>],
+    <span class="tb">"assignedById"</span>      = <span class="str">'admin-uuid'</span>,
+    <span class="tb">"assignedAt"</span>        = <span class="fn">now</span>(),
+    status              = <span class="str">'IN_PROGRESS'</span>,
+    <span class="tb">"statusUpdatedById"</span> = <span class="str">'admin-uuid'</span>,
+    <span class="tb">"statusUpdatedAt"</span>   = <span class="fn">now</span>(),
+    <span class="tb">"updatedAt"</span>         = <span class="fn">now</span>()
+<span class="kw">WHERE</span> id = <span class="str">'brief-uuid'</span>;
+
+<span class="cm">-- UPDATE with RETURNING — get the updated row back</span>
+<span class="kw">UPDATE</span> <span class="tb">"User"</span>
+<span class="kw">SET</span> <span class="tb">"firstName"</span> = <span class="str">'Omar Updated'</span>, <span class="tb">"updatedAt"</span> = <span class="fn">now</span>()
+<span class="kw">WHERE</span> id = <span class="str">'user-uuid'</span>
+<span class="kw">RETURNING</span> id, <span class="tb">"firstName"</span>, email;</pre>
+
+  <h2 id="delete">DELETE — Removing Rows</h2>
+
+<pre><span class="cm">-- Delete a specific brief</span>
+<span class="kw">DELETE FROM</span> <span class="tb">"Brief"</span>
+<span class="kw">WHERE</span> id = <span class="str">'brief-uuid'</span>;
+
+<span class="cm">-- Delete a user's account</span>
+<span class="kw">DELETE FROM</span> <span class="tb">"User"</span>
+<span class="kw">WHERE</span> id = <span class="str">'user-uuid'</span>;
+
+<span class="cm">-- Delete expired verify tokens (cleanup job)</span>
+<span class="kw">DELETE FROM</span> <span class="tb">"VerifyToken"</span>
+<span class="kw">WHERE</span> <span class="tb">"expiresAt"</span> <span class="op">&lt;</span> <span class="fn">now</span>();
+
+<span class="cm">-- DELETE with RETURNING — confirm what was deleted</span>
+<span class="kw">DELETE FROM</span> <span class="tb">"Brief"</span>
+<span class="kw">WHERE</span> id = <span class="str">'brief-uuid'</span>
+<span class="kw">RETURNING</span> id, title;
+
+<span class="cm">-- ⚠ DANGER — delete everything in a table (no WHERE = all rows)</span>
+<span class="kw">DELETE FROM</span> <span class="tb">"Brief"</span>;  <span class="cm">-- deletes ALL briefs!</span>
+<span class="cm">-- Use TRUNCATE for that (faster but no RETURNING and no rollback in some cases)</span>
+<span class="kw">TRUNCATE</span> <span class="tb">"Brief"</span>;</pre>
+
+  <h2 id="upsert">UPSERT — INSERT or UPDATE</h2>
+  <p>Sometimes you want to create a record if it doesn't exist, or update it if it does. PostgreSQL handles this with <code>ON CONFLICT</code>. This is exactly what Prisma's <code>upsert()</code> generates — used in Smart Brief for the <code>VerifyToken</code> table and Google OAuth.</p>
+
+<pre><span class="cm">-- Insert a VerifyToken, or UPDATE it if email already exists
+-- (called on every register or resend-code)</span>
+<span class="kw">INSERT INTO</span> <span class="tb">"VerifyToken"</span> (<span class="tb">id</span>, <span class="tb">email</span>, <span class="tb">code</span>, <span class="tb">"firstName"</span>, <span class="tb">"lastName"</span>, <span class="tb">password</span>, <span class="tb">"expiresAt"</span>)
+<span class="kw">VALUES</span> (<span class="fn">gen_random_uuid</span>(), <span class="str">'omar@example.com'</span>, <span class="str">'847291'</span>, <span class="str">'Omar'</span>, <span class="str">'S'</span>, <span class="str">'$2b$...'</span>, <span class="fn">now</span>() + <span class="kw">INTERVAL</span> <span class="str">'10 minutes'</span>)
+<span class="kw">ON CONFLICT</span> (<span class="tb">email</span>)       <span class="cm">-- if email already exists...</span>
+<span class="kw">DO UPDATE SET</span>              <span class="cm">-- ...update these columns instead</span>
+    code        = <span class="cn">EXCLUDED</span>.code,
+    <span class="tb">"expiresAt"</span> = <span class="cn">EXCLUDED</span>.<span class="tb">"expiresAt"</span>,
+    <span class="tb">"firstName"</span> = <span class="cn">EXCLUDED</span>.<span class="tb">"firstName"</span>,
+    <span class="tb">"lastName"</span>  = <span class="cn">EXCLUDED</span>.<span class="tb">"lastName"</span>,
+    password    = <span class="cn">EXCLUDED</span>.password;
+<span class="cm">-- EXCLUDED refers to the row that would have been inserted</span>
+
+<span class="cm">-- ON CONFLICT DO NOTHING — insert only if it doesn't exist, silently skip duplicates</span>
+<span class="kw">INSERT INTO</span> <span class="tb">"User"</span> (...)
+<span class="kw">VALUES</span> (...)
+<span class="kw">ON CONFLICT</span> (<span class="tb">email</span>) <span class="kw">DO NOTHING</span>;</pre>
+
+  <hr />
+
+  <!-- ═══════════════════════════════════════ ADVANCED -->
+  <h2 id="transactions">Transactions &amp; ACID</h2>
+  <p>A transaction is a group of SQL statements that either <strong>all succeed or all fail together</strong>. This is critical for operations like "verify code → create user → delete token" — if the user creation succeeds but the token deletion fails, you'd have orphaned data.</p>
+
+<pre><span class="cm">-- Wrap multiple statements in a transaction</span>
+<span class="kw">BEGIN</span>;                   <span class="cm">-- start transaction</span>
+
+<span class="kw">INSERT INTO</span> <span class="tb">"User"</span> (...)
+<span class="kw">VALUES</span> (...);
+
+<span class="kw">DELETE FROM</span> <span class="tb">"VerifyToken"</span>
+<span class="kw">WHERE</span> email = <span class="str">'omar@example.com'</span>;
+
+<span class="kw">COMMIT</span>;                  <span class="cm">-- if both succeeded → save everything</span>
+
+<span class="cm">-- If something goes wrong, roll back all changes:</span>
+<span class="kw">BEGIN</span>;
+    <span class="kw">INSERT INTO</span> <span class="tb">"User"</span> (...) <span class="kw">VALUES</span> (...);
+    <span class="cm">-- something fails here</span>
+<span class="kw">ROLLBACK</span>;                <span class="cm">-- undo the INSERT — nothing was saved</span></pre>
+
+  <h4>ACID Properties</h4>
+  <table>
+    <thead><tr><th>Property</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Atomicity</strong></td><td>All statements succeed or none do — no partial results</td></tr>
+      <tr><td><strong>Consistency</strong></td><td>The database always moves from one valid state to another — constraints are never violated</td></tr>
+      <tr><td><strong>Isolation</strong></td><td>Concurrent transactions don't interfere with each other — as if they ran one at a time</td></tr>
+      <tr><td><strong>Durability</strong></td><td>Once committed, data survives crashes — written to disk, not just memory</td></tr>
+    </tbody>
+  </table>
+
+  <h2 id="schema-ddl">Schema DDL — CREATE, ALTER, DROP</h2>
+  <p>DDL (Data Definition Language) is how you create and modify the structure of the database itself — not the data, but the tables, columns, and types. Normally Prisma handles this via migrations, but it's important to understand what it generates.</p>
+
+<pre><span class="cm">-- Create a new table</span>
+<span class="kw">CREATE TABLE</span> <span class="tb">example</span> (
+    <span class="tb">id</span>    <span class="tp">UUID</span>  <span class="cn">PRIMARY KEY DEFAULT</span> <span class="fn">gen_random_uuid</span>(),
+    <span class="tb">name</span>  <span class="tp">TEXT</span>  <span class="cn">NOT NULL</span>,
+    <span class="tb">score</span> <span class="tp">INT</span>   <span class="cn">DEFAULT</span> <span class="nm">0</span>
+);
+
+<span class="cm">-- Add a column to an existing table</span>
+<span class="kw">ALTER TABLE</span> <span class="tb">"User"</span> <span class="kw">ADD COLUMN</span> <span class="tb">bio</span> <span class="tp">TEXT</span>;
+
+<span class="cm">-- Rename a column</span>
+<span class="kw">ALTER TABLE</span> <span class="tb">"User"</span> <span class="kw">RENAME COLUMN</span> <span class="tb">phone</span> <span class="kw">TO</span> <span class="tb">"phoneNumber"</span>;
+
+<span class="cm">-- Change a column's type</span>
+<span class="kw">ALTER TABLE</span> <span class="tb">"User"</span> <span class="kw">ALTER COLUMN</span> <span class="tb">bio</span> <span class="kw">TYPE</span> <span class="tp">VARCHAR</span>(<span class="nm">500</span>);
+
+<span class="cm">-- Add a NOT NULL constraint</span>
+<span class="kw">ALTER TABLE</span> <span class="tb">"User"</span> <span class="kw">ALTER COLUMN</span> <span class="tb">bio</span> <span class="kw">SET NOT NULL</span>;
+
+<span class="cm">-- Remove NOT NULL</span>
+<span class="kw">ALTER TABLE</span> <span class="tb">"User"</span> <span class="kw">ALTER COLUMN</span> <span class="tb">bio</span> <span class="kw">DROP NOT NULL</span>;
+
+<span class="cm">-- Drop (delete) a table — IRREVERSIBLE</span>
+<span class="kw">DROP TABLE</span> <span class="tb">example</span>;
+<span class="kw">DROP TABLE IF EXISTS</span> <span class="tb">example</span>;  <span class="cm">-- no error if it doesn't exist</span>
+
+<span class="cm">-- Drop all tables in correct order (delete the ones with FKs first)</span>
+<span class="kw">DROP TABLE</span> <span class="tb">"Brief"</span>;
+<span class="kw">DROP TABLE</span> <span class="tb">"VerifyToken"</span>;
+<span class="kw">DROP TABLE</span> <span class="tb">"User"</span>;</pre>
+
+  <h2 id="array-ops">Array Operations</h2>
+
+<pre><span class="cm">-- ANY — does this value appear anywhere in the array?</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tb">"Brief"</span>
+<span class="kw">WHERE</span> <span class="str">'emp-uuid'</span> <span class="op">=</span> <span class="cn">ANY</span>(<span class="tb">"assignedToIds"</span>);
+
+<span class="cm">-- ALL — does this condition hold for every element?</span>
+<span class="cm">-- (less common)</span>
+<span class="kw">SELECT</span> <span class="str">'hello'</span> <span class="op">&lt;</span> <span class="cn">ALL</span>(<span class="cn">ARRAY</span>[<span class="str">'world'</span>, <span class="str">'xyz'</span>]);  <span class="cm">-- true</span>
+
+<span class="cm">-- @> — array contains (does left array contain all elements of right?)</span>
+<span class="kw">SELECT</span> <span class="cn">ARRAY</span>[<span class="str">'a'</span>, <span class="str">'b'</span>, <span class="str">'c'</span>] @> <span class="cn">ARRAY</span>[<span class="str">'a'</span>, <span class="str">'c'</span>];  <span class="cm">-- true</span>
+
+<span class="cm">-- Expand array into rows (unnest)</span>
+<span class="kw">SELECT</span> id, <span class="fn">unnest</span>(features) <span class="kw">AS</span> feature
+<span class="kw">FROM</span> <span class="tb">"Brief"</span>
+<span class="kw">WHERE</span> id = <span class="str">'brief-uuid'</span>;
+<span class="cm">-- Returns one row per feature:
+-- id          | feature
+-- brief-uuid  | Contact form
+-- brief-uuid  | Blog
+-- brief-uuid  | E-commerce</span>
+
+<span class="cm">-- Append to an array</span>
+<span class="kw">UPDATE</span> <span class="tb">"Brief"</span>
+<span class="kw">SET</span> features = <span class="fn">array_append</span>(features, <span class="str">'Newsletter'</span>)
+<span class="kw">WHERE</span> id = <span class="str">'brief-uuid'</span>;
+
+<span class="cm">-- Remove from an array</span>
+<span class="kw">UPDATE</span> <span class="tb">"Brief"</span>
+<span class="kw">SET</span> features = <span class="fn">array_remove</span>(features, <span class="str">'Newsletter'</span>)
+<span class="kw">WHERE</span> id = <span class="str">'brief-uuid'</span>;
+
+<span class="cm">-- Concatenate two arrays</span>
+<span class="kw">SELECT</span> <span class="cn">ARRAY</span>[<span class="str">'a'</span>, <span class="str">'b'</span>] || <span class="cn">ARRAY</span>[<span class="str">'c'</span>, <span class="str">'d'</span>];  <span class="cm">-- {a,b,c,d}</span></pre>
+
+  <h2 id="timestamps">Timestamps &amp; now()</h2>
+
+<pre><span class="cm">-- now() returns the current timestamp at the moment the query runs</span>
+<span class="kw">SELECT</span> <span class="fn">now</span>();
+<span class="cm">-- → 2026-04-12 15:30:00.123456+00</span>
+
+<span class="cm">-- Timestamp arithmetic with INTERVAL</span>
+<span class="kw">SELECT</span> <span class="fn">now</span>() + <span class="kw">INTERVAL</span> <span class="str">'10 minutes'</span>;   <span class="cm">-- used for VerifyToken.expiresAt</span>
+<span class="kw">SELECT</span> <span class="fn">now</span>() + <span class="kw">INTERVAL</span> <span class="str">'7 days'</span>;       <span class="cm">-- one week from now</span>
+<span class="kw">SELECT</span> <span class="fn">now</span>() - <span class="kw">INTERVAL</span> <span class="str">'1 hour'</span>;       <span class="cm">-- one hour ago</span>
+
+<span class="cm">-- Extract parts of a timestamp</span>
+<span class="kw">SELECT</span> <span class="fn">EXTRACT</span>(<span class="cn">YEAR</span>  <span class="kw">FROM</span> <span class="tb">"createdAt"</span>) <span class="kw">FROM</span> <span class="tb">"User"</span>;
+<span class="kw">SELECT</span> <span class="fn">EXTRACT</span>(<span class="cn">MONTH</span> <span class="kw">FROM</span> <span class="tb">"createdAt"</span>) <span class="kw">FROM</span> <span class="tb">"User"</span>;
+
+<span class="cm">-- Format a timestamp as a readable string</span>
+<span class="kw">SELECT</span> <span class="fn">TO_CHAR</span>(<span class="tb">"createdAt"</span>, <span class="str">'DD/MM/YYYY HH24:MI'</span>) <span class="kw">FROM</span> <span class="tb">"User"</span>;
+<span class="cm">-- → '15/01/2026 10:23'</span>
+
+<span class="cm">-- TIMESTAMPTZ vs TIMESTAMP
+-- TIMESTAMPTZ stores timezone info — always UTC internally, converts on display
+-- Prisma's DateTime maps to TIMESTAMPTZ — best practice for international apps</span>
+
+<span class="cm">-- Check if a token has expired</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tb">"VerifyToken"</span>
+<span class="kw">WHERE</span> email = <span class="str">'omar@example.com'</span>
+  <span class="kw">AND</span> <span class="tb">"expiresAt"</span> <span class="op">&gt;</span> <span class="fn">now</span>();   <span class="cm">-- still valid</span></pre>
+
+  <h2 id="psql">psql — The PostgreSQL CLI</h2>
+  <p>psql is the official command-line client for PostgreSQL. You can use it to run queries, inspect tables, and manage the database directly — very useful for debugging production issues.</p>
+
+<pre><span class="cm">-- Connect to a database (local)</span>
+psql -U postgres -d smartbrief_auth
+
+<span class="cm">-- Connect using a connection string</span>
+psql "postgresql://postgres:password@host:5432/railway"
+
+<span class="cm">-- psql meta-commands (start with \)</span>
+\l          <span class="cm">-- list all databases</span>
+\c mydb     <span class="cm">-- connect to database "mydb"</span>
+\dt         <span class="cm">-- list all tables in current database</span>
+\d "User"   <span class="cm">-- describe the User table (columns, types, constraints)</span>
+\di         <span class="cm">-- list all indexes</span>
+\dT         <span class="cm">-- list all custom types (includes enums)</span>
+\dT+ "Role" <span class="cm">-- show values of the Role enum</span>
+\timing     <span class="cm">-- toggle query timing</span>
+\x          <span class="cm">-- toggle expanded output (easier to read wide rows)</span>
+\q          <span class="cm">-- quit psql</span>
+
+<span class="cm">-- Run a quick query without entering interactive mode</span>
+psql "postgresql://..." -c "SELECT COUNT(*) FROM \"User\";"
+
+<span class="cm">-- Run a SQL file</span>
+psql "postgresql://..." -f migration.sql</pre>
+
+  <h2 id="railway-db">Railway &amp; DATABASE_URL</h2>
+  <p>Smart Brief uses <strong>Railway</strong> to host PostgreSQL in production. Each service (auth and brief) has its own separate PostgreSQL database. Here's how it all connects:</p>
+
+<pre><span class="cm">-- Railway creates a PostgreSQL service with a connection URL like:
+-- postgresql://postgres:AbCdEfGhIj@roundhouse.proxy.rlwy.net:12345/railway
+
+-- You copy this URL into your service's environment variables:
+DATABASE_URL=postgresql://postgres:AbCdEfGhIj@roundhouse.proxy.rlwy.net:12345/railway
+
+-- Prisma reads DATABASE_URL automatically when you run migrations or start the server
+-- The app never hardcodes the database credentials
+
+-- To run migrations on Railway:
+-- 1. Set DATABASE_URL in Railway environment variables
+-- 2. Deploy — Prisma runs `prisma migrate deploy` on startup
+--    or manually: npx prisma migrate deploy
+
+-- To inspect the Railway database directly:
+-- Copy the connection string from Railway dashboard → Variables
+-- Run: psql "postgresql://postgres:..."
+-- Then use \dt, SELECT * FROM "User" LIMIT 5, etc.</span></pre>
+
+  <div class="callout danger">
+    <strong>Two separate databases, two separate services</strong>
+    The auth service and brief service each have their own PostgreSQL database on Railway. They are completely independent — no shared tables, no cross-database joins. The brief service cannot directly query the User table. That's why it uses the HTTP call to <code>/api/users/internal</code> to get user details.
+  </div>
+
+  <hr />
+
+  <!-- ═══════════════════════════════════════ CHEAT SHEET -->
+  <h2 id="cheatsheet">Cheat Sheet</h2>
+
+  <h3>The 5 most important SQL statements</h3>
+  <table>
+    <thead><tr><th>Statement</th><th>Does</th><th>Returns</th></tr></thead>
+    <tbody>
+      <tr><td><code>SELECT ... FROM ... WHERE ...</code></td><td>Read rows</td><td>Result set (rows)</td></tr>
+      <tr><td><code>INSERT INTO ... VALUES ...</code></td><td>Create a row</td><td>Nothing (or RETURNING)</td></tr>
+      <tr><td><code>UPDATE ... SET ... WHERE ...</code></td><td>Modify rows</td><td>Nothing (or RETURNING)</td></tr>
+      <tr><td><code>DELETE FROM ... WHERE ...</code></td><td>Remove rows</td><td>Nothing (or RETURNING)</td></tr>
+      <tr><td><code>INSERT ... ON CONFLICT ... DO UPDATE SET ...</code></td><td>Create or update</td><td>Nothing (or RETURNING)</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Data types in this project</h3>
+  <table>
+    <thead><tr><th>PostgreSQL type</th><th>Prisma type</th><th>Example value</th></tr></thead>
+    <tbody>
+      <tr><td><code>TEXT</code></td><td><code>String</code></td><td><code>'Omar'</code></td></tr>
+      <tr><td><code>TEXT[]</code></td><td><code>String[]</code></td><td><code>{'Blog', 'SEO', 'Contact form'}</code></td></tr>
+      <tr><td><code>TIMESTAMPTZ</code></td><td><code>DateTime</code></td><td><code>2026-04-12 10:30:00+00</code></td></tr>
+      <tr><td><code>ENUM</code></td><td><code>enum</code></td><td><code>'ADMIN'</code>, <code>'PENDING'</code></td></tr>
+    </tbody>
+  </table>
+
+  <h3>Quick reference</h3>
+  <table>
+    <thead><tr><th>Task</th><th>SQL</th></tr></thead>
+    <tbody>
+      <tr><td>Find user by email</td><td><code>SELECT * FROM "User" WHERE email = 'x'</code></td></tr>
+      <tr><td>Change a role</td><td><code>UPDATE "User" SET role = 'ADMIN' WHERE email = 'x'</code></td></tr>
+      <tr><td>Get all PENDING briefs</td><td><code>SELECT * FROM "Brief" WHERE status = 'PENDING'</code></td></tr>
+      <tr><td>Briefs for a client</td><td><code>SELECT * FROM "Brief" WHERE "clientId" = 'uuid'</code></td></tr>
+      <tr><td>Briefs assigned to employee</td><td><code>SELECT * FROM "Brief" WHERE 'uuid' = ANY("assignedToIds")</code></td></tr>
+      <tr><td>Count by status</td><td><code>SELECT status, COUNT(*) FROM "Brief" GROUP BY status</code></td></tr>
+      <tr><td>Delete expired tokens</td><td><code>DELETE FROM "VerifyToken" WHERE "expiresAt" &lt; now()</code></td></tr>
+      <tr><td>Describe a table</td><td><code>\d "User"</code> in psql</td></tr>
+      <tr><td>List all tables</td><td><code>\dt</code> in psql</td></tr>
+    </tbody>
+  </table>
+</main>
+
+<script>
+  const sections = document.querySelectorAll('h2[id], h3[id]');
+  const links    = document.querySelectorAll('nav#sidebar a');
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        links.forEach(l => l.classList.remove('active'));
+        const a = document.querySelector(`nav#sidebar a[href="#${entry.target.id}"]`);
+        if (a) a.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px' });
+  sections.forEach(s => obs.observe(s));
+</script>
+</body>
+</html>

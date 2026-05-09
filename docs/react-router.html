@@ -1,0 +1,1305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>React Router — Smart Brief Docs</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0d1117;
+      --surface: #161b27;
+      --card: #1a2238;
+      --border: #2e3a5c;
+      --teal: #62d2b2;
+      --purple: #4a55d0;
+      --blue: #4a9edd;
+      --red: #f47068;
+      --yellow: #f0c060;
+      --green: #5cb85c;
+      --text: #cdd9f5;
+      --muted: #6b7a99;
+      --sidebar-w: 270px;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      min-height: 100vh;
+      line-height: 1.7;
+    }
+
+    /* ─── SIDEBAR ─────────────────────────────────────────────── */
+    nav#sidebar {
+      position: fixed;
+      top: 0; left: 0;
+      width: var(--sidebar-w);
+      height: 100vh;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      overflow-y: auto;
+      padding: 28px 0 40px;
+    }
+    nav#sidebar .logo {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--teal);
+      padding: 0 22px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    nav#sidebar .logo span { color: var(--purple); }
+    nav#sidebar .section-label {
+      font-size: .65rem;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding: 18px 22px 6px;
+    }
+    nav#sidebar a {
+      display: block;
+      padding: 7px 22px;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: .83rem;
+      border-left: 2px solid transparent;
+      transition: all .15s;
+    }
+    nav#sidebar a:hover { color: var(--text); background: rgba(255,255,255,.03); }
+    nav#sidebar a.active { color: var(--teal); border-left-color: var(--teal); background: rgba(98,210,178,.06); }
+
+    /* ─── MAIN ────────────────────────────────────────────────── */
+    main {
+      margin-left: var(--sidebar-w);
+      padding: 60px 64px 120px;
+      max-width: calc(var(--sidebar-w) + 900px);
+      width: 100%;
+    }
+
+    h1 { font-size: 2.6rem; color: #fff; font-weight: 800; line-height: 1.15; }
+    h1 .hl-teal   { color: var(--teal); }
+    h1 .hl-purple { color: var(--purple); }
+    .page-sub { color: var(--muted); font-size: 1.05rem; margin-top: 10px; margin-bottom: 48px; max-width: 640px; }
+
+    h2 {
+      font-size: 1.6rem; color: #fff; font-weight: 700;
+      margin: 64px 0 18px; padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+      scroll-margin-top: 32px;
+    }
+    h3 { font-size: 1.1rem; color: var(--teal); font-weight: 600; margin: 32px 0 10px; scroll-margin-top: 32px; }
+    h4 { font-size: .9rem; color: var(--yellow); font-weight: 600; margin: 24px 0 8px; text-transform: uppercase; letter-spacing: .05em; }
+
+    p  { margin-bottom: 14px; }
+    ul, ol { padding-left: 22px; margin-bottom: 14px; }
+    li { margin-bottom: 5px; }
+    strong { color: #fff; }
+    code {
+      font-family: 'Cascadia Code', 'Fira Code', monospace;
+      background: rgba(255,255,255,.07);
+      color: var(--teal);
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-size: .88em;
+    }
+
+    /* ─── CODE BLOCKS ─────────────────────────────────────────── */
+    pre {
+      background: #0a0e1a;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px 22px;
+      overflow-x: auto;
+      font-family: 'Cascadia Code', 'Fira Code', monospace;
+      font-size: .82rem;
+      line-height: 1.65;
+      margin: 12px 0 22px;
+      position: relative;
+    }
+    pre .file-label {
+      position: absolute; top: 10px; right: 14px;
+      font-size: .68rem; color: var(--muted);
+      background: var(--surface); border: 1px solid var(--border);
+      padding: 2px 8px; border-radius: 4px; font-family: inherit;
+    }
+    .kw  { color: #c792ea; }
+    .tp  { color: #82b1ff; }
+    .str { color: #c3e88d; }
+    .fn  { color: var(--teal); }
+    .cm  { color: #546e7a; font-style: italic; }
+    .nm  { color: #f78c6c; }
+    .op  { color: #89ddff; }
+    .ts  { color: var(--yellow); }
+    .at  { color: #f07178; }   /* JSX attributes */
+
+    /* ─── CALLOUTS ────────────────────────────────────────────── */
+    .callout {
+      border-radius: 10px; padding: 16px 20px; margin: 18px 0;
+      border-left: 4px solid; font-size: .9rem;
+    }
+    .callout.info   { background: rgba(74,158,221,.1);  border-color: var(--blue); }
+    .callout.warn   { background: rgba(240,192,96,.1);  border-color: var(--yellow); }
+    .callout.tip    { background: rgba(98,210,178,.1);  border-color: var(--teal); }
+    .callout.danger { background: rgba(244,112,104,.1); border-color: var(--red); }
+    .callout strong { display: block; margin-bottom: 4px; font-size: .8rem; text-transform: uppercase; letter-spacing: .07em; }
+    .callout.info   strong { color: var(--blue); }
+    .callout.warn   strong { color: var(--yellow); }
+    .callout.tip    strong { color: var(--teal); }
+    .callout.danger strong { color: var(--red); }
+
+    /* ─── COMPARE ─────────────────────────────────────────────── */
+    .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 12px 0 22px; }
+    .compare > div { border-radius: 10px; overflow: hidden; }
+    .compare > div > .compare-label { font-size: .7rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; padding: 8px 16px; }
+    .compare .bad  .compare-label { background: rgba(244,112,104,.2); color: var(--red); }
+    .compare .good .compare-label { background: rgba(98,210,178,.2);  color: var(--teal); }
+    .compare .info-side .compare-label { background: rgba(74,158,221,.2); color: var(--blue); }
+    .compare pre { margin: 0; border-radius: 0 0 10px 10px; border-top: none; }
+
+    /* ─── FLOW ────────────────────────────────────────────────── */
+    .flow { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin: 20px 0; }
+    .flow-box {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 8px; padding: 10px 16px;
+      font-size: .82rem; font-weight: 600; text-align: center; min-width: 110px;
+    }
+    .flow-box.teal   { border-color: var(--teal);   color: var(--teal); }
+    .flow-box.purple { border-color: var(--purple);  color: #8891e8; }
+    .flow-box.blue   { border-color: var(--blue);    color: var(--blue); }
+    .flow-box.yellow { border-color: var(--yellow);  color: var(--yellow); }
+    .flow-box.red    { border-color: var(--red);     color: var(--red); }
+    .flow-arrow { color: var(--muted); font-size: 1.1rem; }
+
+    /* ─── TABLE ───────────────────────────────────────────────── */
+    table { width: 100%; border-collapse: collapse; margin: 16px 0 24px; font-size: .87rem; }
+    th { background: var(--card); color: var(--teal); font-weight: 600; padding: 10px 14px; text-align: left; border-bottom: 2px solid var(--border); }
+    td { padding: 9px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
+    tr:last-child td { border-bottom: none; }
+
+    /* ─── NAVLINK DEMO ────────────────────────────────────────── */
+    .demo-nav {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px 24px;
+      display: flex;
+      gap: 20px;
+      align-items: center;
+      margin: 16px 0;
+      flex-wrap: wrap;
+    }
+    .demo-link { padding: 6px 14px; border-radius: 6px; font-size: .85rem; font-weight: 600; text-decoration: none; transition: all .15s; cursor: default; }
+    .demo-link.style-1        { color: rgba(255,255,255,.5); }
+    .demo-link.style-1.active { color: var(--teal); border-bottom: 2px solid var(--teal); }
+    .demo-link.style-2        { color: rgba(255,255,255,.5); }
+    .demo-link.style-2.active { color: #fff; background: var(--purple); }
+    .demo-link.style-3        { color: rgba(255,255,255,.4); border: 1px solid transparent; }
+    .demo-link.style-3.active { color: var(--teal); border-color: var(--teal); background: rgba(98,210,178,.08); }
+    .demo-label { font-size: .7rem; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; white-space: nowrap; }
+
+    hr { border: none; border-top: 1px solid var(--border); margin: 40px 0; }
+
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════ SIDEBAR ═══════════ -->
+<nav id="sidebar">
+  <div class="logo">🗺 <span>Smart</span>Brief · Router Guide</div>
+
+  <div class="section-label">Foundations</div>
+  <a href="#what-is-router">What is React Router?</a>
+  <a href="#spa-vs-mpa">SPA vs MPA</a>
+  <a href="#setup">Setup &amp; BrowserRouter</a>
+  <a href="#router-types">Router Types</a>
+
+  <div class="section-label">Core Components</div>
+  <a href="#routes-route">Routes &amp; Route</a>
+  <a href="#link">Link</a>
+  <a href="#navlink">NavLink</a>
+  <a href="#navlink-styling">Styling NavLink</a>
+  <a href="#navlink-advanced">NavLink — Advanced</a>
+  <a href="#navigate-component">Navigate Component</a>
+  <a href="#outlet">Outlet (Nested Routes)</a>
+
+  <div class="section-label">Hooks</div>
+  <a href="#use-navigate">useNavigate</a>
+  <a href="#use-params">useParams</a>
+  <a href="#use-location">useLocation</a>
+  <a href="#use-search-params">useSearchParams</a>
+  <a href="#use-match">useMatch &amp; useRouteError</a>
+
+  <div class="section-label">Patterns</div>
+  <a href="#nested-routes">Nested Routes</a>
+  <a href="#protected-routes">Protected Routes</a>
+  <a href="#not-found">404 Not Found</a>
+  <a href="#location-state">Passing State Between Routes</a>
+  <a href="#programmatic-nav">Programmatic Navigation</a>
+  <a href="#conditional-routes">Conditional Routes</a>
+
+  <div class="section-label">Project Examples</div>
+  <a href="#project-app">App.tsx Routing</a>
+  <a href="#project-navbar">Navbar NavLinks</a>
+  <a href="#project-verify">Location State (VerifyCode)</a>
+  <a href="#project-reset">Query Params (ResetPassword)</a>
+  <a href="#project-details">useParams (BriefDetails)</a>
+
+  <div class="section-label">Reference</div>
+  <a href="#cheatsheet">Cheat Sheet</a>
+</nav>
+
+<!-- ═══════════ MAIN ═══════════ -->
+<main>
+  <h1><span class="hl-teal">React Router</span></h1>
+  <p class="page-sub">
+    Everything about client-side routing in React — from basic <code>&lt;Route&gt;</code> setup to NavLink styling, nested routes, protected routes, and every hook available. All examples come from the Smart Brief codebase.
+  </p>
+
+  <!-- ══════════════════════════════════════════════════════════
+       FOUNDATIONS
+  ══════════════════════════════════════════════════════════ -->
+
+  <h2 id="what-is-router">What is React Router?</h2>
+  <p>
+    React Router is the standard routing library for React. It lets you build a <strong>Single Page Application (SPA)</strong> where the URL changes and different components are shown, but the browser <em>never makes a full page reload</em>.
+  </p>
+  <p>
+    Without React Router, your React app is just one page. React Router maps URL paths to components — when the user navigates to <code>/my-briefs</code>, React Router renders the <code>MyBriefs</code> component without fetching a new HTML file from the server.
+  </p>
+
+  <h2 id="spa-vs-mpa">SPA vs Traditional Website</h2>
+
+  <div class="compare">
+    <div class="bad">
+      <div class="compare-label">Traditional Website (MPA)</div>
+      <pre><span class="cm">User clicks a link →
+Browser sends GET /about.html to server →
+Server sends back a new full HTML page →
+Browser discards current page, renders new one →
+Flash / white screen between pages</span></pre>
+    </div>
+    <div class="good">
+      <div class="compare-label">React SPA with React Router</div>
+      <pre><span class="cm">User clicks a Link →
+React Router intercepts the click →
+URL updates (history.pushState) →
+React renders a different component →
+No server round-trip, no flash</span></pre>
+    </div>
+  </div>
+
+  <p>
+    The server only serves <code>index.html</code> once. After that, all navigation is handled by JavaScript in the browser. The back/forward buttons still work because React Router uses the browser's History API.
+  </p>
+
+  <!-- ───────────────────────────────────────────── -->
+  <h2 id="setup">Setup &amp; BrowserRouter</h2>
+  <p>
+    React Router must wrap your entire app. This is done in <code>main.tsx</code>, wrapping the root component with <code>&lt;BrowserRouter&gt;</code>:
+  </p>
+
+<pre><span class="file-label">main.tsx</span>
+<span class="kw">import</span> { BrowserRouter } <span class="kw">from</span> <span class="str">"react-router-dom"</span>;
+<span class="kw">import</span> { Provider }    <span class="kw">from</span> <span class="str">"react-redux"</span>;
+<span class="kw">import</span> { store }       <span class="kw">from</span> <span class="str">"./app/store"</span>;
+<span class="kw">import</span> App             <span class="kw">from</span> <span class="str">"./App"</span>;
+
+<span class="fn">createRoot</span>(document.<span class="fn">getElementById</span>(<span class="str">"root"</span>)!).<span class="fn">render</span>(
+  <span class="ts">&lt;Provider</span> <span class="at">store</span><span class="op">={</span>store<span class="op">}</span><span class="ts">&gt;</span>
+    <span class="ts">&lt;BrowserRouter&gt;</span>   <span class="cm">&lt;!-- ← ALL routing hooks work inside here --&gt;</span>
+      <span class="ts">&lt;App /&gt;</span>
+    <span class="ts">&lt;/BrowserRouter&gt;</span>
+  <span class="ts">&lt;/Provider&gt;</span>
+);</pre>
+
+  <div class="callout tip">
+    <strong>Order matters</strong>
+    <code>BrowserRouter</code> provides the routing context that all hooks like <code>useNavigate</code>, <code>useLocation</code>, and <code>useParams</code> read from. If you try to use those hooks outside of <code>BrowserRouter</code>, you'll get an error. Redux's <code>Provider</code> and <code>BrowserRouter</code> can be in either order — they are independent.
+  </div>
+
+  <!-- ───────────────────────────────────────────── -->
+  <h2 id="router-types">Router Types</h2>
+  <table>
+    <thead><tr><th>Router</th><th>URL style</th><th>When to use</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><code>BrowserRouter</code></td>
+        <td><code>example.com/briefs/123</code></td>
+        <td>Standard web apps. Needs a server that serves <code>index.html</code> for all paths. Used in Smart Brief.</td>
+      </tr>
+      <tr>
+        <td><code>HashRouter</code></td>
+        <td><code>example.com/#/briefs/123</code></td>
+        <td>Static file hosting with no server config (GitHub Pages). The <code>#</code> part is never sent to the server.</td>
+      </tr>
+      <tr>
+        <td><code>MemoryRouter</code></td>
+        <td>No URL change</td>
+        <td>Testing environments, React Native (no browser URL bar).</td>
+      </tr>
+      <tr>
+        <td><code>createBrowserRouter</code></td>
+        <td>Same as BrowserRouter</td>
+        <td>React Router v6.4+ data API (loaders, actions). More advanced, not used in Smart Brief.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <hr />
+
+  <!-- ══════════════════════════════════════════════════════════
+       CORE COMPONENTS
+  ══════════════════════════════════════════════════════════ -->
+
+  <h2 id="routes-route">Routes &amp; Route</h2>
+  <p>
+    <code>&lt;Routes&gt;</code> is the container. It looks at the current URL and renders the first <code>&lt;Route&gt;</code> whose <code>path</code> matches. Only one route renders at a time (unlike the old v5 <code>&lt;Switch&gt;</code> — same concept, new name).
+  </p>
+
+<pre><span class="kw">import</span> { Routes, Route } <span class="kw">from</span> <span class="str">"react-router-dom"</span>;
+
+<span class="ts">&lt;Routes&gt;</span>
+  <span class="ts">&lt;Route</span> <span class="at">path</span><span class="op">=</span><span class="str">"/"</span>             <span class="at">element</span><span class="op">={&lt;</span><span class="fn">Home</span> <span class="op">/&gt;}</span>         <span class="ts">/&gt;</span>
+  <span class="ts">&lt;Route</span> <span class="at">path</span><span class="op">=</span><span class="str">"/briefs"</span>       <span class="at">element</span><span class="op">={&lt;</span><span class="fn">BriefsDashboard</span> <span class="op">/&gt;}</span> <span class="ts">/&gt;</span>
+  <span class="ts">&lt;Route</span> <span class="at">path</span><span class="op">=</span><span class="str">"/briefs/:id"</span>   <span class="at">element</span><span class="op">={&lt;</span><span class="fn">BriefDetails</span> <span class="op">/&gt;}</span>    <span class="ts">/&gt;</span>
+  <span class="ts">&lt;Route</span> <span class="at">path</span><span class="op">=</span><span class="str">"/login"</span>        <span class="at">element</span><span class="op">={&lt;</span><span class="fn">Login</span> <span class="op">/&gt;}</span>          <span class="ts">/&gt;</span>
+  <span class="ts">&lt;Route</span> <span class="at">path</span><span class="op">=</span><span class="str">"*"</span>             <span class="at">element</span><span class="op">={&lt;</span><span class="fn">NotFound</span> <span class="op">/&gt;}</span>        <span class="ts">/&gt;</span>  <span class="cm">{/* catch-all */}</span>
+<span class="ts">&lt;/Routes&gt;</span></pre>
+
+  <h3>Path patterns</h3>
+  <table>
+    <thead><tr><th>Pattern</th><th>Matches</th><th>Example</th></tr></thead>
+    <tbody>
+      <tr><td><code>/briefs</code></td><td>Exact path only</td><td><code>/briefs</code></td></tr>
+      <tr><td><code>/briefs/:id</code></td><td>Path with a dynamic segment</td><td><code>/briefs/abc-123</code></td></tr>
+      <tr><td><code>/user/:id/posts/:postId</code></td><td>Multiple dynamic segments</td><td><code>/user/5/posts/42</code></td></tr>
+      <tr><td><code>/files/*</code></td><td>Wildcard — matches anything after</td><td><code>/files/a/b/c</code></td></tr>
+      <tr><td><code>*</code></td><td>Catch-all — matches everything not matched above</td><td>Used for 404 pages</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout info">
+    <strong>React Router v6 is exact by default</strong>
+    In the old v5, you had to add the <code>exact</code> prop to prevent <code>/</code> from matching every route. In v6 (what Smart Brief uses), all routes are exact by default. <code>/briefs</code> will NOT match <code>/briefs/123</code>. You only need <code>/*</code> for wildcard matching.
+  </div>
+
+  <!-- ───────────────────────────────────────────── -->
+  <h2 id="link">Link</h2>
+  <p>
+    <code>&lt;Link&gt;</code> renders an <code>&lt;a&gt;</code> tag in the DOM but intercepts the click — preventing a full page reload and using React Router's history-based navigation instead.
+  </p>
+
+  <div class="compare">
+    <div class="bad">
+      <div class="compare-label">❌ Regular anchor — causes full reload</div>
+      <pre><span class="ts">&lt;a</span> <span class="at">href</span><span class="op">=</span><span class="str">"/login"</span><span class="ts">&gt;</span>Log In<span class="ts">&lt;/a&gt;</span>
+<span class="cm">// Sends a GET request to the server
+// Browser reloads — Redux state is wiped</span></pre>
+    </div>
+    <div class="good">
+      <div class="compare-label">✅ React Router Link — no reload</div>
+      <pre><span class="ts">&lt;Link</span> <span class="at">to</span><span class="op">=</span><span class="str">"/login"</span><span class="ts">&gt;</span>Log In<span class="ts">&lt;/Link&gt;</span>
+<span class="cm">// Just changes the URL in the browser bar
+// React Router renders &lt;Login /&gt;
+// Redux state is preserved</span></pre>
+    </div>
+  </div>
+
+<pre><span class="file-label">Navbar.tsx</span>
+<span class="kw">import</span> { Link } <span class="kw">from</span> <span class="str">"react-router-dom"</span>;
+
+<span class="cm">// Logo links to home</span>
+<span class="ts">&lt;Link</span> <span class="at">to</span><span class="op">=</span><span class="str">"/"</span> <span class="at">className</span><span class="op">=</span><span class="str">"shrink-0"</span><span class="ts">&gt;</span>
+  <span class="ts">&lt;Logo</span> <span class="at">className</span><span class="op">=</span><span class="str">"w-44"</span> <span class="ts">/&gt;</span>
+<span class="ts">&lt;/Link&gt;</span>
+
+<span class="cm">// Auth links in the navbar</span>
+<span class="ts">&lt;Link</span> <span class="at">to</span><span class="op">=</span><span class="str">"/login"</span>    <span class="at">className</span><span class="op">=</span><span class="str">"text-white/80 hover:text-sbteal ..."</span><span class="ts">&gt;</span>Log In<span class="ts">&lt;/Link&gt;</span>
+<span class="ts">&lt;Link</span> <span class="at">to</span><span class="op">=</span><span class="str">"/register"</span> <span class="at">className</span><span class="op">=</span><span class="str">"bg-sbpurple px-6 py-2 ..."</span><span class="ts">&gt;</span>Register<span class="ts">&lt;/Link&gt;</span></pre>
+
+  <h3>Link props</h3>
+  <table>
+    <thead><tr><th>Prop</th><th>Type</th><th>Effect</th></tr></thead>
+    <tbody>
+      <tr><td><code>to</code></td><td><code>string</code></td><td>The path to navigate to. Required.</td></tr>
+      <tr><td><code>replace</code></td><td><code>boolean</code></td><td>Replace current history entry instead of pushing. Back button won't go back here.</td></tr>
+      <tr><td><code>state</code></td><td><code>any</code></td><td>Pass data to the destination route (not in the URL). Read with <code>useLocation().state</code>.</td></tr>
+      <tr><td><code>relative</code></td><td><code>"route" | "path"</code></td><td>How to resolve the <code>to</code> path. Default: <code>"route"</code></td></tr>
+    </tbody>
+  </table>
+
+  <!-- ───────────────────────────────────────────── -->
+  <h2 id="navlink">NavLink</h2>
+  <p>
+    <code>&lt;NavLink&gt;</code> is a special version of <code>&lt;Link&gt;</code> that knows whether its destination is the <strong>currently active route</strong>. It automatically adds an <code>active</code> class (and/or <code>pending</code> class for loading states). This is what Smart Brief uses for the navbar.
+  </p>
+
+  <p>The key difference from <code>&lt;Link&gt;</code> is that <code>className</code> and <code>style</code> accept a <strong>function</strong> instead of a static value:</p>
+
+<pre><span class="cm">// Link — static className</span>
+<span class="ts">&lt;Link</span> <span class="at">to</span><span class="op">=</span><span class="str">"/briefs"</span> <span class="at">className</span><span class="op">=</span><span class="str">"my-class"</span><span class="ts">&gt;</span>Briefs<span class="ts">&lt;/Link&gt;</span>
+
+<span class="cm">// NavLink — function className that receives { isActive, isPending }</span>
+<span class="ts">&lt;NavLink</span>
+  <span class="at">to</span><span class="op">=</span><span class="str">"/briefs"</span>
+  <span class="at">className</span><span class="op">={({</span> isActive <span class="op">}) =></span> isActive ? <span class="str">"active-class"</span> : <span class="str">"normal-class"</span><span class="op">}</span>
+<span class="ts">&gt;</span>
+  Briefs
+<span class="ts">&lt;/NavLink&gt;</span></pre>
+
+  <!-- ───────────────────────────────────────────── -->
+  <h2 id="navlink-styling">Styling NavLink — All Patterns</h2>
+
+  <h3>Pattern 1 — Underline indicator (used in Smart Brief)</h3>
+  <p>The approach in <code>Navbar.tsx</code>: define two CSS class strings and pick one based on <code>isActive</code>.</p>
+
+  <div class="demo-nav">
+    <span class="demo-label">Preview:</span>
+    <a class="demo-link style-1 active">Home</a>
+    <a class="demo-link style-1">Briefs</a>
+    <a class="demo-link style-1">Profile</a>
+  </div>
+
+<pre><span class="file-label">Navbar.tsx</span>
+<span class="cm">// Define your two CSS strings at the top of the component</span>
+<span class="kw">const</span> activeLink   <span class="op">=</span> <span class="str">"text-sbteal border-b-2 border-sbteal pb-0.5"</span>;
+<span class="kw">const</span> inactiveLink <span class="op">=</span> <span class="str">"text-white/80 hover:text-sbteal transition-colors"</span>;
+
+<span class="cm">// Apply them with a function</span>
+<span class="ts">&lt;NavLink</span>
+  <span class="at">to</span><span class="op">=</span><span class="str">"/"</span>
+  <span class="at">className</span><span class="op">={({</span> isActive <span class="op">}) =></span> isActive ? activeLink : inactiveLink}
+<span class="ts">&gt;</span>
+  Home
+<span class="ts">&lt;/NavLink&gt;</span>
+
+<span class="ts">&lt;NavLink</span>
+  <span class="at">to</span><span class="op">=</span><span class="str">"/my-briefs"</span>
+  <span class="at">className</span><span class="op">={({</span> isActive <span class="op">}) =></span> isActive ? activeLink : inactiveLink}
+<span class="ts">&gt;</span>
+  My Briefs
+<span class="ts">&lt;/NavLink&gt;</span></pre>
+
+  <h3>Pattern 2 — Background highlight</h3>
+  <div class="demo-nav">
+    <span class="demo-label">Preview:</span>
+    <a class="demo-link style-2 active">Dashboard</a>
+    <a class="demo-link style-2">Briefs</a>
+    <a class="demo-link style-2">Settings</a>
+  </div>
+
+<pre><span class="ts">&lt;NavLink</span>
+  <span class="at">to</span><span class="op">=</span><span class="str">"/dashboard"</span>
+  <span class="at">className</span><span class="op">={({</span> isActive <span class="op">}) =></span>
+    isActive
+      ? <span class="str">"bg-purple-600 text-white px-4 py-2 rounded-lg font-semibold"</span>
+      : <span class="str">"text-white/50 px-4 py-2 hover:text-white transition-colors"</span>
+  <span class="op">}</span>
+<span class="ts">&gt;</span>
+  Dashboard
+<span class="ts">&lt;/NavLink&gt;</span></pre>
+
+  <h3>Pattern 3 — Border outline</h3>
+  <div class="demo-nav">
+    <span class="demo-label">Preview:</span>
+    <a class="demo-link style-3 active">Projects</a>
+    <a class="demo-link style-3">Team</a>
+    <a class="demo-link style-3">Reports</a>
+  </div>
+
+<pre><span class="ts">&lt;NavLink</span>
+  <span class="at">to</span><span class="op">=</span><span class="str">"/projects"</span>
+  <span class="at">className</span><span class="op">={({</span> isActive <span class="op">}) =></span>
+    isActive
+      ? <span class="str">"border border-teal-400 text-teal-400 bg-teal-400/10 px-4 py-2 rounded-lg"</span>
+      : <span class="str">"border border-transparent text-white/40 px-4 py-2 hover:text-white/80"</span>
+  <span class="op">}</span>
+<span class="ts">&gt;</span>
+  Projects
+<span class="ts">&lt;/NavLink&gt;</span></pre>
+
+  <h3>Pattern 4 — Inline style (when you're not using Tailwind)</h3>
+<pre><span class="cm">// style also accepts a function with { isActive }</span>
+<span class="ts">&lt;NavLink</span>
+  <span class="at">to</span><span class="op">=</span><span class="str">"/briefs"</span>
+  <span class="at">style</span><span class="op">={({</span> isActive <span class="op">}) =></span> ({
+    color:      isActive ? <span class="str">"#62d2b2"</span> : <span class="str">"rgba(255,255,255,0.5)"</span>,
+    fontWeight: isActive ? <span class="str">"700"</span>       : <span class="str">"400"</span>,
+    borderBottom: isActive ? <span class="str">"2px solid #62d2b2"</span> : <span class="str">"2px solid transparent"</span>,
+  })}
+<span class="ts">&gt;</span>
+  Briefs
+<span class="ts">&lt;/NavLink&gt;</span></pre>
+
+  <h3>Pattern 5 — isPending (for slow routes with data loaders)</h3>
+<pre><span class="ts">&lt;NavLink</span>
+  <span class="at">to</span><span class="op">=</span><span class="str">"/heavy-page"</span>
+  <span class="at">className</span><span class="op">={({</span> isActive, isPending <span class="op">}) =></span> {
+    <span class="kw">if</span> (isPending) <span class="kw">return</span> <span class="str">"opacity-50 cursor-wait"</span>; <span class="cm">// loading state</span>
+    <span class="kw">if</span> (isActive)  <span class="kw">return</span> <span class="str">"text-teal-400 font-bold"</span>;   <span class="cm">// active state</span>
+    <span class="kw">return</span> <span class="str">"text-white/60 hover:text-white"</span>;             <span class="cm">// default state</span>
+  <span class="op">}</span>}
+<span class="ts">&gt;</span>
+  Heavy Page
+<span class="ts">&lt;/NavLink&gt;</span></pre>
+
+  <!-- ───────────────────────────────────────────── -->
+  <h2 id="navlink-advanced">NavLink — Advanced Details</h2>
+
+  <h3>The end prop — controlling what "active" means</h3>
+  <p>
+    By default, <code>&lt;NavLink to="/"&gt;</code> will be active not just on <code>/</code> but also on <code>/briefs</code>, <code>/login</code>, and every other route — because they all <em>start with</em> <code>/</code>.
+    The <code>end</code> prop tells NavLink to only be active when the URL is an <strong>exact</strong> match:
+  </p>
+
+<pre><span class="cm">// Without end: "/" is active on ALL routes</span>
+<span class="ts">&lt;NavLink</span> <span class="at">to</span><span class="op">=</span><span class="str">"/"</span> <span class="at">className</span><span class="op">={({</span> isActive <span class="op">}) =></span> isActive ? <span class="str">"active"</span> : <span class="str">""</span><span class="op">}</span><span class="ts">&gt;</span>Home<span class="ts">&lt;/NavLink&gt;</span>
+
+<span class="cm">// With end: "/" is only active when URL is exactly "/"</span>
+<span class="ts">&lt;NavLink</span> <span class="at">to</span><span class="op">=</span><span class="str">"/"</span> <span class="at">end</span> <span class="at">className</span><span class="op">={({</span> isActive <span class="op">}) =></span> isActive ? <span class="str">"active"</span> : <span class="str">""</span><span class="op">}</span><span class="ts">&gt;</span>Home<span class="ts">&lt;/NavLink&gt;</span></pre>
+
+  <div class="callout warn">
+    <strong>Smart Brief uses "/" without end</strong>
+    In <code>Navbar.tsx</code>, the Home NavLink does not have the <code>end</code> prop. This means "Home" is highlighted as active on ALL pages. This works for Smart Brief because the Home link is just a logo/brand link — but for a navigation menu where you want only the right item highlighted, you'd add <code>end</code> to the Home route.
+  </div>
+
+  <h3>NavLink default active class</h3>
+  <p>
+    Even if you don't pass a <code>className</code> function, <code>&lt;NavLink&gt;</code> automatically adds an <code>active</code> CSS class to the rendered <code>&lt;a&gt;</code> element when it's active. You can target it with plain CSS:
+  </p>
+
+<pre><span class="cm">/* In your CSS file — no className prop needed */</span>
+nav a <span class="op">{</span> color: rgba(<span class="nm">255</span>,<span class="nm">255</span>,<span class="nm">255</span>,<span class="nm">0.6</span>); <span class="op">}</span>
+nav a.<span class="fn">active</span> <span class="op">{</span> color: <span class="str">#62d2b2</span>; border-bottom: <span class="nm">2px</span> solid <span class="str">#62d2b2</span>; <span class="op">}</span>
+
+<span class="cm">/* That's it — no function needed in JSX */</span></pre>
+
+  <!-- ───────────────────────────────────────────── -->
+  <h2 id="navigate-component">Navigate Component</h2>
+  <p>
+    <code>&lt;Navigate&gt;</code> is a component that redirects when rendered. It's the declarative version of <code>useNavigate()</code> — useful inside JSX for conditional redirects:
+  </p>
+
+<pre><span class="kw">import</span> { Navigate } <span class="kw">from</span> <span class="str">"react-router-dom"</span>;
+
+<span class="cm">// If user is already logged in, redirect away from the login page</span>
+<span class="kw">function</span> <span class="fn">LoginPage</span>() {
+  <span class="kw">const</span> isLoggedIn <span class="op">=</span> <span class="fn">useAppSelector</span>(selectIsLoggedIn);
+
+  <span class="kw">if</span> (isLoggedIn) {
+    <span class="kw">return</span> <span class="ts">&lt;Navigate</span> <span class="at">to</span><span class="op">=</span><span class="str">"/"</span> <span class="at">replace</span> <span class="ts">/&gt;</span>;
+    <span class="cm">// replace=true: replaces current history entry
+    // Back button won't go back to the login page</span>
+  }
+
+  <span class="kw">return</span> <span class="ts">&lt;form</span><span class="ts">&gt;</span>...<span class="ts">&lt;/form&gt;</span>;
+}</pre>
+
+  <table>
+    <thead><tr><th>Prop</th><th>Type</th><th>Effect</th></tr></thead>
+    <tbody>
+      <tr><td><code>to</code></td><td><code>string</code></td><td>Where to redirect</td></tr>
+      <tr><td><code>replace</code></td><td><code>boolean</code></td><td>Replace current history entry (default: <code>false</code> — pushes)</td></tr>
+      <tr><td><code>state</code></td><td><code>any</code></td><td>Pass state to the destination route</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ───────────────────────────────────────────── -->
+  <h2 id="outlet">Outlet — Nested Routes</h2>
+  <p>
+    <code>&lt;Outlet&gt;</code> is a placeholder where child routes render. It enables <strong>nested layouts</strong> — a shared layout component (sidebar, navbar, etc.) wraps multiple pages.
+  </p>
+
+<pre><span class="cm">// Route definition — Dashboard is the layout, children render inside it</span>
+<span class="ts">&lt;Routes&gt;</span>
+  <span class="ts">&lt;Route</span> <span class="at">path</span><span class="op">=</span><span class="str">"/admin"</span> <span class="at">element</span><span class="op">={&lt;</span><span class="fn">AdminLayout</span> <span class="op">/&gt;}</span><span class="ts">&gt;</span>
+    <span class="ts">&lt;Route</span> <span class="at">index</span>                     <span class="at">element</span><span class="op">={&lt;</span><span class="fn">AdminHome</span> <span class="op">/&gt;}</span>    <span class="ts">/&gt;</span>  <span class="cm">{/* /admin */}</span>
+    <span class="ts">&lt;Route</span> <span class="at">path</span><span class="op">=</span><span class="str">"briefs"</span>             <span class="at">element</span><span class="op">={&lt;</span><span class="fn">AdminBriefs</span> <span class="op">/&gt;}</span>  <span class="ts">/&gt;</span>  <span class="cm">{/* /admin/briefs */}</span>
+    <span class="ts">&lt;Route</span> <span class="at">path</span><span class="op">=</span><span class="str">"briefs/:id"</span>         <span class="at">element</span><span class="op">={&lt;</span><span class="fn">BriefDetail</span> <span class="op">/&gt;}</span>  <span class="ts">/&gt;</span>  <span class="cm">{/* /admin/briefs/123 */}</span>
+    <span class="ts">&lt;Route</span> <span class="at">path</span><span class="op">=</span><span class="str">"employees"</span>          <span class="at">element</span><span class="op">={&lt;</span><span class="fn">Employees</span> <span class="op">/&gt;}</span>    <span class="ts">/&gt;</span>  <span class="cm">{/* /admin/employees */}</span>
+  <span class="ts">&lt;/Route&gt;</span>
+<span class="ts">&lt;/Routes&gt;</span>
+
+<span class="cm">// AdminLayout component — the shared wrapper</span>
+<span class="kw">function</span> <span class="fn">AdminLayout</span>() {
+  <span class="kw">return</span> (
+    <span class="ts">&lt;div</span> <span class="at">className</span><span class="op">=</span><span class="str">"flex"</span><span class="ts">&gt;</span>
+      <span class="ts">&lt;AdminSidebar /&gt;</span>   <span class="cm">{/* always visible */}</span>
+      <span class="ts">&lt;main&gt;</span>
+        <span class="ts">&lt;Outlet /&gt;</span>       <span class="cm">{/* ← child route renders HERE */}</span>
+      <span class="ts">&lt;/main&gt;</span>
+    <span class="ts">&lt;/div&gt;</span>
+  );
+}</pre>
+
+  <p>Smart Brief doesn't currently use <code>Outlet</code> — all routes are flat in <code>App.tsx</code>. But it's the standard way to build dashboard layouts.</p>
+
+  <hr />
+
+  <!-- ══════════════════════════════════════════════════════════
+       HOOKS
+  ══════════════════════════════════════════════════════════ -->
+
+  <h2 id="use-navigate">useNavigate</h2>
+  <p>
+    <code>useNavigate</code> returns a function for programmatic navigation — navigating in response to logic (form submit, button click, after a thunk succeeds), not just a link click.
+  </p>
+
+<pre><span class="kw">import</span> { useNavigate } <span class="kw">from</span> <span class="str">"react-router-dom"</span>;
+
+<span class="kw">const</span> navigate <span class="op">=</span> <span class="fn">useNavigate</span>();
+
+<span class="cm">// Navigate to a path</span>
+<span class="fn">navigate</span>(<span class="str">"/dashboard"</span>);
+
+<span class="cm">// Navigate back (like browser back button)</span>
+<span class="fn">navigate</span>(<span class="op">-</span><span class="nm">1</span>);
+
+<span class="cm">// Navigate forward</span>
+<span class="fn">navigate</span>(<span class="nm">1</span>);
+
+<span class="cm">// Replace current history entry (back button skips this page)</span>
+<span class="fn">navigate</span>(<span class="str">"/home"</span>, { replace: <span class="nm">true</span> });
+
+<span class="cm">// Navigate with state (readable on the destination with useLocation)</span>
+<span class="fn">navigate</span>(<span class="str">"/verify-code"</span>, {
+  state: { email: <span class="str">"user@example.com"</span>, rememberMe: <span class="nm">true</span> }
+});</pre>
+
+  <h3>navigate(-1) in Smart Brief</h3>
+<pre><span class="file-label">BriefDetails.tsx</span>
+<span class="cm">// Back button — goes to whatever page the user came from</span>
+<span class="ts">&lt;button</span> <span class="at">onClick</span><span class="op">={() =></span> <span class="fn">navigate</span>(<span class="op">-</span><span class="nm">1</span>)<span class="op">}</span><span class="ts">&gt;</span>
+  <span class="ts">&lt;ArrowLeft</span> <span class="at">size</span><span class="op">={</span><span class="nm">16</span><span class="op">}</span> <span class="ts">/&gt;</span> Back
+<span class="ts">&lt;/button&gt;</span>
+
+<span class="cm">// After deleting a brief, go back</span>
+<span class="kw">const</span> <span class="fn">handleDelete</span> <span class="op">=</span> <span class="kw">async</span> () <span class="op">=&gt;</span> {
+  <span class="kw">if</span> (!brief || !window.<span class="fn">confirm</span>(<span class="str">"Are you sure?"</span>)) <span class="kw">return</span>;
+  <span class="kw">await</span> <span class="fn">dispatch</span>(<span class="fn">deleteBriefThunk</span>(brief.id));
+  <span class="fn">navigate</span>(<span class="op">-</span><span class="nm">1</span>); <span class="cm">// back to the list</span>
+};</pre>
+
+  <!-- ───────────────────────────────────────────── -->
+  <h2 id="use-params">useParams</h2>
+  <p>
+    <code>useParams</code> reads the dynamic segments from the current URL. If your route is <code>/briefs/:id</code> and the user visits <code>/briefs/abc-123</code>, then <code>id</code> is <code>"abc-123"</code>.
+  </p>
+
+<pre><span class="kw">import</span> { useParams } <span class="kw">from</span> <span class="str">"react-router-dom"</span>;
+
+<span class="cm">// Route: /briefs/:id</span>
+<span class="kw">const</span> { id } <span class="op">=</span> <span class="fn">useParams</span><span class="op">&lt;</span>{ id: <span class="tp">string</span> }<span class="op">&gt;</span>();
+<span class="cm">//  ↑ TypeScript generic — tells TS what params to expect</span></pre>
+
+<pre><span class="file-label">BriefDetails.tsx</span>
+<span class="kw">export default function</span> <span class="fn">BriefDetails</span>() {
+  <span class="kw">const</span> { id } <span class="op">=</span> <span class="fn">useParams</span><span class="op">&lt;</span>{ id: <span class="tp">string</span> }<span class="op">&gt;</span>();
+  <span class="kw">const</span> dispatch <span class="op">=</span> <span class="fn">useAppDispatch</span>();
+
+  <span class="fn">useEffect</span>(() <span class="op">=&gt;</span> {
+    <span class="kw">if</span> (id) <span class="fn">dispatch</span>(<span class="fn">fetchBriefByIdThunk</span>(id));
+  }, [id, dispatch]);
+  <span class="cm">// When the URL is /briefs/abc-123, id = "abc-123"
+  // The thunk fetches GET /briefs/abc-123</span>
+}</pre>
+
+  <h3>Multiple params</h3>
+<pre><span class="cm">// Route: /users/:userId/briefs/:briefId</span>
+<span class="kw">const</span> { userId, briefId } <span class="op">=</span> <span class="fn">useParams</span><span class="op">&lt;</span>{ userId: <span class="tp">string</span>; briefId: <span class="tp">string</span> }<span class="op">&gt;</span>();</pre>
+
+  <div class="callout warn">
+    <strong>useParams always returns strings</strong>
+    URL parameters are always strings. If you need a number, convert it: <code>const numId = Number(id)</code>. And always check for <code>undefined</code> — a param is undefined if the current route doesn't have that segment.
+  </div>
+
+  <!-- ───────────────────────────────────────────── -->
+  <h2 id="use-location">useLocation</h2>
+  <p>
+    <code>useLocation</code> returns the current location object. It gives you everything about the current URL plus any state that was passed when navigating.
+  </p>
+
+<pre><span class="kw">import</span> { useLocation } <span class="kw">from</span> <span class="str">"react-router-dom"</span>;
+
+<span class="kw">const</span> location <span class="op">=</span> <span class="fn">useLocation</span>();
+
+console.<span class="fn">log</span>(location.pathname); <span class="cm">// "/briefs/abc-123"</span>
+console.<span class="fn">log</span>(location.search);   <span class="cm">// "?token=XYZ&amp;tab=details" (query string)</span>
+console.<span class="fn">log</span>(location.hash);     <span class="cm">// "#section-2" (anchor)</span>
+console.<span class="fn">log</span>(location.state);    <span class="cm">// { email: "...", rememberMe: true } (passed via navigate)</span>
+console.<span class="fn">log</span>(location.key);      <span class="cm">// unique key for this history entry</span></pre>
+
+  <h3>Reading location.pathname to detect page type</h3>
+<pre><span class="file-label">App.tsx</span>
+<span class="kw">const</span> location <span class="op">=</span> <span class="fn">useLocation</span>();
+
+<span class="cm">// Check if we're on an auth page to swap the background illustration</span>
+<span class="kw">const</span> authPaths <span class="op">=</span> [<span class="str">'/register'</span>, <span class="str">'/login'</span>, <span class="str">'/verify-code'</span>, <span class="str">'/forgot-password'</span>, <span class="str">'/reset-password'</span>];
+<span class="kw">const</span> isAuthPage <span class="op">=</span> authPaths.<span class="fn">includes</span>(location.pathname);
+
+<span class="cm">// Now isAuthPage drives which SVG background is shown</span>
+<span class="kw">const</span> backgroundAbstract <span class="op">=</span> isAuthPage
+  ? <span class="ts">&lt;AbstractObj2</span> ... <span class="ts">/&gt;</span>
+  : <span class="ts">&lt;AbstractObj1</span> ... <span class="ts">/&gt;</span>;</pre>
+
+  <!-- ───────────────────────────────────────────── -->
+  <h2 id="use-search-params">useSearchParams</h2>
+  <p>
+    <code>useSearchParams</code> reads and writes <strong>query string parameters</strong> — the <code>?key=value</code> part of the URL. It works exactly like <code>useState</code> but backed by the URL.
+  </p>
+
+<pre><span class="kw">import</span> { useSearchParams } <span class="kw">from</span> <span class="str">"react-router-dom"</span>;
+
+<span class="kw">const</span> [searchParams, setSearchParams] <span class="op">=</span> <span class="fn">useSearchParams</span>();
+
+<span class="cm">// READ a param: URL = /reset-password?token=abc123</span>
+<span class="kw">const</span> token <span class="op">=</span> searchParams.<span class="fn">get</span>(<span class="str">"token"</span>);  <span class="cm">// "abc123"</span>
+<span class="kw">const</span> tab   <span class="op">=</span> searchParams.<span class="fn">get</span>(<span class="str">"tab"</span>);    <span class="cm">// null (not in URL)</span>
+
+<span class="cm">// CHECK if a param exists</span>
+searchParams.<span class="fn">has</span>(<span class="str">"token"</span>);  <span class="cm">// true</span>
+
+<span class="cm">// SET a param — updates the URL without navigating</span>
+<span class="fn">setSearchParams</span>({ tab: <span class="str">"settings"</span> });
+<span class="cm">// URL becomes: /current-page?tab=settings</span>
+
+<span class="cm">// REMOVE a param (keep others)</span>
+<span class="kw">const</span> next <span class="op">=</span> <span class="kw">new</span> URLSearchParams(searchParams.<span class="fn">toString</span>());
+next.<span class="fn">delete</span>(<span class="str">"token"</span>);
+<span class="fn">setSearchParams</span>(next, { replace: <span class="nm">true</span> }); <span class="cm">// replace avoids adding to history</span></pre>
+
+  <h3>ResetPassword — reading a token from the URL</h3>
+<pre><span class="file-label">ResetPassword.tsx</span>
+<span class="cm">// URL: /reset-password?token=abcdef123456
+// The token was emailed to the user. They clicked the link.</span>
+
+<span class="kw">const</span> [searchParams] <span class="op">=</span> <span class="fn">useSearchParams</span>();
+<span class="kw">const</span> token <span class="op">=</span> <span class="fn">useMemo</span>(() <span class="op">=&gt;</span> searchParams.<span class="fn">get</span>(<span class="str">"token"</span>)?.<span class="fn">trim</span>() || <span class="str">""</span>, [searchParams]);
+
+<span class="cm">// Later in handleSubmit:</span>
+<span class="kw">if</span> (!token) {
+  <span class="fn">setFieldError</span>(<span class="str">"This reset link is invalid or missing."</span>);
+  <span class="kw">return</span>;
+}
+<span class="kw">await</span> api.<span class="fn">post</span>(<span class="str">"/auth/reset-password"</span>, { token, newPassword: password });</pre>
+
+  <h3>Google OAuth redirect — removing a token from the URL</h3>
+<pre><span class="file-label">App.tsx</span>
+<span class="cm">// After Google login, backend redirects to: /?token=eyJhbGci...
+// We need to save the token and REMOVE it from the URL (it's sensitive)</span>
+
+<span class="kw">const</span> [searchParams, setSearchParams] <span class="op">=</span> <span class="fn">useSearchParams</span>();
+
+<span class="fn">useEffect</span>(() <span class="op">=&gt;</span> {
+  <span class="kw">const</span> googleToken <span class="op">=</span> searchParams.<span class="fn">get</span>(<span class="str">"token"</span>);
+  <span class="kw">if</span> (googleToken) {
+    localStorage.<span class="fn">setItem</span>(<span class="str">"token"</span>, googleToken);
+    dispatch(<span class="fn">setToken</span>(googleToken));
+
+    <span class="cm">// Remove ?token= from URL without adding to history</span>
+    <span class="kw">const</span> next <span class="op">=</span> <span class="kw">new</span> URLSearchParams(searchParams.<span class="fn">toString</span>());
+    next.<span class="fn">delete</span>(<span class="str">"token"</span>);
+    <span class="fn">setSearchParams</span>(next, { replace: <span class="nm">true</span> });
+    <span class="cm">// URL changes from /?token=eyJ... to / cleanly</span>
+  }
+}, [dispatch, searchParams, setSearchParams]);</pre>
+
+  <!-- ───────────────────────────────────────────── -->
+  <h2 id="use-match">useMatch &amp; useRouteError</h2>
+
+  <h3>useMatch</h3>
+  <p>Returns match information if the given pattern matches the current URL, or <code>null</code> if it doesn't. Useful when you need match details without being inside the matched route.</p>
+
+<pre><span class="kw">import</span> { useMatch } <span class="kw">from</span> <span class="str">"react-router-dom"</span>;
+
+<span class="cm">// Returns match object if URL is /briefs/something, null otherwise</span>
+<span class="kw">const</span> match <span class="op">=</span> <span class="fn">useMatch</span>(<span class="str">"/briefs/:id"</span>);
+
+<span class="kw">if</span> (match) {
+  console.<span class="fn">log</span>(match.params.id); <span class="cm">// the brief's id</span>
+}</pre>
+
+  <h3>useRouteError</h3>
+  <p>Used inside error boundary routes (React Router v6.4+). When a route throws an error, <code>useRouteError</code> reads it so you can display a nice error page.</p>
+
+<pre><span class="kw">import</span> { useRouteError } <span class="kw">from</span> <span class="str">"react-router-dom"</span>;
+
+<span class="kw">function</span> <span class="fn">ErrorPage</span>() {
+  <span class="kw">const</span> error <span class="op">=</span> <span class="fn">useRouteError</span>() <span class="kw">as</span> { status?: <span class="tp">number</span>; statusText?: <span class="tp">string</span> };
+  <span class="kw">return</span> <span class="ts">&lt;h1&gt;</span>{error.status}: {error.statusText}<span class="ts">&lt;/h1&gt;</span>;
+}</pre>
+
+  <hr />
+
+  <!-- ══════════════════════════════════════════════════════════
+       PATTERNS
+  ══════════════════════════════════════════════════════════ -->
+
+  <h2 id="nested-routes">Nested Routes — Full Example</h2>
+  <p>
+    Nested routes are used to build layouts where part of the page is shared and part changes. The classic use case: a dashboard with a sidebar.
+  </p>
+
+<pre><span class="cm">// App.tsx — define the nested structure</span>
+<span class="ts">&lt;Routes&gt;</span>
+  <span class="ts">&lt;Route</span> <span class="at">path</span><span class="op">=</span><span class="str">"/"</span>       <span class="at">element</span><span class="op">={&lt;</span><span class="fn">Landing</span> <span class="op">/&gt;}</span> <span class="ts">/&gt;</span>
+  <span class="ts">&lt;Route</span> <span class="at">path</span><span class="op">=</span><span class="str">"/login"</span>   <span class="at">element</span><span class="op">={&lt;</span><span class="fn">Login</span> <span class="op">/&gt;}</span>   <span class="ts">/&gt;</span>
+
+  <span class="cm">{/* Dashboard layout wraps all admin pages */}</span>
+  <span class="ts">&lt;Route</span> <span class="at">path</span><span class="op">=</span><span class="str">"/admin"</span> <span class="at">element</span><span class="op">={&lt;</span><span class="fn">DashboardLayout</span> <span class="op">/&gt;}</span><span class="ts">&gt;</span>
+    <span class="ts">&lt;Route</span> <span class="at">index</span>              <span class="at">element</span><span class="op">={&lt;</span><span class="fn">AdminHome</span>    <span class="op">/&gt;}</span> <span class="ts">/&gt;</span>  <span class="cm">{/* GET /admin */}</span>
+    <span class="ts">&lt;Route</span> <span class="at">path</span><span class="op">=</span><span class="str">"briefs"</span>     <span class="at">element</span><span class="op">={&lt;</span><span class="fn">BriefList</span>    <span class="op">/&gt;}</span> <span class="ts">/&gt;</span>  <span class="cm">{/* GET /admin/briefs */}</span>
+    <span class="ts">&lt;Route</span> <span class="at">path</span><span class="op">=</span><span class="str">"briefs/:id"</span> <span class="at">element</span><span class="op">={&lt;</span><span class="fn">BriefDetail</span>  <span class="op">/&gt;}</span> <span class="ts">/&gt;</span>  <span class="cm">{/* GET /admin/briefs/123 */}</span>
+    <span class="ts">&lt;Route</span> <span class="at">path</span><span class="op">=</span><span class="str">"team"</span>       <span class="at">element</span><span class="op">={&lt;</span><span class="fn">TeamPage</span>     <span class="op">/&gt;}</span> <span class="ts">/&gt;</span>  <span class="cm">{/* GET /admin/team */}</span>
+  <span class="ts">&lt;/Route&gt;</span>
+<span class="ts">&lt;/Routes&gt;</span>
+
+<span class="cm">// DashboardLayout.tsx — shared wrapper</span>
+<span class="kw">function</span> <span class="fn">DashboardLayout</span>() {
+  <span class="kw">return</span> (
+    <span class="ts">&lt;div</span> <span class="at">style</span><span class="op">={{</span> display: <span class="str">"flex"</span> <span class="op">}}</span><span class="ts">&gt;</span>
+      <span class="ts">&lt;Sidebar /&gt;</span>      <span class="cm">{/* stays visible on all /admin/* pages */}</span>
+      <span class="ts">&lt;main&gt;</span>
+        <span class="ts">&lt;Outlet /&gt;</span>     <span class="cm">{/* AdminHome / BriefList / BriefDetail renders here */}</span>
+      <span class="ts">&lt;/main&gt;</span>
+    <span class="ts">&lt;/div&gt;</span>
+  );
+}</pre>
+
+  <div class="callout info">
+    <strong>index route</strong>
+    An <code>&lt;Route index /&gt;</code> (no <code>path</code>) renders when the parent's path is matched exactly. In the example above, visiting <code>/admin</code> renders <code>&lt;AdminHome /&gt;</code> through the <code>index</code> route — not <code>/admin/briefs</code>.
+  </div>
+
+  <!-- ───────────────────────────────────────────── -->
+  <h2 id="protected-routes">Protected Routes</h2>
+  <p>
+    A protected route is a wrapper that redirects unauthenticated users away before rendering the actual page. Smart Brief handles this differently (conditional rendering in <code>App.tsx</code>), but the dedicated component approach is cleaner for larger apps.
+  </p>
+
+<pre><span class="cm">// ProtectedRoute.tsx — reusable guard component</span>
+<span class="kw">import</span> { Navigate, Outlet } <span class="kw">from</span> <span class="str">"react-router-dom"</span>;
+<span class="kw">import</span> { useAppSelector } <span class="kw">from</span> <span class="str">"../app/hooks"</span>;
+<span class="kw">import</span> { selectIsLoggedIn } <span class="kw">from</span> <span class="str">"../features/auth/authSlice/authSelectors"</span>;
+
+<span class="kw">export default function</span> <span class="fn">ProtectedRoute</span>({ requiredRole }: { requiredRole?: <span class="tp">string</span> }) {
+  <span class="kw">const</span> isLoggedIn <span class="op">=</span> <span class="fn">useAppSelector</span>(selectIsLoggedIn);
+  <span class="kw">const</span> user       <span class="op">=</span> <span class="fn">useAppSelector</span>(selectUser);
+
+  <span class="kw">if</span> (!isLoggedIn) {
+    <span class="kw">return</span> <span class="ts">&lt;Navigate</span> <span class="at">to</span><span class="op">=</span><span class="str">"/login"</span> <span class="at">replace</span> <span class="ts">/&gt;</span>;
+  }
+
+  <span class="kw">if</span> (requiredRole <span class="op">&amp;&amp;</span> user?.role !== requiredRole) {
+    <span class="kw">return</span> <span class="ts">&lt;Navigate</span> <span class="at">to</span><span class="op">=</span><span class="str">"/"</span> <span class="at">replace</span> <span class="ts">/&gt;</span>; <span class="cm">// wrong role → home</span>
+  }
+
+  <span class="kw">return</span> <span class="ts">&lt;Outlet /&gt;</span>; <span class="cm">// ← renders the child route if checks pass</span>
+}
+
+<span class="cm">// App.tsx — using ProtectedRoute</span>
+<span class="ts">&lt;Routes&gt;</span>
+  <span class="ts">&lt;Route</span> <span class="at">path</span><span class="op">=</span><span class="str">"/login"</span>    <span class="at">element</span><span class="op">={&lt;</span><span class="fn">Login</span>    <span class="op">/&gt;}</span> <span class="ts">/&gt;</span>
+  <span class="ts">&lt;Route</span> <span class="at">path</span><span class="op">=</span><span class="str">"/register"</span> <span class="at">element</span><span class="op">={&lt;</span><span class="fn">Register</span> <span class="op">/&gt;}</span> <span class="ts">/&gt;</span>
+
+  <span class="cm">{/* All authenticated users */}</span>
+  <span class="ts">&lt;Route</span> <span class="at">element</span><span class="op">={&lt;</span><span class="fn">ProtectedRoute</span> <span class="op">/&gt;}</span><span class="ts">&gt;</span>
+    <span class="ts">&lt;Route</span> <span class="at">path</span><span class="op">=</span><span class="str">"/"</span>          <span class="at">element</span><span class="op">={&lt;</span><span class="fn">Home</span>       <span class="op">/&gt;}</span> <span class="ts">/&gt;</span>
+    <span class="ts">&lt;Route</span> <span class="at">path</span><span class="op">=</span><span class="str">"/profile"</span>   <span class="at">element</span><span class="op">={&lt;</span><span class="fn">Profile</span>    <span class="op">/&gt;}</span> <span class="ts">/&gt;</span>
+  <span class="ts">&lt;/Route&gt;</span>
+
+  <span class="cm">{/* ADMIN only */}</span>
+  <span class="ts">&lt;Route</span> <span class="at">element</span><span class="op">={&lt;</span><span class="fn">ProtectedRoute</span> <span class="kw">requiredRole</span><span class="op">=</span><span class="str">"ADMIN"</span> <span class="op">/&gt;}</span><span class="ts">&gt;</span>
+    <span class="ts">&lt;Route</span> <span class="at">path</span><span class="op">=</span><span class="str">"/briefs"</span>    <span class="at">element</span><span class="op">={&lt;</span><span class="fn">BriefsDashboard</span> <span class="op">/&gt;}</span> <span class="ts">/&gt;</span>
+  <span class="ts">&lt;/Route&gt;</span>
+<span class="ts">&lt;/Routes&gt;</span></pre>
+
+  <!-- ───────────────────────────────────────────── -->
+  <h2 id="not-found">404 Not Found Route</h2>
+  <p>
+    A route with <code>path="*"</code> matches anything that no other route matched. Place it last.
+  </p>
+
+<pre><span class="kw">function</span> <span class="fn">NotFound</span>() {
+  <span class="kw">const</span> navigate <span class="op">=</span> <span class="fn">useNavigate</span>();
+  <span class="kw">return</span> (
+    <span class="ts">&lt;div</span> <span class="at">className</span><span class="op">=</span><span class="str">"text-center py-20"</span><span class="ts">&gt;</span>
+      <span class="ts">&lt;h1&gt;</span>404 — Page Not Found<span class="ts">&lt;/h1&gt;</span>
+      <span class="ts">&lt;button</span> <span class="at">onClick</span><span class="op">={() =></span> <span class="fn">navigate</span>(<span class="str">"/"</span>)<span class="op">}</span><span class="ts">&gt;</span>Go Home<span class="ts">&lt;/button&gt;</span>
+    <span class="ts">&lt;/div&gt;</span>
+  );
+}
+
+<span class="cm">// In Routes — must be last</span>
+<span class="ts">&lt;Routes&gt;</span>
+  <span class="ts">&lt;Route</span> <span class="at">path</span><span class="op">=</span><span class="str">"/"</span>      <span class="at">element</span><span class="op">={&lt;</span><span class="fn">Home</span>     <span class="op">/&gt;}</span> <span class="ts">/&gt;</span>
+  <span class="ts">&lt;Route</span> <span class="at">path</span><span class="op">=</span><span class="str">"/briefs"</span> <span class="at">element</span><span class="op">={&lt;</span><span class="fn">Briefs</span>   <span class="op">/&gt;}</span> <span class="ts">/&gt;</span>
+  <span class="ts">&lt;Route</span> <span class="at">path</span><span class="op">=</span><span class="str">"*"</span>      <span class="at">element</span><span class="op">={&lt;</span><span class="fn">NotFound</span> <span class="op">/&gt;}</span> <span class="ts">/&gt;</span>  <span class="cm">{/* ← must be last */}</span>
+<span class="ts">&lt;/Routes&gt;</span></pre>
+
+  <!-- ───────────────────────────────────────────── -->
+  <h2 id="location-state">Passing State Between Routes</h2>
+  <p>
+    Sometimes you need to pass data from one page to another without putting it in the URL (it might be sensitive, or too complex for a query string). Use <code>location.state</code>.
+  </p>
+
+  <div class="flow">
+    <div class="flow-box teal">Register page<br><small>has email + rememberMe</small></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box blue">navigate("/verify-code",<br>{ state: { email, rememberMe } })</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box yellow">VerifyCode page<br><small>reads email from location.state</small></div>
+  </div>
+
+<pre><span class="file-label">Register.tsx — sending state</span>
+<span class="kw">const</span> navigate <span class="op">=</span> <span class="fn">useNavigate</span>();
+
+<span class="cm">// After registration succeeds</span>
+<span class="fn">navigate</span>(<span class="str">"/verify-code"</span>, {
+  state: { email: formData.email, rememberMe: formData.rememberMe }
+});</pre>
+
+<pre><span class="file-label">VerifyCode.tsx — receiving state</span>
+<span class="kw">const</span> location <span class="op">=</span> <span class="fn">useLocation</span>();
+
+<span class="cm">// Cast to the expected shape — state is typed as unknown</span>
+<span class="kw">const</span> email <span class="op">=</span> (location.state <span class="kw">as</span> { email?: <span class="tp">string</span>; rememberMe?: <span class="tp">boolean</span> })?.email || <span class="str">""</span>;
+<span class="kw">const</span> rememberMe <span class="op">=</span> (location.state <span class="kw">as</span> { email?: <span class="tp">string</span>; rememberMe?: <span class="tp">boolean</span> })?.rememberMe ?? <span class="nm">false</span>;
+
+<span class="cm">// Guard: if no email, user came here directly (not from register) — send them back</span>
+<span class="fn">useEffect</span>(() <span class="op">=&gt;</span> {
+  <span class="kw">if</span> (!email) navigate(<span class="str">"/register"</span>);
+}, [email, navigate]);</pre>
+
+  <div class="callout warn">
+    <strong>State is lost on refresh</strong>
+    <code>location.state</code> is stored in the browser's session history. If the user refreshes the page, <code>location.state</code> becomes <code>null</code>. That's why VerifyCode guards against it and redirects to <code>/register</code>.
+  </div>
+
+  <!-- ───────────────────────────────────────────── -->
+  <h2 id="programmatic-nav">Programmatic Navigation Patterns</h2>
+
+<pre><span class="cm">// 1. Navigate after async action succeeds</span>
+<span class="kw">const</span> <span class="fn">handleSubmit</span> <span class="op">=</span> <span class="kw">async</span> () <span class="op">=&gt;</span> {
+  <span class="kw">const</span> result <span class="op">=</span> <span class="kw">await</span> <span class="fn">dispatch</span>(<span class="fn">createBriefThunk</span>(data));
+  <span class="kw">if</span> (<span class="fn">createBriefThunk</span>.<span class="fn">fulfilled</span>.<span class="fn">match</span>(result)) {
+    <span class="fn">navigate</span>(<span class="str">"/my-briefs"</span>); <span class="cm">// only navigate on success</span>
+  }
+};
+
+<span class="cm">// 2. Navigate after deletion</span>
+<span class="kw">const</span> <span class="fn">handleDelete</span> <span class="op">=</span> <span class="kw">async</span> () <span class="op">=&gt;</span> {
+  <span class="kw">await</span> <span class="fn">dispatch</span>(<span class="fn">deleteBriefThunk</span>(id));
+  <span class="fn">navigate</span>(<span class="op">-</span><span class="nm">1</span>); <span class="cm">// go back to the previous page</span>
+};
+
+<span class="cm">// 3. Navigate on logout — go to landing page</span>
+<span class="kw">function</span> <span class="fn">handleLogout</span>() {
+  <span class="fn">dispatch</span>(<span class="fn">logout</span>());
+  <span class="fn">navigate</span>(<span class="str">"/"</span>);
+}
+
+<span class="cm">// 4. Replace — don't add to history (user can't go back)</span>
+<span class="fn">navigate</span>(<span class="str">"/home"</span>, { replace: <span class="nm">true</span> }); <span class="cm">// useful after login/logout</span>
+
+<span class="cm">// 5. Navigate with state</span>
+<span class="fn">navigate</span>(<span class="str">"/verify-code"</span>, { state: { email: <span class="str">"omar@..."</span> } });</pre>
+
+  <!-- ───────────────────────────────────────────── -->
+  <h2 id="conditional-routes">Conditional Routes (Smart Brief approach)</h2>
+  <p>
+    Smart Brief's <code>App.tsx</code> uses a simpler alternative to ProtectedRoute: directly render a different component for the same path based on login state.
+  </p>
+
+<pre><span class="file-label">App.tsx</span>
+<span class="kw">const</span> isLoggedIn <span class="op">=</span> <span class="fn">useAppSelector</span>(selectIsLoggedIn);
+
+<span class="ts">&lt;Routes&gt;</span>
+  <span class="cm">{/* "/" shows Home for logged-in users, Landing for guests */}</span>
+  {isLoggedIn ? (
+    <span class="ts">&lt;Route</span> <span class="at">path</span><span class="op">=</span><span class="str">"/"</span> <span class="at">element</span><span class="op">={&lt;</span><span class="fn">Home</span>    <span class="op">/&gt;}</span> <span class="ts">/&gt;</span>
+  ) : (
+    <span class="ts">&lt;Route</span> <span class="at">path</span><span class="op">=</span><span class="str">"/"</span> <span class="at">element</span><span class="op">={&lt;</span><span class="fn">Landing</span> <span class="op">/&gt;}</span> <span class="ts">/&gt;</span>
+  )}
+  <span class="cm">{/* Other routes are always available */}</span>
+  <span class="ts">&lt;Route</span> <span class="at">path</span><span class="op">=</span><span class="str">"/login"</span>    <span class="at">element</span><span class="op">={&lt;</span><span class="fn">Login</span>    <span class="op">/&gt;}</span> <span class="ts">/&gt;</span>
+  <span class="ts">&lt;Route</span> <span class="at">path</span><span class="op">=</span><span class="str">"/register"</span> <span class="at">element</span><span class="op">={&lt;</span><span class="fn">Register</span> <span class="op">/&gt;}</span> <span class="ts">/&gt;</span>
+  <span class="ts">&lt;Route</span> <span class="at">path</span><span class="op">=</span><span class="str">"/briefs/:id"</span> <span class="at">element</span><span class="op">={&lt;</span><span class="fn">BriefDetails</span> <span class="op">/&gt;}</span> <span class="ts">/&gt;</span>
+<span class="ts">&lt;/Routes&gt;</span></pre>
+
+  <hr />
+
+  <!-- ══════════════════════════════════════════════════════════
+       PROJECT EXAMPLES
+  ══════════════════════════════════════════════════════════ -->
+
+  <h2 id="project-app">Full App.tsx Routing — Annotated</h2>
+
+<pre><span class="file-label">App.tsx</span>
+<span class="kw">export default function</span> <span class="fn">SmarBriefApp</span>() {
+  <span class="kw">const</span> dispatch <span class="op">=</span> <span class="fn">useAppDispatch</span>();
+  <span class="kw">const</span> location     <span class="op">=</span> <span class="fn">useLocation</span>();       <span class="cm">// reads current URL path</span>
+  <span class="kw">const</span> [searchParams, setSearchParams] <span class="op">=</span> <span class="fn">useSearchParams</span>(); <span class="cm">// ?key=val</span>
+  <span class="kw">const</span> token      <span class="op">=</span> <span class="fn">useAppSelector</span>(selectToken);
+  <span class="kw">const</span> user        <span class="op">=</span> <span class="fn">useAppSelector</span>(selectUser);
+  <span class="kw">const</span> isLoggedIn  <span class="op">=</span> <span class="fn">useAppSelector</span>(selectIsLoggedIn);
+
+  <span class="cm">// ① Detect if on an auth page (to swap background illustration)</span>
+  <span class="kw">const</span> authPaths  <span class="op">=</span> [<span class="str">'/register'</span>, <span class="str">'/login'</span>, <span class="str">'/verify-code'</span>, <span class="str">'/forgot-password'</span>, <span class="str">'/reset-password'</span>];
+  <span class="kw">const</span> isAuthPage <span class="op">=</span> authPaths.<span class="fn">includes</span>(location.pathname);
+
+  <span class="cm">// ② Handle Google OAuth redirect: /?token=... → save token → clean URL</span>
+  <span class="fn">useEffect</span>(() <span class="op">=&gt;</span> {
+    <span class="kw">const</span> googleToken <span class="op">=</span> searchParams.<span class="fn">get</span>(<span class="str">"token"</span>);
+    <span class="kw">if</span> (googleToken) {
+      localStorage.<span class="fn">setItem</span>(<span class="str">"token"</span>, googleToken);
+      dispatch(<span class="fn">setToken</span>(googleToken));
+      <span class="kw">const</span> next <span class="op">=</span> <span class="kw">new</span> URLSearchParams(searchParams.<span class="fn">toString</span>());
+      next.<span class="fn">delete</span>(<span class="str">"token"</span>);
+      <span class="fn">setSearchParams</span>(next, { replace: <span class="nm">true</span> });
+    }
+  }, [dispatch, searchParams, setSearchParams]);
+
+  <span class="cm">// ③ Restore session on page refresh</span>
+  <span class="fn">useEffect</span>(() <span class="op">=&gt;</span> {
+    <span class="kw">if</span> (token <span class="op">&amp;&amp;</span> !user) dispatch(<span class="fn">getMeThunk</span>());
+  }, [dispatch, token, user]);
+
+  <span class="kw">return</span> (
+    <span class="ts">&lt;div&gt;</span>
+      <span class="ts">&lt;Navbar /&gt;</span>
+      <span class="ts">&lt;Routes&gt;</span>
+        <span class="cm">{/* ④ Home = different component based on login state */}</span>
+        {isLoggedIn
+          ? <span class="ts">&lt;Route</span> <span class="at">path</span><span class="op">=</span><span class="str">"/"</span> <span class="at">element</span><span class="op">={&lt;</span><span class="fn">Home</span>    <span class="op">/&gt;}</span> <span class="ts">/&gt;</span>
+          : <span class="ts">&lt;Route</span> <span class="at">path</span><span class="op">=</span><span class="str">"/"</span> <span class="at">element</span><span class="op">={&lt;</span><span class="fn">Landing</span> <span class="op">/&gt;}</span> <span class="ts">/&gt;</span>
+        }
+        <span class="ts">&lt;Route</span> <span class="at">path</span><span class="op">=</span><span class="str">"/new-project"</span>    <span class="at">element</span><span class="op">={&lt;</span><span class="fn">NewProject</span>      <span class="op">/&gt;}</span> <span class="ts">/&gt;</span>
+        <span class="ts">&lt;Route</span> <span class="at">path</span><span class="op">=</span><span class="str">"/my-briefs"</span>       <span class="at">element</span><span class="op">={&lt;</span><span class="fn">MyBriefs</span>        <span class="op">/&gt;}</span> <span class="ts">/&gt;</span>
+        <span class="ts">&lt;Route</span> <span class="at">path</span><span class="op">=</span><span class="str">"/briefs"</span>           <span class="at">element</span><span class="op">={&lt;</span><span class="fn">BriefsDashboard</span> <span class="op">/&gt;}</span> <span class="ts">/&gt;</span>
+        <span class="ts">&lt;Route</span> <span class="at">path</span><span class="op">=</span><span class="str">"/assigned-briefs"</span> <span class="at">element</span><span class="op">={&lt;</span><span class="fn">BriefsDashboard</span> <span class="op">/&gt;}</span> <span class="ts">/&gt;</span>
+        <span class="ts">&lt;Route</span> <span class="at">path</span><span class="op">=</span><span class="str">"/briefs/:id"</span>       <span class="at">element</span><span class="op">={&lt;</span><span class="fn">BriefDetails</span>    <span class="op">/&gt;}</span> <span class="ts">/&gt;</span>
+        <span class="ts">&lt;Route</span> <span class="at">path</span><span class="op">=</span><span class="str">"/register"</span>         <span class="at">element</span><span class="op">={&lt;</span><span class="fn">Register</span>        <span class="op">/&gt;}</span> <span class="ts">/&gt;</span>
+        <span class="ts">&lt;Route</span> <span class="at">path</span><span class="op">=</span><span class="str">"/verify-code"</span>      <span class="at">element</span><span class="op">={&lt;</span><span class="fn">VerifyCode</span>      <span class="op">/&gt;}</span> <span class="ts">/&gt;</span>
+        <span class="ts">&lt;Route</span> <span class="at">path</span><span class="op">=</span><span class="str">"/login"</span>            <span class="at">element</span><span class="op">={&lt;</span><span class="fn">Login</span>           <span class="op">/&gt;}</span> <span class="ts">/&gt;</span>
+        <span class="ts">&lt;Route</span> <span class="at">path</span><span class="op">=</span><span class="str">"/forgot-password"</span> <span class="at">element</span><span class="op">={&lt;</span><span class="fn">ForgotPassword</span> <span class="op">/&gt;}</span>  <span class="ts">/&gt;</span>
+        <span class="ts">&lt;Route</span> <span class="at">path</span><span class="op">=</span><span class="str">"/reset-password"</span>  <span class="at">element</span><span class="op">={&lt;</span><span class="fn">ResetPassword</span>  <span class="op">/&gt;}</span>  <span class="ts">/&gt;</span>
+      <span class="ts">&lt;/Routes&gt;</span>
+      <span class="ts">&lt;Footer /&gt;</span>
+    <span class="ts">&lt;/div&gt;</span>
+  );
+}</pre>
+
+  <!-- ───────────────────────────────────────────── -->
+  <h2 id="project-navbar">Navbar.tsx — NavLink Styling Explained</h2>
+
+<pre><span class="file-label">Navbar.tsx</span>
+<span class="cm">// Two CSS string variables at the top — keeps the JSX clean</span>
+<span class="kw">const</span> activeLink   <span class="op">=</span> <span class="str">"text-sbteal border-b-2 border-sbteal pb-0.5"</span>;
+<span class="kw">const</span> inactiveLink <span class="op">=</span> <span class="str">"text-white/80 hover:text-sbteal transition-colors"</span>;
+
+<span class="cm">// Shared nav links used in both desktop and mobile layouts</span>
+<span class="kw">const</span> navLinks <span class="op">=</span> (
+  <span class="ts">&lt;&gt;</span>
+    <span class="cm">{/* Always visible */}</span>
+    <span class="ts">&lt;NavLink</span> <span class="at">to</span><span class="op">=</span><span class="str">"/"</span>    <span class="at">className</span><span class="op">={({</span> isActive <span class="op">}) =></span> isActive ? activeLink : inactiveLink}<span class="ts">&gt;</span>Home<span class="ts">&lt;/NavLink&gt;</span>
+
+    <span class="cm">{/* External link — uses regular &lt;a&gt; with target="_blank" */}</span>
+    <span class="ts">&lt;a</span> <span class="at">href</span><span class="op">=</span><span class="str">"https://agence47.ma/"</span> <span class="at">className</span><span class="op">={</span>inactiveLink<span class="op">}</span> <span class="at">target</span><span class="op">=</span><span class="str">"_blank"</span> <span class="at">rel</span><span class="op">=</span><span class="str">"noopener noreferrer"</span><span class="ts">&gt;</span>Agency<span class="ts">&lt;/a&gt;</span>
+
+    <span class="cm">{/* CLIENT only */}</span>
+    {isClient <span class="op">&amp;&amp;</span> (
+      <span class="ts">&lt;&gt;</span>
+        <span class="ts">&lt;NavLink</span> <span class="at">to</span><span class="op">=</span><span class="str">"/new-project"</span> <span class="at">className</span><span class="op">={({</span> isActive <span class="op">}) =></span> isActive ? activeLink : inactiveLink}<span class="ts">&gt;</span>Create Project<span class="ts">&lt;/NavLink&gt;</span>
+        <span class="ts">&lt;NavLink</span> <span class="at">to</span><span class="op">=</span><span class="str">"/my-briefs"</span>   <span class="at">className</span><span class="op">={({</span> isActive <span class="op">}) =></span> isActive ? activeLink : inactiveLink}<span class="ts">&gt;</span>My Briefs<span class="ts">&lt;/NavLink&gt;</span>
+      <span class="ts">&lt;/&gt;</span>
+    )}
+
+    <span class="cm">{/* ADMIN only */}</span>
+    {isAdmin    <span class="op">&amp;&amp;</span> <span class="ts">&lt;NavLink</span> <span class="at">to</span><span class="op">=</span><span class="str">"/briefs"</span>          <span class="at">className</span><span class="op">={({</span> isActive <span class="op">}) =></span> isActive ? activeLink : inactiveLink}<span class="ts">&gt;</span>Briefs<span class="ts">&lt;/NavLink&gt;</span>}
+
+    <span class="cm">{/* EMPLOYEE only */}</span>
+    {isEmployee <span class="op">&amp;&amp;</span> <span class="ts">&lt;NavLink</span> <span class="at">to</span><span class="op">=</span><span class="str">"/assigned-briefs"</span> <span class="at">className</span><span class="op">={({</span> isActive <span class="op">}) =></span> isActive ? activeLink : inactiveLink}<span class="ts">&gt;</span>Assigned Briefs<span class="ts">&lt;/NavLink&gt;</span>}
+  <span class="ts">&lt;/&gt;</span>
+);
+
+<span class="cm">// navLinks is used in both desktop AND mobile sections — defined once, used twice</span>
+<span class="ts">&lt;div</span> <span class="at">className</span><span class="op">=</span><span class="str">"hidden md:flex ..."</span><span class="ts">&gt;</span>{navLinks}<span class="ts">&lt;/div&gt;</span>
+<span class="ts">&lt;div</span> <span class="at">className</span><span class="op">=</span><span class="str">"flex md:hidden ..."</span><span class="ts">&gt;</span>{navLinks}<span class="ts">&lt;/div&gt;</span></pre>
+
+  <!-- ───────────────────────────────────────────── -->
+  <h2 id="project-verify">VerifyCode — Location State Deep Dive</h2>
+
+<pre><span class="file-label">VerifyCode.tsx</span>
+<span class="kw">const</span> location <span class="op">=</span> <span class="fn">useLocation</span>();
+
+<span class="cm">// location.state comes from Register.tsx:
+// navigate("/verify-code", { state: { email, rememberMe } })
+//
+// TypeScript doesn't know the shape of state — it's "unknown"
+// We cast it using "as" to tell TypeScript what to expect</span>
+
+<span class="kw">const</span> email <span class="op">=</span> (location.state <span class="kw">as</span> { email?: <span class="tp">string</span>; rememberMe?: <span class="tp">boolean</span> })?.email || <span class="str">""</span>;
+<span class="kw">const</span> rememberMe <span class="op">=</span> (location.state <span class="kw">as</span> { email?: <span class="tp">string</span>; rememberMe?: <span class="tp">boolean</span> })?.rememberMe ?? <span class="nm">false</span>;
+
+<span class="cm">// If email is empty (user navigated here directly or refreshed):
+// Redirect them back to register</span>
+<span class="fn">useEffect</span>(() <span class="op">=&gt;</span> {
+  <span class="kw">if</span> (!email) <span class="fn">navigate</span>(<span class="str">"/register"</span>);
+}, [email, navigate]);
+
+<span class="cm">// The email is then displayed on screen and used when submitting the code</span>
+<span class="ts">&lt;p</span> <span class="at">className</span><span class="op">=</span><span class="str">"text-[#00C9B1]"</span><span class="ts">&gt;</span>{email}<span class="ts">&lt;/p&gt;</span>
+
+<span class="cm">// And passed back to the thunk along with rememberMe</span>
+<span class="fn">dispatch</span>(<span class="fn">verifyCodeThunk</span>({ email, code, rememberMe }));</pre>
+
+  <!-- ───────────────────────────────────────────── -->
+  <h2 id="project-reset">ResetPassword — Query Params Deep Dive</h2>
+
+<pre><span class="file-label">ResetPassword.tsx</span>
+<span class="cm">// URL looks like: /reset-password?token=abc123def456
+// The email with the reset link was: https://smartbrief.vercel.app/reset-password?token=abc123
+//
+// useMemo so it only recomputes when searchParams changes</span>
+
+<span class="kw">const</span> [searchParams] <span class="op">=</span> <span class="fn">useSearchParams</span>();
+<span class="kw">const</span> token <span class="op">=</span> <span class="fn">useMemo</span>(
+  () <span class="op">=&gt;</span> searchParams.<span class="fn">get</span>(<span class="str">"token"</span>)?.<span class="fn">trim</span>() || <span class="str">""</span>,
+  [searchParams]
+);
+
+<span class="cm">// If no token in URL, tell the user the link is invalid</span>
+<span class="kw">if</span> (!token) {
+  <span class="fn">setFieldError</span>(<span class="str">"This reset link is invalid or missing."</span>);
+  <span class="kw">return</span>;
+}
+
+<span class="cm">// Otherwise, call the backend with the token + new password</span>
+<span class="kw">await</span> api.<span class="fn">post</span>(<span class="str">"/auth/reset-password"</span>, { token, newPassword: password });</pre>
+
+  <!-- ───────────────────────────────────────────── -->
+  <h2 id="project-details">BriefDetails — useParams Deep Dive</h2>
+
+<pre><span class="file-label">BriefDetails.tsx</span>
+<span class="cm">// Route: /briefs/:id
+// When user visits: /briefs/5c20d0aa-568b-4ff5-a77c-3ce2eacdb1e2
+// id = "5c20d0aa-568b-4ff5-a77c-3ce2eacdb1e2"</span>
+
+<span class="kw">const</span> { id } <span class="op">=</span> <span class="fn">useParams</span><span class="op">&lt;</span>{ id: <span class="tp">string</span> }<span class="op">&gt;</span>();
+
+<span class="cm">// On mount (and when id changes): fetch the brief from the API</span>
+<span class="fn">useEffect</span>(() <span class="op">=&gt;</span> {
+  <span class="kw">if</span> (id) <span class="fn">dispatch</span>(<span class="fn">fetchBriefByIdThunk</span>(id));
+}, [id, dispatch]);
+<span class="cm">// fetchBriefByIdThunk calls GET /briefs/5c20d0aa-...
+// The response is stored in state.briefs.currentBrief</span>
+
+<span class="cm">// Read from Redux store</span>
+<span class="kw">const</span> brief   <span class="op">=</span> <span class="fn">useAppSelector</span>(selectCurrentBrief); <span class="cm">// Brief | null</span>
+<span class="kw">const</span> loading <span class="op">=</span> <span class="fn">useAppSelector</span>(selectBriefsLoading);
+
+<span class="cm">// Show spinner while loading</span>
+<span class="kw">if</span> (loading || !brief) <span class="kw">return</span> <span class="ts">&lt;Spinner /&gt;</span>;
+
+<span class="cm">// Now brief is guaranteed to be Brief (not null)</span>
+<span class="kw">return</span> <span class="ts">&lt;h1&gt;</span>{brief.title}<span class="ts">&lt;/h1&gt;</span>;</pre>
+
+  <hr />
+
+  <!-- ══════════════════════════════════════════════════════════
+       CHEAT SHEET
+  ══════════════════════════════════════════════════════════ -->
+
+  <h2 id="cheatsheet">Cheat Sheet</h2>
+
+  <h3>Components</h3>
+  <table>
+    <thead><tr><th>Component</th><th>Import from</th><th>Use when</th></tr></thead>
+    <tbody>
+      <tr><td><code>&lt;BrowserRouter&gt;</code></td><td><code>react-router-dom</code></td><td>Wrap your whole app in <code>main.tsx</code></td></tr>
+      <tr><td><code>&lt;Routes&gt;</code></td><td><code>react-router-dom</code></td><td>Container for all Route definitions</td></tr>
+      <tr><td><code>&lt;Route path="..." element={...}&gt;</code></td><td><code>react-router-dom</code></td><td>Map a URL path to a component</td></tr>
+      <tr><td><code>&lt;Link to="..."&gt;</code></td><td><code>react-router-dom</code></td><td>Navigable links — no page reload</td></tr>
+      <tr><td><code>&lt;NavLink to="..." className={fn}&gt;</code></td><td><code>react-router-dom</code></td><td>Nav links that know if they're active</td></tr>
+      <tr><td><code>&lt;Navigate to="..." replace /&gt;</code></td><td><code>react-router-dom</code></td><td>Declarative redirect inside JSX</td></tr>
+      <tr><td><code>&lt;Outlet /&gt;</code></td><td><code>react-router-dom</code></td><td>Where child routes render in a layout</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Hooks</h3>
+  <table>
+    <thead><tr><th>Hook</th><th>Returns</th><th>Use when</th></tr></thead>
+    <tbody>
+      <tr><td><code>useNavigate()</code></td><td><code>(path, options?) =&gt; void</code></td><td>Navigate programmatically (after form submit, delete, etc.)</td></tr>
+      <tr><td><code>useParams&lt;T&gt;()</code></td><td><code>T</code> — object of URL params</td><td>Read <code>:id</code>, <code>:slug</code> etc. from the URL</td></tr>
+      <tr><td><code>useLocation()</code></td><td><code>{ pathname, search, hash, state }</code></td><td>Read current URL, detect what page you're on, read navigate state</td></tr>
+      <tr><td><code>useSearchParams()</code></td><td><code>[params, setParams]</code></td><td>Read/write <code>?key=value</code> query strings</td></tr>
+      <tr><td><code>useMatch(pattern)</code></td><td><code>PathMatch | null</code></td><td>Test if a pattern matches the current URL</td></tr>
+      <tr><td><code>useRouteError()</code></td><td><code>unknown</code></td><td>Read the error thrown inside a route (error boundary)</td></tr>
+    </tbody>
+  </table>
+
+  <h3>NavLink className function signature</h3>
+<pre><span class="cm">// Full signature — you can destructure what you need</span>
+<span class="at">className</span><span class="op">={({</span>
+  isActive,  <span class="cm">// boolean — this link's destination matches current URL</span>
+  isPending, <span class="cm">// boolean — route loader is fetching (v6.4+)</span>
+  isTransitioning <span class="cm">// boolean — View Transition API is running (v6.4+)</span>
+<span class="op">}) =></span> <span class="str">"..."</span><span class="op">}</span></pre>
+
+  <h3>navigate() options</h3>
+<pre>navigate(to, {
+  replace:  <span class="nm">true</span>,               <span class="cm">// replace current history entry</span>
+  state:    { email: <span class="str">"..."</span> },  <span class="cm">// pass data to destination</span>
+  relative: <span class="str">"path"</span>,            <span class="cm">// resolve relative to current path (not route)</span>
+})
+
+navigate(<span class="op">-</span><span class="nm">1</span>);  <span class="cm">// back</span>
+navigate(<span class="nm">1</span>);   <span class="cm">// forward</span></pre>
+
+  <h3>Quick Reference — Which hook for what</h3>
+  <table>
+    <thead><tr><th>Scenario</th><th>Solution</th></tr></thead>
+    <tbody>
+      <tr><td>Get <code>/briefs/123</code> → read <code>123</code></td><td><code>useParams()</code></td></tr>
+      <tr><td>Get <code>/page?tab=settings</code> → read <code>settings</code></td><td><code>useSearchParams()</code></td></tr>
+      <tr><td>After login, go to dashboard</td><td><code>navigate("/dashboard")</code></td></tr>
+      <tr><td>After delete, go back</td><td><code>navigate(-1)</code></td></tr>
+      <tr><td>Pass email to next page without URL</td><td><code>navigate("/verify-code", { state: { email } })</code></td></tr>
+      <tr><td>Read email on the next page</td><td><code>useLocation().state</code></td></tr>
+      <tr><td>Highlight active nav link</td><td><code>&lt;NavLink className={({ isActive }) =&gt; ...}&gt;</code></td></tr>
+      <tr><td>Redirect unauthenticated users</td><td><code>&lt;Navigate to="/login" replace /&gt;</code></td></tr>
+      <tr><td>Show different background on auth pages</td><td><code>useLocation().pathname</code></td></tr>
+      <tr><td>Know when URL changes (run code)</td><td><code>useEffect(() =&gt; { ... }, [location.pathname])</code></td></tr>
+    </tbody>
+  </table>
+
+</main>
+
+<script>
+  const sections = document.querySelectorAll('h2[id], h3[id]');
+  const links    = document.querySelectorAll('nav#sidebar a');
+
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        links.forEach(l => l.classList.remove('active'));
+        const active = document.querySelector(`nav#sidebar a[href="#${entry.target.id}"]`);
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px' });
+
+  sections.forEach(s => obs.observe(s));
+</script>
+</body>
+</html>

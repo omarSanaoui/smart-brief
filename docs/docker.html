@@ -1,0 +1,1231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Docker — Smart Brief Docs</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #222536;
+    --border: #2e3249;
+    --accent: #7c6af7;
+    --accent2: #56cfb2;
+    --accent3: #f7c06a;
+    --accent4: #f76a8a;
+    --docker: #2496ed;
+    --text: #e2e4f0;
+    --muted: #8b8fa8;
+    --code-bg: #13151f;
+    --sidebar-w: 270px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; font-size: 15px; line-height: 1.7; display: flex; }
+
+  nav {
+    width: var(--sidebar-w); min-height: 100vh; background: var(--surface);
+    border-right: 1px solid var(--border); padding: 24px 0;
+    position: fixed; top: 0; left: 0; overflow-y: auto;
+    display: flex; flex-direction: column; gap: 2px;
+  }
+  nav .logo { padding: 0 20px 20px; font-size: 17px; font-weight: 700; color: var(--accent); border-bottom: 1px solid var(--border); margin-bottom: 10px; }
+  nav .logo span { color: var(--accent2); }
+  nav a { display: block; padding: 7px 20px; color: var(--muted); text-decoration: none; font-size: 13px; border-left: 3px solid transparent; transition: all .15s; }
+  nav a:hover { color: var(--text); background: rgba(124,106,247,.08); }
+  nav a.active { color: var(--accent); border-left-color: var(--accent); background: rgba(124,106,247,.12); }
+  nav .section-title { padding: 14px 20px 4px; font-size: 10px; text-transform: uppercase; letter-spacing: 1.2px; color: var(--muted); font-weight: 600; }
+
+  main { margin-left: var(--sidebar-w); padding: 48px 56px; max-width: 980px; width: 100%; }
+  h1 { font-size: 38px; font-weight: 800; color: #fff; margin-bottom: 12px; }
+  h2 { font-size: 26px; font-weight: 700; color: #fff; margin: 56px 0 18px; padding-top: 16px; border-top: 1px solid var(--border); }
+  h2:first-of-type { border-top: none; }
+  h3 { font-size: 18px; font-weight: 600; color: var(--accent2); margin: 32px 0 12px; }
+  h4 { font-size: 15px; font-weight: 600; color: var(--accent3); margin: 22px 0 8px; }
+  p { color: var(--text); margin-bottom: 14px; }
+  ul, ol { padding-left: 22px; margin-bottom: 14px; }
+  li { margin-bottom: 5px; color: var(--text); }
+  strong { color: #fff; }
+  code { background: var(--code-bg); padding: 2px 7px; border-radius: 4px; font-family: 'Cascadia Code', 'Fira Code', monospace; font-size: 13px; color: var(--accent2); }
+
+  pre {
+    background: var(--code-bg); border: 1px solid var(--border); border-radius: 10px;
+    padding: 20px 22px; overflow-x: auto; margin: 16px 0 24px;
+    font-family: 'Cascadia Code', 'Fira Code', monospace; font-size: 13.5px; line-height: 1.65;
+  }
+  pre .c   { color: #4a5568; }
+  pre .k   { color: #c792ea; }
+  pre .s   { color: #c3e88d; }
+  pre .n   { color: var(--accent2); }
+  pre .t   { color: var(--accent3); }
+  pre .f   { color: #82aaff; }
+  pre .cmd { color: var(--docker); }
+  pre .flag{ color: #ffcb6b; }
+  pre .num { color: #f78c6c; }
+
+  .callout { border-radius: 10px; padding: 16px 20px; margin: 20px 0; border-left: 4px solid; }
+  .callout.info  { background: rgba(86,207,178,.08); border-color: var(--accent2); }
+  .callout.warn  { background: rgba(247,192,106,.08); border-color: var(--accent3); }
+  .callout.error { background: rgba(247,106,138,.08); border-color: var(--accent4); }
+  .callout.tip   { background: rgba(124,106,247,.08); border-color: var(--accent); }
+  .callout.docker{ background: rgba(36,150,237,.08); border-color: var(--docker); }
+  .callout strong { display: block; margin-bottom: 6px; font-size: 13px; text-transform: uppercase; letter-spacing: .5px; }
+  .callout.info strong  { color: var(--accent2); }
+  .callout.warn strong  { color: var(--accent3); }
+  .callout.error strong { color: var(--accent4); }
+  .callout.tip strong   { color: var(--accent); }
+  .callout.docker strong { color: var(--docker); }
+
+  .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0; }
+  .compare > div { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 18px; }
+  .compare > div h4 { margin-top: 0; margin-bottom: 10px; }
+
+  table { width: 100%; border-collapse: collapse; margin: 20px 0 28px; }
+  th { background: var(--surface2); color: var(--accent2); font-size: 12px; text-transform: uppercase; letter-spacing: .5px; padding: 10px 14px; text-align: left; border-bottom: 2px solid var(--border); }
+  td { padding: 10px 14px; border-bottom: 1px solid var(--border); font-size: 14px; }
+  tr:hover td { background: rgba(255,255,255,.02); }
+  td code { font-size: 12.5px; }
+
+  .flow { display: flex; align-items: center; gap: 0; margin: 20px 0; flex-wrap: wrap; }
+  .flow-box { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 8px 16px; font-size: 13px; font-weight: 600; color: var(--text); }
+  .flow-arrow { color: var(--muted); padding: 0 8px; font-size: 18px; }
+
+  .step { display: flex; gap: 16px; margin-bottom: 28px; }
+  .step-num { min-width: 34px; height: 34px; background: var(--docker); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; flex-shrink: 0; margin-top: 2px; color: #fff; }
+  .step-body h4 { margin-top: 0; }
+
+  /* Layer diagram */
+  .layers { display: flex; flex-direction: column; gap: 0; margin: 20px 0; width: 320px; }
+  .layer { padding: 10px 18px; font-size: 13px; font-weight: 600; border: 1px solid var(--border); text-align: center; }
+  .layer:first-child { border-radius: 10px 10px 0 0; }
+  .layer:last-child  { border-radius: 0 0 10px 10px; }
+  .layer.os     { background: rgba(82,82,120,.3); color: #a0a0d0; }
+  .layer.base   { background: rgba(36,150,237,.15); color: var(--docker); border-color: rgba(36,150,237,.3); }
+  .layer.deps   { background: rgba(86,207,178,.12); color: var(--accent2); border-color: rgba(86,207,178,.3); }
+  .layer.code   { background: rgba(124,106,247,.12); color: var(--accent); border-color: rgba(124,106,247,.3); }
+  .layer.run    { background: rgba(247,192,106,.12); color: var(--accent3); border-color: rgba(247,192,106,.3); }
+  .layer-label  { font-size: 11px; color: var(--muted); margin-top: 4px; font-weight: 400; }
+
+  /* Container grid */
+  .containers { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 20px 0; }
+  .container-box { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px; }
+  .container-box .cname { font-weight: 700; font-size: 13px; color: var(--accent2); margin-bottom: 6px; }
+  .container-box .cdetail { font-size: 12px; color: var(--muted); }
+
+  .network-box { background: var(--surface2); border: 2px dashed var(--border); border-radius: 14px; padding: 20px; margin: 20px 0; }
+  .network-label { font-size: 11px; color: var(--muted); text-align: center; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; }
+</style>
+</head>
+<body>
+
+<nav id="sidebar">
+  <div class="logo">Smart Brief <span>Docs</span></div>
+
+  <div class="section-title">The Problem</div>
+  <a href="#the-problem">Why Docker exists</a>
+  <a href="#what-is-docker">What is Docker?</a>
+  <a href="#vm-vs-docker">VM vs Container</a>
+
+  <div class="section-title">Core Concepts</div>
+  <a href="#image">Image</a>
+  <a href="#container">Container</a>
+  <a href="#dockerfile">Dockerfile</a>
+  <a href="#layers">Layers</a>
+  <a href="#registry">Registry</a>
+
+  <div class="section-title">Dockerfile</div>
+  <a href="#dockerfile-instructions">All instructions</a>
+  <a href="#node-dockerfile">Node.js Dockerfile</a>
+  <a href="#dockerignore">.dockerignore</a>
+  <a href="#multi-stage">Multi-stage builds</a>
+
+  <div class="section-title">CLI Commands</div>
+  <a href="#build">docker build</a>
+  <a href="#run">docker run</a>
+  <a href="#manage">Managing containers</a>
+  <a href="#logs">Logs & exec</a>
+  <a href="#images-cmd">Managing images</a>
+
+  <div class="section-title">Docker Compose</div>
+  <a href="#why-compose">Why Compose?</a>
+  <a href="#compose-file">docker-compose.yml</a>
+  <a href="#compose-commands">Compose commands</a>
+  <a href="#networking">Networking between containers</a>
+  <a href="#volumes">Volumes & persistence</a>
+  <a href="#env-files">Env files</a>
+  <a href="#depends-on">depends_on & health checks</a>
+
+  <div class="section-title">Smart Brief</div>
+  <a href="#dockerize-auth">Dockerize auth-service</a>
+  <a href="#dockerize-brief">Dockerize brief-service</a>
+  <a href="#dockerize-gateway">Dockerize gateway</a>
+  <a href="#full-compose">Full docker-compose.yml</a>
+
+  <div class="section-title">When to Use</div>
+  <a href="#when-to-use">When to use Docker</a>
+  <a href="#docker-vs-railway">Docker vs Railway/Vercel</a>
+  <a href="#production">Docker in production</a>
+</nav>
+
+<main>
+
+<h1>Docker</h1>
+<p style="color:var(--muted);font-size:17px;">Complete guide — from why it exists to Dockerizing the entire Smart Brief stack.</p>
+
+<!-- ============================================================ THE PROBLEM -->
+<h2 id="the-problem">Why Docker Exists</h2>
+
+<p>Imagine this scenario:</p>
+
+<blockquote style="border-left:3px solid var(--accent3);padding:12px 20px;margin:16px 0;background:var(--surface);border-radius:0 8px 8px 0;font-style:italic;color:var(--muted);">
+  "It works on my machine."
+</blockquote>
+
+<p>You build an app on Windows with Node 20. Your teammate runs it on macOS with Node 18. It crashes. The production server runs Ubuntu with Node 16. It crashes differently. The database version is different. The environment variables are in different places. The file paths use different separators.</p>
+
+<p>This is the problem Docker solves: <strong>making an application run the same way everywhere</strong> — your laptop, your teammate's laptop, CI/CD, production.</p>
+
+<h3>What Docker does</h3>
+
+<p>Docker packages your app and <em>everything it needs to run</em> into a single unit called a <strong>container</strong>:</p>
+
+<ul>
+  <li>The exact Node.js version</li>
+  <li>All npm packages</li>
+  <li>The OS libraries</li>
+  <li>The configuration</li>
+  <li>The start command</li>
+</ul>
+
+<p>Anyone with Docker installed can run your container and it will behave <em>exactly</em> as it did on your machine.</p>
+
+<!-- ============================================================ WHAT IS DOCKER -->
+<h2 id="what-is-docker">What is Docker?</h2>
+
+<p>Docker is a tool for building and running <strong>containers</strong>. A container is like a small, isolated computer running inside your computer. It has:</p>
+
+<ul>
+  <li>Its own filesystem</li>
+  <li>Its own processes</li>
+  <li>Its own network interface</li>
+  <li>Its own environment variables</li>
+</ul>
+
+<p>But unlike a full virtual machine, a container <strong>shares the host OS kernel</strong>, making it lightweight and fast to start (seconds instead of minutes).</p>
+
+<div class="callout docker">
+  <strong>Key distinction</strong>
+  An <strong>image</strong> is the blueprint (read-only). A <strong>container</strong> is a running instance of an image. You can run many containers from the same image.
+  <br/><br/>
+  Image = class definition. Container = instance of that class.
+</div>
+
+<!-- ============================================================ VM VS DOCKER -->
+<h2 id="vm-vs-docker">VM vs Container</h2>
+
+<div class="compare">
+  <div>
+    <h4 style="color:var(--muted)">Virtual Machine</h4>
+    <div class="layers">
+      <div class="layer os">Your Hardware</div>
+      <div class="layer os">Host OS (Windows/Mac)</div>
+      <div class="layer base">Hypervisor (VMware/VirtualBox)</div>
+      <div class="layer deps">Guest OS (full Ubuntu) — 1-2 GB</div>
+      <div class="layer deps">App libraries</div>
+      <div class="layer code">Your App</div>
+    </div>
+    <ul style="font-size:13px;margin-top:12px;">
+      <li>Full OS per VM — heavy (GBs)</li>
+      <li>Slow to start (minutes)</li>
+      <li>Strong isolation</li>
+      <li>Good for running different OSes</li>
+    </ul>
+  </div>
+  <div>
+    <h4 style="color:var(--docker)">Container</h4>
+    <div class="layers">
+      <div class="layer os">Your Hardware</div>
+      <div class="layer os">Host OS (shares kernel)</div>
+      <div class="layer base">Docker Engine</div>
+      <div class="layer deps">App libraries (shared, layered)</div>
+      <div class="layer code">Your App</div>
+    </div>
+    <ul style="font-size:13px;margin-top:12px;">
+      <li>Shares host kernel — lightweight (MBs)</li>
+      <li>Fast to start (seconds)</li>
+      <li>Process-level isolation</li>
+      <li>Same OS, isolated environment</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ============================================================ IMAGE -->
+<h2 id="image">Image</h2>
+
+<p>
+  A Docker image is a <strong>read-only template</strong> used to create containers.
+  It's a snapshot of a filesystem with your app and all its dependencies baked in.
+</p>
+
+<p>Images are built from a <code>Dockerfile</code> — a text file that lists instructions for building the image layer by layer.</p>
+
+<p>Images are identified by a name and tag:</p>
+
+<pre><span class="c"># Format: name:tag</span>
+node:20-alpine        <span class="c"># official Node.js 20 on Alpine Linux</span>
+node:20               <span class="c"># Node.js 20 on Debian</span>
+postgres:15           <span class="c"># official PostgreSQL 15</span>
+nginx:latest          <span class="c"># latest nginx</span>
+smart-brief/auth:1.0  <span class="c"># your own image</span></pre>
+
+<p>Images are stored in <strong>registries</strong>. The default is Docker Hub (<code>hub.docker.com</code>). You can also use GitHub Container Registry, AWS ECR, etc.</p>
+
+<!-- ============================================================ CONTAINER -->
+<h2 id="container">Container</h2>
+
+<p>
+  A container is a <strong>running instance of an image</strong>. When you run an image, Docker creates a
+  container — an isolated process with its own filesystem, network, and environment.
+</p>
+
+<pre><span class="c"># Run one container from node:20 image</span>
+docker run node:20 node --version   <span class="c"># prints v20.x.x then exits</span>
+
+<span class="c"># Run multiple containers from the same image simultaneously</span>
+docker run -d node:20 ...  <span class="c"># container 1</span>
+docker run -d node:20 ...  <span class="c"># container 2 — totally independent</span></pre>
+
+<p>Containers are <strong>ephemeral</strong> by default — when a container stops, any data written inside it is lost. For persistent data (databases), you use <strong>volumes</strong>.</p>
+
+<!-- ============================================================ DOCKERFILE -->
+<h2 id="dockerfile">Dockerfile</h2>
+
+<p>
+  A <code>Dockerfile</code> is a text file (no extension) that defines how to build an image.
+  It lives at the root of your project.
+</p>
+
+<pre><span class="c"># Every line is an instruction that creates a new layer</span>
+
+<span class="cmd">FROM</span>    node:<span class="num">20</span>-alpine        <span class="c"># start from this base image</span>
+<span class="cmd">WORKDIR</span> /app                  <span class="c"># set working directory inside container</span>
+<span class="cmd">COPY</span>    package*.json ./      <span class="c"># copy package files</span>
+<span class="cmd">RUN</span>     npm ci                <span class="c"># install dependencies</span>
+<span class="cmd">COPY</span>    . .                   <span class="c"># copy rest of source code</span>
+<span class="cmd">EXPOSE</span>  <span class="num">3000</span>                  <span class="c"># document which port the app uses</span>
+<span class="cmd">CMD</span>     [<span class="s">"node"</span>, <span class="s">"dist/index.js"</span>]  <span class="c"># command to start the app</span></pre>
+
+<!-- ============================================================ LAYERS -->
+<h2 id="layers">Layers</h2>
+
+<p>
+  Every instruction in a Dockerfile creates a <strong>layer</strong>. Layers are cached — if nothing
+  changed in a layer, Docker reuses the cache and skips re-running it.
+</p>
+
+<div style="display:flex;gap:32px;align-items:flex-start;margin:20px 0;">
+  <div class="layers" style="width:240px;">
+    <div class="layer base">FROM node:20-alpine<div class="layer-label">base OS + Node.js runtime</div></div>
+    <div class="layer deps">COPY package*.json<br/>RUN npm ci<div class="layer-label">node_modules — slow, but cached</div></div>
+    <div class="layer code">COPY . .<div class="layer-label">your source code — changes often</div></div>
+    <div class="layer run">CMD ["node", "dist/index.js"]<div class="layer-label">start command</div></div>
+  </div>
+  <div style="flex:1;">
+    <p style="margin-top:8px;">
+      The most important insight about layers:
+      <strong>put things that change rarely near the top, things that change often near the bottom.</strong>
+    </p>
+    <p>This is why you always copy <code>package.json</code> first, install deps, then copy source code:</p>
+    <ul>
+      <li><code>package.json</code> changes rarely → npm install is cached</li>
+      <li>Your source code changes every build → only this layer rebuilds</li>
+    </ul>
+    <p>If you did <code>COPY . .</code> then <code>RUN npm install</code>, every single code change would re-run npm install — very slow.</p>
+  </div>
+</div>
+
+<!-- ============================================================ REGISTRY -->
+<h2 id="registry">Registry</h2>
+
+<p>A registry stores and distributes Docker images. The flow:</p>
+
+<div class="flow">
+  <div class="flow-box">docker build<br/><small>creates image locally</small></div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-box">docker push<br/><small>upload to registry</small></div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-box">Docker Hub / GHCR<br/><small>stores image</small></div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-box">docker pull<br/><small>any machine downloads it</small></div>
+</div>
+
+<table>
+  <tr><th>Registry</th><th>URL</th><th>Free tier</th><th>Use case</th></tr>
+  <tr><td>Docker Hub</td><td>hub.docker.com</td><td>1 private repo</td><td>Default, most popular</td></tr>
+  <tr><td>GitHub Container Registry</td><td>ghcr.io</td><td>Free for public repos</td><td>Best if code is on GitHub</td></tr>
+  <tr><td>Railway</td><td>—</td><td>Builds from Dockerfile automatically</td><td>Smart Brief deploys here</td></tr>
+</table>
+
+<!-- ============================================================ DOCKERFILE INSTRUCTIONS -->
+<h2 id="dockerfile-instructions">All Dockerfile Instructions</h2>
+
+<table>
+  <tr><th>Instruction</th><th>What it does</th><th>Example</th></tr>
+  <tr><td><code>FROM</code></td><td>Base image to build on</td><td><code>FROM node:20-alpine</code></td></tr>
+  <tr><td><code>WORKDIR</code></td><td>Set working directory inside container (creates it if needed)</td><td><code>WORKDIR /app</code></td></tr>
+  <tr><td><code>COPY</code></td><td>Copy files from host into the image</td><td><code>COPY . .</code></td></tr>
+  <tr><td><code>ADD</code></td><td>Like COPY but also supports URLs and tar extraction</td><td><code>ADD app.tar.gz /app</code></td></tr>
+  <tr><td><code>RUN</code></td><td>Execute a command during build (creates a layer)</td><td><code>RUN npm ci</code></td></tr>
+  <tr><td><code>CMD</code></td><td>Default command when container starts (can be overridden)</td><td><code>CMD ["node", "index.js"]</code></td></tr>
+  <tr><td><code>ENTRYPOINT</code></td><td>Like CMD but harder to override — always runs</td><td><code>ENTRYPOINT ["node"]</code></td></tr>
+  <tr><td><code>EXPOSE</code></td><td>Document which port the container uses (doesn't publish it)</td><td><code>EXPOSE 3000</code></td></tr>
+  <tr><td><code>ENV</code></td><td>Set environment variables inside the image</td><td><code>ENV NODE_ENV=production</code></td></tr>
+  <tr><td><code>ARG</code></td><td>Build-time variable (not available at runtime)</td><td><code>ARG NODE_VERSION=20</code></td></tr>
+  <tr><td><code>VOLUME</code></td><td>Declare a mount point for external data</td><td><code>VOLUME /app/data</code></td></tr>
+  <tr><td><code>USER</code></td><td>Switch to a non-root user (security best practice)</td><td><code>USER node</code></td></tr>
+</table>
+
+<div class="callout info">
+  <strong>CMD vs ENTRYPOINT</strong>
+  <code>CMD</code> is the default command — you can override it when running the container: <code>docker run myapp node other.js</code>. <code>ENTRYPOINT</code> always runs and CMD becomes its arguments. For simple Node apps, use <code>CMD</code>.
+</div>
+
+<!-- ============================================================ NODE DOCKERFILE -->
+<h2 id="node-dockerfile">Node.js Dockerfile</h2>
+
+<p>The correct Dockerfile for a TypeScript Node.js service:</p>
+
+<pre><span class="c"># ──────────────────────────────────────────────
+# 1. Base image — Alpine Linux is tiny (~5MB)
+# ──────────────────────────────────────────────</span>
+<span class="cmd">FROM</span> node:<span class="num">20</span>-alpine
+
+<span class="c"># 2. Set working directory — all commands run from here</span>
+<span class="cmd">WORKDIR</span> /app
+
+<span class="c"># 3. Copy ONLY package files first</span>
+<span class="c">#    This layer is cached as long as package.json doesn't change</span>
+<span class="cmd">COPY</span> package.json package-lock.json ./
+
+<span class="c"># 4. Install dependencies (clean install, respects lockfile)</span>
+<span class="cmd">RUN</span> npm ci
+
+<span class="c"># 5. Copy Prisma schema before generating client</span>
+<span class="cmd">COPY</span> prisma ./prisma
+
+<span class="c"># 6. Generate Prisma client</span>
+<span class="cmd">RUN</span> npx prisma generate
+
+<span class="c"># 7. Copy rest of source code (changes most often — last step)</span>
+<span class="cmd">COPY</span> . .
+
+<span class="c"># 8. Build TypeScript to JavaScript</span>
+<span class="cmd">RUN</span> npm run build
+
+<span class="c"># 9. Tell Docker which port this service uses</span>
+<span class="cmd">EXPOSE</span> <span class="num">3000</span>
+
+<span class="c"># 10. Run migrations then start the server</span>
+<span class="cmd">CMD</span> [<span class="s">"sh"</span>, <span class="s">"-c"</span>, <span class="s">"npx prisma migrate deploy && node dist/index.js"</span>]</pre>
+
+<h3>Which base image to use?</h3>
+
+<table>
+  <tr><th>Image</th><th>Size</th><th>Use case</th></tr>
+  <tr><td><code>node:20</code></td><td>~1.1 GB</td><td>Full Debian — maximum compatibility</td></tr>
+  <tr><td><code>node:20-slim</code></td><td>~250 MB</td><td>Debian without build tools — good default</td></tr>
+  <tr><td><code>node:20-alpine</code></td><td>~150 MB</td><td>Alpine Linux — smallest, use for production</td></tr>
+</table>
+
+<div class="callout warn">
+  <strong>Alpine and native modules</strong>
+  Some npm packages with native C bindings (like <code>bcrypt</code> — not <code>bcryptjs</code>) can fail on Alpine because it uses musl libc instead of glibc. Smart Brief uses <code>bcryptjs</code> (pure JS) which works fine on Alpine.
+</div>
+
+<!-- ============================================================ DOCKERIGNORE -->
+<h2 id="dockerignore">.dockerignore</h2>
+
+<p>
+  Like <code>.gitignore</code> but for Docker. Files listed here are <strong>excluded</strong> from the
+  build context — they won't be sent to Docker or copied into the image.
+</p>
+
+<pre><span class="c"># .dockerignore</span>
+node_modules        <span class="c"># use npm ci inside Docker, not your local node_modules</span>
+dist                <span class="c"># TypeScript output — will be rebuilt inside Docker</span>
+.env                <span class="c"># secrets — inject at runtime, never bake into image</span>
+.env.*
+*.log
+.git
+.gitignore
+README.md
+docs/
+src/generated/      <span class="c"># Prisma generated files — regenerated during build</span></pre>
+
+<div class="callout error">
+  <strong>Never COPY .env into a Docker image</strong>
+  Images can be pushed to registries, shared with teammates, or inspected. A <code>.env</code> baked into an image exposes your secrets to anyone who has the image. Pass env vars at runtime using <code>-e</code> flags or <code>docker-compose.yml</code>.
+</div>
+
+<!-- ============================================================ MULTI-STAGE -->
+<h2 id="multi-stage">Multi-Stage Builds</h2>
+
+<p>
+  A multi-stage build uses multiple <code>FROM</code> statements in one Dockerfile.
+  You build in one stage and only copy the output into the final image — keeping the final image small.
+</p>
+
+<pre><span class="c"># Stage 1: builder — has TypeScript compiler, devDependencies, etc.</span>
+<span class="cmd">FROM</span> node:<span class="num">20</span>-alpine <span class="k">AS</span> builder
+<span class="cmd">WORKDIR</span> /app
+<span class="cmd">COPY</span> package*.json ./
+<span class="cmd">RUN</span>  npm ci                   <span class="c"># installs ALL deps including devDeps</span>
+<span class="cmd">COPY</span> prisma ./prisma
+<span class="cmd">RUN</span>  npx prisma generate
+<span class="cmd">COPY</span> . .
+<span class="cmd">RUN</span>  npm run build            <span class="c"># compiles TypeScript → dist/</span>
+
+<span class="c"># Stage 2: production — only what's needed to RUN the app</span>
+<span class="cmd">FROM</span> node:<span class="num">20</span>-alpine
+<span class="cmd">WORKDIR</span> /app
+<span class="cmd">COPY</span> package*.json ./
+<span class="cmd">RUN</span>  npm ci <span class="flag">--omit=dev</span>       <span class="c"># only production deps</span>
+<span class="cmd">COPY</span> prisma ./prisma
+<span class="cmd">RUN</span>  npx prisma generate
+<span class="cmd">COPY</span> <span class="flag">--from=builder</span> /app/dist ./dist   <span class="c"># only copy compiled output</span>
+<span class="cmd">EXPOSE</span> <span class="num">3000</span>
+<span class="cmd">CMD</span>  [<span class="s">"sh"</span>, <span class="s">"-c"</span>, <span class="s">"npx prisma migrate deploy && node dist/index.js"</span>]</pre>
+
+<p>Result: the final image contains no TypeScript compiler, no devDependencies, no source code — just the compiled JS and runtime deps. <strong>Much smaller and more secure.</strong></p>
+
+<!-- ============================================================ BUILD -->
+<h2 id="build">docker build</h2>
+
+<pre><span class="c"># Basic build — creates image tagged with a name</span>
+docker build <span class="flag">-t</span> smart-brief-auth .
+
+<span class="c"># With version tag</span>
+docker build <span class="flag">-t</span> smart-brief-auth:<span class="num">1.0.0</span> .
+
+<span class="c"># Build from a specific Dockerfile (not named "Dockerfile")</span>
+docker build <span class="flag">-f</span> Dockerfile.prod <span class="flag">-t</span> smart-brief-auth .
+
+<span class="c"># Build a specific service's Dockerfile from the monorepo root</span>
+docker build <span class="flag">-f</span> services/auth-service/Dockerfile <span class="flag">-t</span> auth-service .
+
+<span class="c"># List all locally built images</span>
+docker images</pre>
+
+<div class="callout info">
+  <strong>The dot at the end</strong>
+  The <code>.</code> at the end of <code>docker build</code> is the <strong>build context</strong> — the folder Docker sends to the build engine. All <code>COPY</code> instructions are relative to this directory. Usually it's <code>.</code> (current folder), but you can specify another path.
+</div>
+
+<!-- ============================================================ RUN -->
+<h2 id="run">docker run</h2>
+
+<pre><span class="c"># Basic run — runs interactively, blocks terminal</span>
+docker run smart-brief-auth
+
+<span class="c"># Run in detached mode (background)</span>
+docker run <span class="flag">-d</span> smart-brief-auth
+
+<span class="c"># Run with a name (easier to reference)</span>
+docker run <span class="flag">-d</span> <span class="flag">--name</span> auth smart-brief-auth
+
+<span class="c"># Map host port to container port  -p HOST:CONTAINER</span>
+docker run <span class="flag">-d</span> <span class="flag">-p</span> <span class="num">3000</span>:<span class="num">3000</span> smart-brief-auth
+<span class="c">#               ↑    ↑</span>
+<span class="c">#        your laptop  container's internal port</span>
+<span class="c"># Now http://localhost:3000 reaches the container</span>
+
+<span class="c"># Pass environment variables</span>
+docker run <span class="flag">-d</span> <span class="flag">-p</span> <span class="num">3000</span>:<span class="num">3000</span> \
+  <span class="flag">-e</span> DATABASE_URL=postgresql://... \
+  <span class="flag">-e</span> JWT_SECRET=mysecret \
+  smart-brief-auth
+
+<span class="c"># Mount a local folder into the container (volume)</span>
+docker run <span class="flag">-v</span> /local/path:/container/path smart-brief-auth
+
+<span class="c"># Auto-remove when stopped</span>
+docker run <span class="flag">--rm</span> smart-brief-auth</pre>
+
+<h3>Port mapping explained</h3>
+
+<pre><span class="c"># Your app inside the container listens on port 3000
+# But that port is internal — only reachable inside the container
+# -p 3000:3000 maps HOST:CONTAINER
+# -p 8080:3000 → your machine's :8080 maps to container's :3000</span>
+
+docker run <span class="flag">-p</span> <span class="num">8080</span>:<span class="num">3000</span> smart-brief-auth
+<span class="c"># Now http://localhost:8080 → container's :3000</span></pre>
+
+<!-- ============================================================ MANAGE -->
+<h2 id="manage">Managing Containers</h2>
+
+<pre><span class="c"># List running containers</span>
+docker ps
+
+<span class="c"># List ALL containers (including stopped)</span>
+docker ps <span class="flag">-a</span>
+
+<span class="c"># Stop a container gracefully</span>
+docker stop auth
+
+<span class="c"># Kill immediately</span>
+docker kill auth
+
+<span class="c"># Start a stopped container</span>
+docker start auth
+
+<span class="c"># Remove a stopped container</span>
+docker rm auth
+
+<span class="c"># Remove and stop in one step</span>
+docker rm <span class="flag">-f</span> auth
+
+<span class="c"># Remove all stopped containers</span>
+docker container prune</pre>
+
+<!-- ============================================================ LOGS -->
+<h2 id="logs">Logs & exec</h2>
+
+<pre><span class="c"># View logs from a container</span>
+docker logs auth
+
+<span class="c"># Follow logs in real time (like tail -f)</span>
+docker logs <span class="flag">-f</span> auth
+
+<span class="c"># Last 100 lines only</span>
+docker logs <span class="flag">--tail</span> <span class="num">100</span> auth
+
+<span class="c"># Open an interactive shell INSIDE a running container</span>
+docker exec <span class="flag">-it</span> auth sh        <span class="c"># Alpine uses sh not bash</span>
+docker exec <span class="flag">-it</span> auth bash      <span class="c"># Debian/Ubuntu</span>
+
+<span class="c"># Run a one-off command inside the container</span>
+docker exec auth node --version
+docker exec auth cat /app/dist/index.js
+
+<span class="c"># Inspect container details (networking, mounts, env vars)</span>
+docker inspect auth</pre>
+
+<!-- ============================================================ IMAGES CMD -->
+<h2 id="images-cmd">Managing Images</h2>
+
+<pre><span class="c"># List all local images</span>
+docker images
+
+<span class="c"># Pull an image from Docker Hub</span>
+docker pull postgres:<span class="num">15</span>
+
+<span class="c"># Remove an image</span>
+docker rmi smart-brief-auth
+
+<span class="c"># Remove all unused images (dangling)</span>
+docker image prune
+
+<span class="c"># Remove ALL unused images (more aggressive)</span>
+docker image prune <span class="flag">-a</span>
+
+<span class="c"># Tag an image (for pushing to a registry)</span>
+docker tag smart-brief-auth yourdockerusername/smart-brief-auth:<span class="num">1.0</span>
+
+<span class="c"># Push to Docker Hub</span>
+docker push yourdockerusername/smart-brief-auth:<span class="num">1.0</span></pre>
+
+<!-- ============================================================ WHY COMPOSE -->
+<h2 id="why-compose">Why Docker Compose?</h2>
+
+<p>
+  Running multiple containers manually with <code>docker run</code> gets messy fast.
+  For Smart Brief you'd need to:
+</p>
+
+<ul>
+  <li>Run <code>docker run</code> for PostgreSQL (auth DB)</li>
+  <li>Run <code>docker run</code> for PostgreSQL (brief DB)</li>
+  <li>Run <code>docker run</code> for auth-service (with 10 -e flags)</li>
+  <li>Run <code>docker run</code> for brief-service (with 10 -e flags)</li>
+  <li>Run <code>docker run</code> for gateway (with 10 -e flags)</li>
+  <li>Make sure they can all talk to each other</li>
+  <li>Run all that in the right order</li>
+</ul>
+
+<p>
+  <strong>Docker Compose</strong> solves this. It lets you define all your services in one
+  <code>docker-compose.yml</code> file and start everything with one command: <code>docker compose up</code>.
+</p>
+
+<!-- ============================================================ COMPOSE FILE -->
+<h2 id="compose-file">docker-compose.yml</h2>
+
+<p>A minimal example with two services sharing a network:</p>
+
+<pre><span class="cmd">version</span>: <span class="s">"3.9"</span>
+
+<span class="cmd">services</span>:
+
+  <span class="n">postgres</span>:
+    <span class="cmd">image</span>: postgres:<span class="num">15</span>-alpine
+    <span class="cmd">environment</span>:
+      POSTGRES_USER:     myuser
+      POSTGRES_PASSWORD: mypassword
+      POSTGRES_DB:       mydb
+    <span class="cmd">volumes</span>:
+      - postgres_data:/var/lib/postgresql/data  <span class="c"># persist data</span>
+    <span class="cmd">ports</span>:
+      - <span class="s">"5432:5432"</span>  <span class="c"># expose to host for local psql</span>
+
+  <span class="n">api</span>:
+    <span class="cmd">build</span>: .             <span class="c"># build from Dockerfile in current dir</span>
+    <span class="cmd">ports</span>:
+      - <span class="s">"3000:3000"</span>
+    <span class="cmd">environment</span>:
+      DATABASE_URL: postgresql://myuser:mypassword@postgres:5432/mydb
+      <span class="c">#                                              ↑</span>
+      <span class="c">#                                 service name — not localhost!</span>
+    <span class="cmd">depends_on</span>:
+      - postgres
+
+<span class="cmd">volumes</span>:
+  postgres_data:  <span class="c"># declare named volume at bottom</span></pre>
+
+<div class="callout info">
+  <strong>Inside Docker Compose, services talk to each other by service name, not localhost</strong>
+  When the <code>api</code> container connects to the database, it uses <code>postgres</code> (the service name) instead of <code>localhost</code>. Docker Compose creates a private network and registers each service name as a DNS entry.
+</div>
+
+<!-- ============================================================ COMPOSE COMMANDS -->
+<h2 id="compose-commands">Compose Commands</h2>
+
+<pre><span class="c"># Start all services (builds if needed)</span>
+docker compose up
+
+<span class="c"># Start in background (detached)</span>
+docker compose up <span class="flag">-d</span>
+
+<span class="c"># Force rebuild images before starting</span>
+docker compose up <span class="flag">--build</span>
+
+<span class="c"># Stop all services</span>
+docker compose down
+
+<span class="c"># Stop AND remove volumes (deletes database data!)</span>
+docker compose down <span class="flag">-v</span>
+
+<span class="c"># View logs for all services</span>
+docker compose logs
+
+<span class="c"># Follow logs</span>
+docker compose logs <span class="flag">-f</span>
+
+<span class="c"># Logs from a specific service only</span>
+docker compose logs <span class="flag">-f</span> auth-service
+
+<span class="c"># Run a command inside a service container</span>
+docker compose exec auth-service sh
+
+<span class="c"># Run a one-off command (new container, not running service)</span>
+docker compose run auth-service npx prisma migrate dev
+
+<span class="c"># List running compose services</span>
+docker compose ps
+
+<span class="c"># Restart one service</span>
+docker compose restart gateway</pre>
+
+<!-- ============================================================ NETWORKING -->
+<h2 id="networking">Networking Between Containers</h2>
+
+<p>
+  By default, Docker Compose creates a <strong>private bridge network</strong> for all services in the
+  same <code>docker-compose.yml</code>. Services on this network can reach each other by name.
+</p>
+
+<div class="network-box">
+  <div class="network-label">smart-brief_default (docker network)</div>
+  <div class="containers">
+    <div class="container-box">
+      <div class="cname">gateway</div>
+      <div class="cdetail">host: gateway<br/>port: 8080<br/>reaches auth-service:3000<br/>reaches brief-service:4000</div>
+    </div>
+    <div class="container-box">
+      <div class="cname">auth-service</div>
+      <div class="cdetail">host: auth-service<br/>port: 3000<br/>reaches auth-db:5432</div>
+    </div>
+    <div class="container-box">
+      <div class="cname">brief-service</div>
+      <div class="cdetail">host: brief-service<br/>port: 4000<br/>reaches brief-db:5432<br/>reaches gateway:8080</div>
+    </div>
+    <div class="container-box">
+      <div class="cname">auth-db</div>
+      <div class="cdetail">host: auth-db<br/>port: 5432<br/>postgres:15</div>
+    </div>
+    <div class="container-box">
+      <div class="cname">brief-db</div>
+      <div class="cdetail">host: brief-db<br/>port: 4000<br/>postgres:15</div>
+    </div>
+  </div>
+</div>
+
+<pre><span class="c"># Inside the gateway container, reach auth-service:</span>
+http://auth-service:3000   <span class="c">← works!</span>
+http://localhost:3000      <span class="c">← does NOT work (localhost = the gateway container itself)</span>
+
+<span class="c"># From your host machine (browser), reach the gateway:</span>
+http://localhost:8080      <span class="c">← works (because of -p 8080:8080)</span>
+http://gateway:8080        <span class="c">← does NOT work (your machine isn't on the Docker network)</span></pre>
+
+<p>This is why <strong>environment variables change</strong> when you use Docker Compose:</p>
+
+<pre><span class="c"># Without Docker (everything on localhost):</span>
+AUTH_SERVICE_URL=http://localhost:3000
+BRIEF_SERVICE_URL=http://localhost:4000
+DATABASE_URL=postgresql://user:pass@localhost:5432/db
+
+<span class="c"># With Docker Compose (use service names):</span>
+AUTH_SERVICE_URL=http://auth-service:3000
+BRIEF_SERVICE_URL=http://brief-service:4000
+DATABASE_URL=postgresql://user:pass@auth-db:5432/auth_db</pre>
+
+<!-- ============================================================ VOLUMES -->
+<h2 id="volumes">Volumes & Persistence</h2>
+
+<p>Containers are ephemeral — data written inside is lost when the container is removed. For databases, you need a <strong>volume</strong> to persist data outside the container.</p>
+
+<h3>Named volumes (recommended)</h3>
+
+<pre><span class="cmd">services</span>:
+  auth-db:
+    <span class="cmd">image</span>: postgres:<span class="num">15</span>-alpine
+    <span class="cmd">volumes</span>:
+      - auth_postgres_data:/var/lib/postgresql/data
+      <span class="c">#     ↑ volume name       ↑ path inside container where postgres stores files</span>
+
+<span class="cmd">volumes</span>:
+  auth_postgres_data:  <span class="c"># declare the named volume — Docker manages it</span></pre>
+
+<h3>Bind mounts — map a local folder</h3>
+
+<pre><span class="c"># Useful for development — changes to local files appear inside container</span>
+<span class="cmd">services</span>:
+  auth-service:
+    <span class="cmd">volumes</span>:
+      - ./services/auth-service:/app   <span class="c"># local folder → container /app</span>
+      - /app/node_modules              <span class="c"># don't override node_modules</span></pre>
+
+<div class="callout tip">
+  <strong>Hot reload in development</strong>
+  Use a bind mount + <code>tsx watch</code> for hot reload in containers. When you save a file locally, the container sees the change and restarts automatically — no need to rebuild the image every time.
+</div>
+
+<!-- ============================================================ ENV FILES -->
+<h2 id="env-files">Env Files in Compose</h2>
+
+<pre><span class="c"># Option 1: Inline in docker-compose.yml (visible to anyone)</span>
+<span class="cmd">environment</span>:
+  DATABASE_URL: postgresql://user:pass@db:5432/mydb
+
+<span class="c"># Option 2: env_file — read from a file (add file to .gitignore)</span>
+<span class="cmd">env_file</span>:
+  - .env                    <span class="c"># reads all KEY=VALUE lines from .env</span>
+  - .env.local              <span class="c"># overrides with local values</span>
+
+<span class="c"># Option 3: Reference variables from host environment</span>
+<span class="cmd">environment</span>:
+  DATABASE_URL: ${DATABASE_URL}   <span class="c"># reads from your shell's environment</span></pre>
+
+<h3>docker-compose.yml also reads a top-level .env file automatically:</h3>
+
+<pre><span class="c"># .env at the same level as docker-compose.yml</span>
+POSTGRES_PASSWORD=supersecret
+JWT_SECRET=myjwtsecret
+
+<span class="c"># docker-compose.yml can reference it with ${VARIABLE}</span>
+<span class="cmd">environment</span>:
+  POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+  JWT_SECRET: ${JWT_SECRET}</pre>
+
+<!-- ============================================================ DEPENDS ON -->
+<h2 id="depends-on">depends_on & Health Checks</h2>
+
+<p>
+  <code>depends_on</code> tells Compose to start services in order.
+  But by default it only waits for the container to <em>start</em> — not for the service inside to be <em>ready</em>.
+  A PostgreSQL container can be running but the database not yet accepting connections.
+</p>
+
+<h3>depends_on with condition (correct approach)</h3>
+
+<pre><span class="cmd">services</span>:
+
+  auth-db:
+    <span class="cmd">image</span>: postgres:<span class="num">15</span>-alpine
+    <span class="cmd">healthcheck</span>:
+      <span class="cmd">test</span>: [<span class="s">"CMD-SHELL"</span>, <span class="s">"pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"</span>]
+      <span class="cmd">interval</span>: 5s
+      <span class="cmd">timeout</span>: 5s
+      <span class="cmd">retries</span>: 5
+
+  auth-service:
+    <span class="cmd">build</span>: ./services/auth-service
+    <span class="cmd">depends_on</span>:
+      auth-db:
+        <span class="cmd">condition</span>: service_healthy  <span class="c"># waits for DB to be truly ready</span></pre>
+
+<p>Now auth-service won't start until PostgreSQL passes the health check.</p>
+
+<!-- ============================================================ DOCKERIZE AUTH -->
+<h2 id="dockerize-auth">Dockerize auth-service</h2>
+
+<pre><span class="c"># services/auth-service/Dockerfile</span>
+
+<span class="cmd">FROM</span> node:<span class="num">20</span>-alpine
+
+<span class="cmd">WORKDIR</span> /app
+
+<span class="c"># Install deps first (cached layer)</span>
+<span class="cmd">COPY</span> package.json package-lock.json ./
+<span class="cmd">RUN</span> npm ci
+
+<span class="c"># Generate Prisma client</span>
+<span class="cmd">COPY</span> prisma ./prisma
+<span class="cmd">RUN</span> npx prisma generate
+
+<span class="c"># Copy source and build</span>
+<span class="cmd">COPY</span> . .
+<span class="cmd">RUN</span> npm run build
+
+<span class="cmd">EXPOSE</span> <span class="num">3000</span>
+
+<span class="c"># Run migrations then start</span>
+<span class="cmd">CMD</span> [<span class="s">"sh"</span>, <span class="s">"-c"</span>, <span class="s">"npx prisma migrate deploy && node dist/index.js"</span>]</pre>
+
+<pre><span class="c"># services/auth-service/.dockerignore</span>
+node_modules
+dist
+.env
+src/generated
+*.log</pre>
+
+<!-- ============================================================ DOCKERIZE BRIEF -->
+<h2 id="dockerize-brief">Dockerize brief-service</h2>
+
+<pre><span class="c"># services/brief-service/Dockerfile</span>
+
+<span class="cmd">FROM</span> node:<span class="num">20</span>-alpine
+
+<span class="cmd">WORKDIR</span> /app
+
+<span class="cmd">COPY</span> package.json package-lock.json ./
+<span class="cmd">RUN</span> npm ci
+
+<span class="cmd">COPY</span> prisma ./prisma
+<span class="cmd">RUN</span> npx prisma generate
+
+<span class="cmd">COPY</span> . .
+<span class="cmd">RUN</span> npm run build
+
+<span class="cmd">EXPOSE</span> <span class="num">4000</span>
+
+<span class="cmd">CMD</span> [<span class="s">"sh"</span>, <span class="s">"-c"</span>, <span class="s">"npx prisma migrate deploy && node dist/index.js"</span>]</pre>
+
+<!-- ============================================================ DOCKERIZE GATEWAY -->
+<h2 id="dockerize-gateway">Dockerize gateway</h2>
+
+<pre><span class="c"># services/gateway/Dockerfile</span>
+
+<span class="cmd">FROM</span> node:<span class="num">20</span>-alpine
+
+<span class="cmd">WORKDIR</span> /app
+
+<span class="cmd">COPY</span> package.json package-lock.json ./
+<span class="cmd">RUN</span> npm ci
+
+<span class="cmd">COPY</span> . .
+<span class="cmd">RUN</span> npm run build
+
+<span class="cmd">EXPOSE</span> <span class="num">8080</span>
+
+<span class="cmd">CMD</span> [<span class="s">"node"</span>, <span class="s">"dist/index.js"</span>]
+<span class="c"># No Prisma here — gateway has no database</span></pre>
+
+<!-- ============================================================ FULL COMPOSE -->
+<h2 id="full-compose">Full docker-compose.yml for Smart Brief</h2>
+
+<p>Place this at the root of the project (<code>smart-brief/docker-compose.yml</code>):</p>
+
+<pre><span class="cmd">version</span>: <span class="s">"3.9"</span>
+
+<span class="cmd">services</span>:
+
+  <span class="c"># ─── Auth Database ───────────────────────────────────────────</span>
+  auth-db:
+    <span class="cmd">image</span>: postgres:<span class="num">15</span>-alpine
+    <span class="cmd">container_name</span>: smart-brief-auth-db
+    <span class="cmd">environment</span>:
+      POSTGRES_USER:     authuser
+      POSTGRES_PASSWORD: authpassword
+      POSTGRES_DB:       authdb
+    <span class="cmd">volumes</span>:
+      - auth_db_data:/var/lib/postgresql/data
+    <span class="cmd">ports</span>:
+      - <span class="s">"5432:5432"</span>    <span class="c"># expose for local psql access</span>
+    <span class="cmd">healthcheck</span>:
+      <span class="cmd">test</span>: [<span class="s">"CMD-SHELL"</span>, <span class="s">"pg_isready -U authuser -d authdb"</span>]
+      <span class="cmd">interval</span>: 5s
+      <span class="cmd">timeout</span>: 5s
+      <span class="cmd">retries</span>: 5
+
+  <span class="c"># ─── Brief Database ──────────────────────────────────────────</span>
+  brief-db:
+    <span class="cmd">image</span>: postgres:<span class="num">15</span>-alpine
+    <span class="cmd">container_name</span>: smart-brief-brief-db
+    <span class="cmd">environment</span>:
+      POSTGRES_USER:     briefuser
+      POSTGRES_PASSWORD: briefpassword
+      POSTGRES_DB:       briefdb
+    <span class="cmd">volumes</span>:
+      - brief_db_data:/var/lib/postgresql/data
+    <span class="cmd">ports</span>:
+      - <span class="s">"5433:5432"</span>    <span class="c"># different host port to avoid conflict</span>
+    <span class="cmd">healthcheck</span>:
+      <span class="cmd">test</span>: [<span class="s">"CMD-SHELL"</span>, <span class="s">"pg_isready -U briefuser -d briefdb"</span>]
+      <span class="cmd">interval</span>: 5s
+      <span class="cmd">timeout</span>: 5s
+      <span class="cmd">retries</span>: 5
+
+  <span class="c"># ─── Auth Service ────────────────────────────────────────────</span>
+  auth-service:
+    <span class="cmd">build</span>:
+      <span class="cmd">context</span>: ./services/auth-service
+      <span class="cmd">dockerfile</span>: Dockerfile
+    <span class="cmd">container_name</span>: smart-brief-auth
+    <span class="cmd">ports</span>:
+      - <span class="s">"3000:3000"</span>
+    <span class="cmd">environment</span>:
+      DATABASE_URL:       postgresql://authuser:authpassword@auth-db:5432/authdb
+      JWT_SECRET:         ${JWT_SECRET}
+      GOOGLE_CLIENT_ID:   ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      GOOGLE_CALLBACK_URL: ${GOOGLE_CALLBACK_URL}
+      FRONTEND_URL:       http://localhost:5173
+    <span class="cmd">depends_on</span>:
+      auth-db:
+        <span class="cmd">condition</span>: service_healthy
+    <span class="cmd">restart</span>: unless-stopped
+
+  <span class="c"># ─── Brief Service ───────────────────────────────────────────</span>
+  brief-service:
+    <span class="cmd">build</span>:
+      <span class="cmd">context</span>: ./services/brief-service
+      <span class="cmd">dockerfile</span>: Dockerfile
+    <span class="cmd">container_name</span>: smart-brief-brief
+    <span class="cmd">ports</span>:
+      - <span class="s">"4000:4000"</span>
+    <span class="cmd">environment</span>:
+      DATABASE_URL: postgresql://briefuser:briefpassword@brief-db:5432/briefdb
+      GATEWAY_URL:  http://gateway:8080
+      ADMIN_EMAIL:  ${ADMIN_EMAIL}
+    <span class="cmd">depends_on</span>:
+      brief-db:
+        <span class="cmd">condition</span>: service_healthy
+    <span class="cmd">restart</span>: unless-stopped
+
+  <span class="c"># ─── Gateway ─────────────────────────────────────────────────</span>
+  gateway:
+    <span class="cmd">build</span>:
+      <span class="cmd">context</span>: ./services/gateway
+      <span class="cmd">dockerfile</span>: Dockerfile
+    <span class="cmd">container_name</span>: smart-brief-gateway
+    <span class="cmd">ports</span>:
+      - <span class="s">"8080:8080"</span>     <span class="c"># the only port exposed to the browser</span>
+    <span class="cmd">environment</span>:
+      JWT_SECRET:       ${JWT_SECRET}
+      AUTH_SERVICE_URL: http://auth-service:3000
+      BRIEF_SERVICE_URL: http://brief-service:4000
+      FRONTEND_URL:     http://localhost:5173
+    <span class="cmd">depends_on</span>:
+      - auth-service
+      - brief-service
+    <span class="cmd">restart</span>: unless-stopped
+
+<span class="c"># ─── Named volumes ─────────────────────────────────────────────</span>
+<span class="cmd">volumes</span>:
+  auth_db_data:
+  brief_db_data:</pre>
+
+<h3>The .env file at project root</h3>
+
+<pre><span class="c"># smart-brief/.env  (add to .gitignore!)</span>
+JWT_SECRET=your-super-secret-key
+GOOGLE_CLIENT_ID=your-google-client-id
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+GOOGLE_CALLBACK_URL=http://localhost:3000/auth/google/callback
+ADMIN_EMAIL=omarsanaoui5@gmail.com</pre>
+
+<h3>Running the full stack</h3>
+
+<pre><span class="c"># From the smart-brief/ root directory:</span>
+
+<span class="c"># Build all images and start everything</span>
+docker compose up <span class="flag">--build</span>
+
+<span class="c"># After code changes, rebuild and restart a specific service:</span>
+docker compose up <span class="flag">--build</span> auth-service
+
+<span class="c"># Check all services are running</span>
+docker compose ps
+
+<span class="c"># Test the gateway</span>
+curl http://localhost:8080/auth/login</pre>
+
+<div class="callout tip">
+  <strong>Development workflow with Docker Compose</strong>
+  For active development, you don't want to rebuild the image every time you change code. Use bind mounts + watch mode instead:
+</div>
+
+<pre><span class="c"># Dev version of docker-compose.yml (override file)</span>
+<span class="c"># docker-compose.dev.yml</span>
+<span class="cmd">services</span>:
+  auth-service:
+    <span class="cmd">command</span>: npm run dev          <span class="c"># tsx watch instead of node dist/</span>
+    <span class="cmd">volumes</span>:
+      - ./services/auth-service:/app  <span class="c"># bind mount source code</span>
+      - /app/node_modules             <span class="c"># keep container's node_modules</span>
+
+<span class="c"># Run with both files:</span>
+docker compose <span class="flag">-f</span> docker-compose.yml <span class="flag">-f</span> docker-compose.dev.yml up</pre>
+
+<!-- ============================================================ WHEN TO USE -->
+<h2 id="when-to-use">When to Use Docker</h2>
+
+<table>
+  <tr><th>Situation</th><th>Use Docker?</th><th>Why</th></tr>
+  <tr><td>Running PostgreSQL locally</td><td>✅ Yes</td><td>No system install needed, any version, easy to reset</td></tr>
+  <tr><td>Sharing a project with teammates</td><td>✅ Yes</td><td>"Works on my machine" disappears</td></tr>
+  <tr><td>CI/CD pipelines</td><td>✅ Yes</td><td>Reproducible builds, test in same env as production</td></tr>
+  <tr><td>Running microservices locally</td><td>✅ Yes</td><td>One command to spin up all 5 services</td></tr>
+  <tr><td>Deploying to a server (VPS)</td><td>✅ Yes</td><td>Better than raw npm install on a server</td></tr>
+  <tr><td>Quick personal project, solo dev</td><td>Maybe</td><td>Adds complexity — weigh the setup cost</td></tr>
+  <tr><td>Deploying to Railway / Render</td><td>Optional</td><td>These platforms auto-detect and build without Docker</td></tr>
+  <tr><td>Deploying to Vercel (frontend)</td><td>❌ No</td><td>Vercel doesn't use Docker — it has its own build system</td></tr>
+</table>
+
+<!-- ============================================================ DOCKER VS RAILWAY -->
+<h2 id="docker-vs-railway">Docker vs Railway/Vercel</h2>
+
+<div class="compare">
+  <div>
+    <h4 style="color:var(--docker)">Docker (self-managed)</h4>
+    <ul style="font-size:13px;">
+      <li>Full control of everything</li>
+      <li>Run on any VPS (DigitalOcean, EC2, Hetzner)</li>
+      <li>Usually cheaper at scale</li>
+      <li>You manage scaling, networking, TLS</li>
+      <li>More complex setup and maintenance</li>
+    </ul>
+    <pre style="font-size:11px;margin-top:10px;"><span class="c"># On a VPS:</span>
+docker compose pull
+docker compose up -d</pre>
+  </div>
+  <div>
+    <h4 style="color:var(--accent2)">Railway/Vercel/Render (PaaS)</h4>
+    <ul style="font-size:13px;">
+      <li>Zero server management</li>
+      <li>Auto-deploy from git push</li>
+      <li>TLS, scaling, logging built-in</li>
+      <li>Can use Dockerfile OR auto-detect</li>
+      <li>More expensive at scale but zero ops cost</li>
+    </ul>
+    <pre style="font-size:11px;margin-top:10px;"><span class="c"># Railway auto-detects a Dockerfile
+# and builds it on every git push</span></pre>
+  </div>
+</div>
+
+<div class="callout info">
+  <strong>Smart Brief on Railway — does it use Docker?</strong>
+  Railway can automatically detect a <code>Dockerfile</code> and use it. If you add Dockerfiles to your services, Railway will use them. If not, Railway uses its own Nixpacks build system (which detects Node.js automatically). Either works — adding Dockerfiles gives you more control over the exact environment.
+</div>
+
+<!-- ============================================================ PRODUCTION -->
+<h2 id="production">Docker in Production</h2>
+
+<h3>Security best practices</h3>
+
+<pre><span class="c"># Don't run as root — use the built-in 'node' user</span>
+<span class="cmd">FROM</span> node:<span class="num">20</span>-alpine
+<span class="cmd">WORKDIR</span> /app
+<span class="cmd">COPY</span> --chown=node:node package*.json ./
+<span class="cmd">RUN</span> npm ci
+<span class="cmd">COPY</span> --chown=node:node . .
+<span class="cmd">RUN</span> npm run build
+
+<span class="cmd">USER</span> node   <span class="c">← switch to non-root before CMD</span>
+<span class="cmd">CMD</span> [<span class="s">"node"</span>, <span class="s">"dist/index.js"</span>]</pre>
+
+<pre><span class="c"># Never store secrets in the image</span>
+<span class="cmd">ENV</span> JWT_SECRET=hardcoded   <span class="c">← NEVER do this</span>
+
+<span class="c"># Instead, pass at runtime:</span>
+docker run <span class="flag">-e</span> JWT_SECRET=$JWT_SECRET myimage
+<span class="c"># Or use Docker secrets / Compose secrets for production</span></pre>
+
+<h3>Useful production flags</h3>
+
+<pre><span class="cmd">restart</span>: unless-stopped   <span class="c"># auto-restart if container crashes</span>
+<span class="cmd">restart</span>: always           <span class="c"># always restart, even on docker daemon restart</span>
+<span class="cmd">restart</span>: on-failure       <span class="c"># only restart on non-zero exit code</span></pre>
+
+<h3>Resource limits</h3>
+
+<pre><span class="cmd">services</span>:
+  auth-service:
+    <span class="cmd">deploy</span>:
+      <span class="cmd">resources</span>:
+        <span class="cmd">limits</span>:
+          cpus: <span class="s">"0.5"</span>     <span class="c"># max 50% of one CPU core</span>
+          memory: 512M    <span class="c"># max 512 MB RAM</span></pre>
+
+<h3>Useful one-liners for debugging production containers</h3>
+
+<pre><span class="c"># See what's happening inside the container</span>
+docker compose exec auth-service sh
+
+<span class="c"># Check environment variables inside the container</span>
+docker compose exec auth-service env
+
+<span class="c"># Run Prisma Studio inside the container</span>
+docker compose exec auth-service npx prisma studio
+
+<span class="c"># Run a migration manually</span>
+docker compose exec auth-service npx prisma migrate deploy
+
+<span class="c"># Check disk usage by images and containers</span>
+docker system df
+
+<span class="c"># Clean up everything unused (images, containers, networks, caches)</span>
+docker system prune <span class="flag">-a</span></pre>
+
+</main>
+
+<script>
+  const sections = document.querySelectorAll('h2[id], h3[id]');
+  const links    = document.querySelectorAll('nav a');
+
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        links.forEach(l => l.classList.remove('active'));
+        const active = document.querySelector(`nav a[href="#${entry.target.id}"]`);
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-10% 0px -80% 0px' });
+
+  sections.forEach(s => io.observe(s));
+</script>
+</body>
+</html>

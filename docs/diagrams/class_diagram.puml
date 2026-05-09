@@ -1,0 +1,111 @@
+@startuml SmartBrief - Diagramme de classes
+
+skinparam backgroundColor #1A2238
+skinparam classBackgroundColor #1E2D4A
+skinparam classBorderColor #6C63FF
+skinparam classHeaderBackgroundColor #2E3A5C
+skinparam classFontColor #FFFFFF
+skinparam classAttributeFontColor #D0D0D0
+skinparam ArrowColor #6C63FF
+skinparam stereotypeFontColor #00B4D8
+skinparam packageBackgroundColor #12192B
+skinparam packageBorderColor #2E3A5C
+
+enum Role {
+  CLIENT
+  ADMIN
+  EMPLOYEE
+}
+
+enum Provider {
+  LOCAL
+  GOOGLE
+}
+
+enum BriefStatus {
+  PENDING
+  ACCEPTED
+  IN_PROGRESS
+  COMPLETED
+  REFUSED
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  DONE
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+class User {
+  + id : String
+  + firstName : String
+  + lastName : String
+  + email : String
+  + password : String?
+  + phone : String?
+  + role : Role
+  + provider : Provider
+  + isVerified : Boolean
+  + pendingEmail : String?
+  + createdAt : DateTime
+  + updatedAt : DateTime
+}
+
+class Brief {
+  + id : String
+  + title : String
+  + brandName : String?
+  + projectType : ProjectType
+  + description : String?
+  + features : String[]
+  + budgetRange : String?
+  + deadline : DateTime?
+  + status : BriefStatus
+  + createdAt : DateTime
+  + updatedAt : DateTime
+}
+
+class Task {
+  + id : String
+  + name : String
+  + description : String?
+  + priority : TaskPriority
+  + status : TaskStatus
+  + startDate : DateTime
+  + endDate : DateTime
+  + createdAt : DateTime
+  + updatedAt : DateTime
+}
+
+class Attachment {
+  + id : String
+  + filename : String
+  + url : String
+  + createdAt : DateTime
+}
+
+class BriefAssignment {
+  + briefId : String
+  + userId : String
+  + assignedAt : DateTime
+}
+
+User "1" --> "0..*" Brief : soumet (CLIENT)
+User "1" --> "0..*" Brief : crée pour client (ADMIN)
+User "0..*" --> "0..*" Brief : assigné à (EMPLOYEE)
+Brief "1" *-- "0..*" Task : contient
+Brief "1" *-- "0..*" Attachment : possède
+User ..> Role
+User ..> Provider
+Brief ..> BriefStatus
+Task ..> TaskStatus
+Task ..> TaskPriority
+Brief "0..*" -- "0..*" User : BriefAssignment
+
+@enduml

@@ -1,0 +1,1460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TypeScript — Smart Brief Deep Dive</title>
+  <style>
+    :root {
+      --bg:      #0f1528;
+      --surface: #141824;
+      --card:    #1a2238;
+      --border:  #2e3a5c;
+      --teal:    #67cfb1;
+      --purple:  #414cc4;
+      --purple2: #818cf8;
+      --text:    #e8eaf0;
+      --muted:   rgba(255,255,255,.55);
+      --dim:     rgba(255,255,255,.22);
+      --yellow:  #f59e0b;
+      --red:     #ef4444;
+      --green:   #10b981;
+      --blue:    #60a5fa;
+      --orange:  #fb923c;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      font-size: 15px;
+      line-height: 1.75;
+    }
+    .layout { display: flex; min-height: 100vh; }
+
+    /* ── NAV ── */
+    nav {
+      width: 270px; min-width: 270px;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      padding: 28px 0;
+      position: sticky; top: 0;
+      height: 100vh; overflow-y: auto;
+    }
+    nav .logo { padding: 0 22px 22px; border-bottom: 1px solid var(--border); margin-bottom: 14px; }
+    nav .logo .t1 { color: var(--teal);  font-weight: 900; letter-spacing: 2px; font-size: 15px; }
+    nav .logo .t2 { color: #fff;         font-weight: 900; letter-spacing: 2px; font-size: 15px; }
+    nav .logo p   { color: var(--dim);   font-size: 11px;  margin-top: 4px; letter-spacing: 1px; }
+    nav ul { list-style: none; padding: 0 10px; }
+    nav li a {
+      display: block; padding: 7px 12px; border-radius: 7px;
+      color: var(--muted); text-decoration: none; font-size: 13px; transition: all .15s;
+    }
+    nav li a:hover { background: rgba(255,255,255,.05); color: #fff; }
+    nav li a.active { background: rgba(103,207,177,.1); color: var(--teal); }
+    nav .grp { padding: 14px 12px 5px; color: var(--dim); font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; }
+
+    /* ── MAIN ── */
+    main { flex: 1; padding: 52px 68px; max-width: 940px; }
+
+    h1 { font-size: 38px; font-weight: 900; color: #fff; margin-bottom: 10px; }
+    h2 { font-size: 25px; font-weight: 800; color: #fff; margin: 56px 0 16px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
+    h3 { font-size: 18px; font-weight: 700; color: var(--teal); margin: 30px 0 10px; }
+    h4 { font-size: 13px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 1.2px; margin: 22px 0 8px; }
+    p  { color: rgba(255,255,255,.75); margin-bottom: 14px; }
+    p strong { color: #fff; }
+    a  { color: var(--teal); text-decoration: none; }
+
+    .subtitle { color: var(--muted); font-size: 16px; margin-bottom: 32px; }
+    .badge {
+      display: inline-block; background: rgba(65,76,196,.15); border: 1px solid rgba(65,76,196,.4);
+      color: var(--purple2); padding: 3px 14px; border-radius: 20px;
+      font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 14px;
+    }
+
+    /* ── CODE ── */
+    code {
+      background: rgba(255,255,255,.07); border: 1px solid var(--border);
+      padding: 2px 7px; border-radius: 5px;
+      font-family: 'Cascadia Code', 'Consolas', monospace; font-size: 13px; color: var(--teal);
+    }
+    pre {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 10px; padding: 22px 26px; overflow-x: auto;
+      margin: 16px 0; font-size: 13.5px; line-height: 1.65;
+      font-family: 'Cascadia Code', 'Consolas', monospace;
+    }
+    pre code { background: none; border: none; padding: 0; font-size: inherit; color: #c9d1d9; }
+
+    /* Syntax highlight classes */
+    .kw  { color: #ff7b72; }           /* keyword: const, let, function, interface, type, as, etc. */
+    .tp  { color: #79c0ff; }           /* type name: string, number, User, etc. */
+    .str { color: #a5d6ff; }           /* string literal */
+    .fn  { color: #d2a8ff; }           /* function name */
+    .cm  { color: #8b949e; font-style: italic; } /* comment */
+    .nm  { color: #ffa657; }           /* number */
+    .op  { color: #ff7b72; }           /* operator */
+    .ts  { color: #67cfb1; }           /* TypeScript-specific highlight */
+
+    /* ── CARDS ── */
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin: 16px 0; }
+    .card-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 16px 0; }
+    .card-row .card { margin: 0; }
+    .card h4 { margin-top: 0; }
+
+    .callout { border-left: 3px solid var(--purple); background: rgba(65,76,196,.08); padding: 14px 20px; border-radius: 0 8px 8px 0; margin: 16px 0; font-size: 14px; color: rgba(255,255,255,.78); }
+    .callout.teal   { border-color: var(--teal);   background: rgba(103,207,177,.07); }
+    .callout.yellow { border-color: var(--yellow); background: rgba(245,158,11,.07); }
+    .callout.red    { border-color: var(--red);    background: rgba(239,68,68,.07); }
+    .callout.green  { border-color: var(--green);  background: rgba(16,185,129,.07); }
+    .callout.orange { border-color: var(--orange); background: rgba(251,146,60,.07); }
+
+    /* tags */
+    .tag { display: inline-block; padding: 3px 9px; border-radius: 5px; font-size: 12px; font-weight: 600; margin: 2px; }
+    .tag-teal   { background: rgba(103,207,177,.12); color: var(--teal); }
+    .tag-blue   { background: rgba(96,165,250,.12);  color: var(--blue); }
+    .tag-yellow { background: rgba(245,158,11,.12);  color: var(--yellow); }
+    .tag-red    { background: rgba(239,68,68,.12);   color: var(--red); }
+    .tag-gray   { background: rgba(255,255,255,.07); color: var(--muted); }
+    .tag-purple { background: rgba(129,140,248,.12); color: var(--purple2); }
+
+    /* compare boxes */
+    .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 16px 0; }
+    .compare > div { border-radius: 10px; overflow: hidden; }
+    .compare > div > .compare-label { padding: 8px 16px; font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; }
+    .js-label  { background: rgba(245,158,11,.12); color: var(--yellow); }
+    .ts-label  { background: rgba(103,207,177,.12); color: var(--teal); }
+    .compare pre { border-radius: 0 0 10px 10px; margin: 0; border-top: none; }
+
+    table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 14px; }
+    th { background: var(--surface); color: var(--muted); padding: 10px 14px; text-align: left; border: 1px solid var(--border); font-size: 11px; letter-spacing: 1px; text-transform: uppercase; }
+    td { padding: 10px 14px; border: 1px solid var(--border); color: rgba(255,255,255,.8); vertical-align: top; }
+    tr:nth-child(even) td { background: rgba(255,255,255,.02); }
+
+    ul, ol { padding-left: 24px; margin-bottom: 14px; }
+    li { color: rgba(255,255,255,.75); margin-bottom: 5px; }
+    li strong { color: #fff; }
+
+    .section { margin-bottom: 0; }
+    hr { border: none; border-top: 1px solid var(--border); margin: 48px 0; }
+
+    @media (max-width: 900px) {
+      nav { display: none; }
+      main { padding: 24px 18px; }
+      .card-row, .compare { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="layout">
+
+<!-- ════════════════════════ SIDEBAR ════════════════════════ -->
+<nav>
+  <div class="logo">
+    <div><span class="t1">TYPE</span><span class="t2">SCRIPT</span></div>
+    <p>SMART BRIEF DEEP DIVE</p>
+  </div>
+  <ul>
+    <li><a href="#what-is-ts">What is TypeScript?</a></li>
+    <li><a href="#ts-vs-js">TS vs JS</a></li>
+    <li><a href="#files">Files: .ts and .tsx</a></li>
+    <li><a href="#tsconfig">tsconfig.json</a></li>
+
+    <li class="grp">Type System</li>
+    <li><a href="#basic-types">Basic Types</a></li>
+    <li><a href="#annotations">Type Annotations</a></li>
+    <li><a href="#inference">Type Inference</a></li>
+    <li><a href="#union">Union Types  |</a></li>
+    <li><a href="#intersection">Intersection Types  &</a></li>
+    <li><a href="#optional">Optional &amp; Nullable</a></li>
+    <li><a href="#any-unknown">any vs unknown</a></li>
+    <li><a href="#void-never">void &amp; never</a></li>
+
+    <li class="grp">Defining Shapes</li>
+    <li><a href="#interface">interface</a></li>
+    <li><a href="#type-alias">type alias</a></li>
+    <li><a href="#interface-vs-type">interface vs type</a></li>
+    <li><a href="#enums">Enums</a></li>
+
+    <li class="grp">Advanced Types</li>
+    <li><a href="#generics">Generics &lt;T&gt;</a></li>
+    <li><a href="#utility-types">Utility Types</a></li>
+    <li><a href="#typeof">typeof operator</a></li>
+    <li><a href="#type-assertion">Type Assertion  as</a></li>
+    <li><a href="#non-null">Non-null Assertion  !</a></li>
+    <li><a href="#ts-ignore">@ts-ignore</a></li>
+    <li><a href="#import-type">import type</a></li>
+
+    <li class="grp">In This Project</li>
+    <li><a href="#ts-express">TypeScript + Express</a></li>
+    <li><a href="#module-aug">Module Augmentation</a></li>
+    <li><a href="#ts-react">TypeScript + React</a></li>
+    <li><a href="#ts-redux">TypeScript + Redux</a></li>
+    <li><a href="#ts-async">async / await types</a></li>
+    <li><a href="#ts-prisma">TypeScript + Prisma</a></li>
+    <li><a href="#real-examples">Real Code Examples</a></li>
+  </ul>
+</nav>
+
+<!-- ════════════════════════ MAIN ════════════════════════ -->
+<main>
+
+<!-- ═══ INTRO ═══ -->
+<section id="what-is-ts">
+  <div class="badge">Language Fundamentals</div>
+  <h1>TypeScript</h1>
+  <p class="subtitle">A complete explanation of every TypeScript concept used in Smart Brief — with real code from the project and comparisons to plain JavaScript.</p>
+
+  <h2 id="what-is-ts" style="margin-top:0">What is TypeScript?</h2>
+  <p>TypeScript is a <strong>superset of JavaScript</strong> made by Microsoft. "Superset" means every JavaScript file is also valid TypeScript — but TypeScript adds extra features on top, the most important of which is a <strong>static type system</strong>.</p>
+
+  <p>TypeScript does not run in the browser or in Node.js directly. Before it can run, it must be <strong>compiled</strong> (or transpiled) back to plain JavaScript. In this project, a tool called <strong><code>tsx</code></strong> handles this transparently — you run a <code>.ts</code> file and it just works, no manual compile step needed.</p>
+
+  <div class="card-row">
+    <div class="card">
+      <h4>What TypeScript adds</h4>
+      <ul style="padding-left:18px;margin:0;font-size:14px">
+        <li>Type annotations on variables, parameters, return values</li>
+        <li>Interfaces and type aliases for defining object shapes</li>
+        <li>Generics for reusable typed functions and classes</li>
+        <li>Enums for named constants</li>
+        <li>Compile-time error checking (catches bugs before running)</li>
+        <li>Excellent editor autocomplete and IntelliSense</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>What TypeScript does NOT change</h4>
+      <ul style="padding-left:18px;margin:0;font-size:14px">
+        <li>Runtime behavior is identical to JavaScript</li>
+        <li>All type information is erased at compile time</li>
+        <li>No performance difference vs JavaScript</li>
+        <li>All JS libraries work — you just add type definitions</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="callout teal">
+    <strong>Key idea:</strong> Types only exist while you're writing code. By the time the code runs, it's plain JavaScript and has no memory of types. TypeScript is a <em>development tool</em>, not a runtime feature.
+  </div>
+</section>
+
+<!-- ═══ TS VS JS ═══ -->
+<section id="ts-vs-js">
+  <h2>TypeScript vs JavaScript</h2>
+  <p>Here's the same function written in both languages:</p>
+
+  <div class="compare">
+    <div>
+      <div class="compare-label js-label">JavaScript</div>
+      <pre><code><span class="cm">// No type information</span>
+<span class="cm">// JS has no idea what types these are</span>
+<span class="kw">function</span> <span class="fn">greetUser</span>(user) {
+  <span class="kw">return</span> <span class="str">`Hello, ${user.firstName}`</span>;
+}
+
+<span class="cm">// This crashes at runtime — no warning</span>
+greetUser(<span class="nm">42</span>);
+greetUser({ email: <span class="str">"a@b.com"</span> }); <span class="cm">// undefined!</span></code></pre>
+    </div>
+    <div>
+      <div class="compare-label ts-label">TypeScript</div>
+      <pre><code><span class="cm">// Types are explicit and checked</span>
+<span class="kw">interface</span> <span class="tp">User</span> {
+  firstName: <span class="tp">string</span>;
+  lastName:  <span class="tp">string</span>;
+}
+<span class="kw">function</span> <span class="fn">greetUser</span>(user: <span class="tp">User</span>): <span class="tp">string</span> {
+  <span class="kw">return</span> <span class="str">`Hello, ${user.firstName}`</span>;
+}
+
+<span class="cm">// ❌ These are caught BEFORE running:</span>
+greetUser(<span class="nm">42</span>);             <span class="cm">// Error: not a User</span>
+greetUser({ email: <span class="str">""</span> }); <span class="cm">// Error: missing fields</span></code></pre>
+    </div>
+  </div>
+
+  <p>The TypeScript version catches both mistakes <strong>while you type</strong> in VS Code, before the code ever runs. This is the whole point of TypeScript.</p>
+</section>
+
+<!-- ═══ FILES ═══ -->
+<section id="files">
+  <h2>Files: <code>.ts</code> and <code>.tsx</code></h2>
+  <p>There are two TypeScript file extensions used in this project:</p>
+
+  <table>
+    <tr><th>Extension</th><th>Used For</th><th>Can it contain JSX?</th><th>Examples in project</th></tr>
+    <tr>
+      <td><code>.ts</code></td>
+      <td>Pure TypeScript — logic, utilities, services, config</td>
+      <td>No</td>
+      <td><code>authServices.ts</code>, <code>briefSlice.ts</code>, <code>gateway/index.ts</code></td>
+    </tr>
+    <tr>
+      <td><code>.tsx</code></td>
+      <td>TypeScript + React (JSX syntax inside)</td>
+      <td>Yes</td>
+      <td><code>App.tsx</code>, <code>Login.tsx</code>, <code>BriefDetails.tsx</code></td>
+    </tr>
+  </table>
+
+  <p>JSX is the HTML-like syntax in React: <code>&lt;div className="card"&gt;Hello&lt;/div&gt;</code>. The TypeScript compiler needs to know a file might contain JSX so it can handle it correctly — that's what <code>.tsx</code> signals.</p>
+
+  <div class="callout yellow">
+    <strong>Why not always use .tsx?</strong> Backend files (services, routes, controllers) are plain <code>.ts</code> because they never contain JSX. Mixing in JSX support where it doesn't belong would be confusing and can cause issues with some tooling.
+  </div>
+
+  <h3>How TypeScript Actually Runs</h3>
+  <p>In this project, <strong><code>tsx</code></strong> (the npm package, not the file extension) is used as the TypeScript runner for all backend services. It compiles and runs TypeScript on-the-fly — no separate build step needed:</p>
+  <pre><code><span class="cm"># package.json scripts</span>
+<span class="str">"start"</span>: <span class="str">"prisma migrate deploy && tsx src/index.ts"</span>
+<span class="str">"dev"</span>:   <span class="str">"nodemon --exec tsx src/index.ts"</span></code></pre>
+
+  <p>The React frontend uses <strong>Vite</strong> to bundle and compile the TypeScript frontend into plain JavaScript for the browser.</p>
+</section>
+
+<!-- ═══ TSCONFIG ═══ -->
+<section id="tsconfig">
+  <h2>tsconfig.json</h2>
+  <p>The <code>tsconfig.json</code> file tells the TypeScript compiler how to behave. It lives at the root of each TypeScript project. Key options:</p>
+
+  <table>
+    <tr><th>Option</th><th>What It Does</th></tr>
+    <tr><td><code>"target": "ES2022"</code></td><td>Which version of JavaScript to compile down to</td></tr>
+    <tr><td><code>"module": "ESNext"</code></td><td>Module system to use (ES Modules — <code>import/export</code>)</td></tr>
+    <tr><td><code>"strict": true</code></td><td>Enables all strict type checks. Most important option.</td></tr>
+    <tr><td><code>"jsx": "react-jsx"</code></td><td>Tells the compiler how to transform JSX (for React 17+)</td></tr>
+    <tr><td><code>"moduleResolution"</code></td><td>How to resolve import paths</td></tr>
+    <tr><td><code>"outDir"</code></td><td>Where to put compiled JS files (when building)</td></tr>
+  </table>
+
+  <p>With <code>"strict": true</code>, TypeScript enforces the strictest rules — no implicit <code>any</code>, proper null checks, etc. This is what makes TypeScript actually useful.</p>
+</section>
+
+<hr />
+
+<!-- ═══════════════ TYPE SYSTEM ═══════════════ -->
+
+<!-- ═══ BASIC TYPES ═══ -->
+<section id="basic-types">
+  <h2>Basic Types</h2>
+  <p>These are the building blocks. You'll see these everywhere in the project.</p>
+
+  <pre><code><span class="cm">// Primitive types</span>
+<span class="kw">const</span> name:    <span class="tp">string</span>  = <span class="str">"Omar"</span>;
+<span class="kw">const</span> age:     <span class="tp">number</span>  = <span class="nm">25</span>;
+<span class="kw">const</span> isAdmin: <span class="tp">boolean</span> = <span class="kw">true</span>;
+
+<span class="cm">// Arrays</span>
+<span class="kw">const</span> features:    <span class="tp">string</span>[]   = [<span class="str">"SEO"</span>, <span class="str">"Analytics"</span>];
+<span class="kw">const</span> employeeIds: <span class="tp">string</span>[]   = [<span class="str">"uuid-1"</span>, <span class="str">"uuid-2"</span>];
+
+<span class="cm">// null and undefined</span>
+<span class="kw">const</span> phone:  <span class="tp">string</span> | <span class="kw">null</span>      = <span class="kw">null</span>;
+<span class="kw">const</span> reason: <span class="tp">string</span> | <span class="kw">undefined</span> = <span class="kw">undefined</span>;
+
+<span class="cm">// object (generic, rarely used explicitly)</span>
+<span class="kw">const</span> data: <span class="tp">Record</span>&lt;<span class="tp">string</span>, <span class="kw">unknown</span>&gt; = {};
+
+<span class="cm">// From authTypes.ts — real project code:</span>
+<span class="kw">interface</span> <span class="tp">AuthState</span> {
+  user:        <span class="tp">User</span> | <span class="kw">null</span>;    <span class="cm">// object or null</span>
+  token:       <span class="tp">string</span> | <span class="kw">null</span>;  <span class="cm">// string or null</span>
+  loading:     <span class="tp">boolean</span>;
+  error:       <span class="tp">string</span> | <span class="kw">null</span>;
+  initialized: <span class="tp">boolean</span>;
+}</code></pre>
+
+  <table>
+    <tr><th>Type</th><th>Values</th><th>In This Project</th></tr>
+    <tr><td><code>string</code></td><td>Any text: <code>"hello"</code>, <code>""</code></td><td>IDs, names, emails, tokens, status strings</td></tr>
+    <tr><td><code>number</code></td><td>Any number: <code>42</code>, <code>3.14</code></td><td>Port numbers, array indexes</td></tr>
+    <tr><td><code>boolean</code></td><td><code>true</code> or <code>false</code></td><td><code>loading</code>, <code>initialized</code>, <code>rememberMe</code></td></tr>
+    <tr><td><code>string[]</code></td><td>Array of strings</td><td><code>features</code>, <code>assignedToIds</code>, <code>attachments</code></td></tr>
+    <tr><td><code>null</code></td><td>Intentional absence of value</td><td><code>user: User | null</code></td></tr>
+    <tr><td><code>undefined</code></td><td>Unset value</td><td>Optional fields that weren't provided</td></tr>
+  </table>
+</section>
+
+<!-- ═══ ANNOTATIONS ═══ -->
+<section id="annotations">
+  <h2>Type Annotations</h2>
+  <p>A type annotation is the <code>: TypeName</code> syntax that tells TypeScript what type something is. You can annotate variables, function parameters, and return values.</p>
+
+  <pre><code><span class="cm">// Variable annotation</span>
+<span class="kw">const</span> JWT_SECRET: <span class="tp">string</span> = process.env.JWT_SECRET <span class="kw">as</span> <span class="tp">string</span>;
+
+<span class="cm">// Function parameter annotations + return type annotation</span>
+<span class="kw">function</span> <span class="fn">normalizeEmail</span>(email: <span class="tp">string</span>): <span class="tp">string</span> {
+  <span class="kw">return</span> email.trim().toLowerCase();
+}
+
+<span class="cm">// Multiple parameters</span>
+<span class="kw">async function</span> <span class="fn">initiateRegister</span>(
+  firstName: <span class="tp">string</span>,
+  lastName:  <span class="tp">string</span>,
+  email:     <span class="tp">string</span>,
+  password:  <span class="tp">string</span>,
+  phone?:    <span class="tp">string</span>  <span class="cm">// ← optional parameter</span>
+): <span class="tp">Promise</span>&lt;<span class="tp">{ message: string }</span>&gt; {
+  <span class="cm">// ...</span>
+}
+
+<span class="cm">// From brief.controller.ts:</span>
+<span class="kw">export const</span> <span class="fn">updateBriefStatusHandler</span> = <span class="kw">async</span> (
+  req: <span class="tp">Request</span>,
+  res: <span class="tp">Response</span>
+): <span class="tp">Promise</span>&lt;<span class="kw">void</span>&gt; => {
+  <span class="cm">// ...</span>
+}</code></pre>
+
+  <div class="callout">
+    <strong>Return type annotation:</strong> <code>: string</code> after the parameter list says "this function returns a string". <code>: Promise&lt;void&gt;</code> means it's async and returns nothing meaningful (just a promise that resolves).
+  </div>
+</section>
+
+<!-- ═══ INFERENCE ═══ -->
+<section id="inference">
+  <h2>Type Inference</h2>
+  <p>You don't have to write every type — TypeScript is smart enough to <strong>figure out the type automatically</strong> from what you assign. This is called type inference.</p>
+
+  <div class="compare">
+    <div>
+      <div class="compare-label ts-label">With explicit annotation</div>
+      <pre><code><span class="kw">const</span> count: <span class="tp">number</span> = <span class="nm">0</span>;
+<span class="kw">const</span> name: <span class="tp">string</span> = <span class="str">"Alice"</span>;
+<span class="kw">const</span> loading: <span class="tp">boolean</span> = <span class="kw">false</span>;</code></pre>
+    </div>
+    <div>
+      <div class="compare-label ts-label">With inference (same result)</div>
+      <pre><code><span class="kw">const</span> count = <span class="nm">0</span>;         <span class="cm">// inferred: number</span>
+<span class="kw">const</span> name = <span class="str">"Alice"</span>;   <span class="cm">// inferred: string</span>
+<span class="kw">const</span> loading = <span class="kw">false</span>; <span class="cm">// inferred: boolean</span></code></pre>
+    </div>
+  </div>
+
+  <p>Both are equivalent. In practice, you annotate when TypeScript can't infer (function parameters, complex initial values) and omit the annotation when TypeScript can figure it out.</p>
+
+  <pre><code><span class="cm">// In authSelectors.ts — return type inferred automatically:</span>
+<span class="kw">export const</span> selectUser = (state: <span class="tp">RootState</span>) => state.auth.user;
+<span class="cm">// TypeScript infers the return type is: User | null</span>
+<span class="cm">// You don't need to write: (state: RootState): User | null =></span>
+
+<span class="kw">export const</span> selectIsLoggedIn = (state: <span class="tp">RootState</span>) => !!state.auth.token;
+<span class="cm">// TypeScript infers return type is: boolean</span></code></pre>
+</section>
+
+<!-- ═══ UNION ═══ -->
+<section id="union">
+  <h2>Union Types — <code>|</code></h2>
+  <p>A union type means a value can be <strong>one of several types</strong>. The <code>|</code> symbol reads as "or".</p>
+
+  <pre><code><span class="cm">// The most common use: something that can be null</span>
+<span class="kw">let</span> user: <span class="tp">User</span> | <span class="kw">null</span> = <span class="kw">null</span>;   <span class="cm">// either a User object, or null</span>
+<span class="kw">let</span> token: <span class="tp">string</span> | <span class="kw">null</span> = <span class="kw">null</span>; <span class="cm">// either a string, or null</span>
+
+<span class="cm">// Union of specific string values (string literal union)</span>
+<span class="cm">// From authTypes.ts:</span>
+role: <span class="str">"ADMIN"</span> | <span class="str">"CLIENT"</span> | <span class="str">"EMPLOYEE"</span>
+provider: <span class="str">"LOCAL"</span> | <span class="str">"GOOGLE"</span>
+
+<span class="cm">// From briefTypes.ts — the full BriefStatus type:</span>
+<span class="kw">type</span> <span class="tp">BriefStatus</span> = <span class="str">'PENDING'</span> | <span class="str">'ACCEPTED'</span> | <span class="str">'REFUSED'</span> | <span class="str">'IN_PROGRESS'</span> | <span class="str">'COMPLETED'</span>;
+
+<span class="cm">// TypeScript now ensures you can only use these exact values:</span>
+<span class="kw">const</span> s: <span class="tp">BriefStatus</span> = <span class="str">'ACCEPTED'</span>;  <span class="cm">// ✅ valid</span>
+<span class="kw">const</span> s: <span class="tp">BriefStatus</span> = <span class="str">'DONE'</span>;      <span class="cm">// ❌ Error: not in the union</span></code></pre>
+
+  <p>String literal unions (like <code>'PENDING' | 'ACCEPTED'</code>) are extremely useful for status fields — they act like a lightweight enum that TypeScript enforces at every usage point.</p>
+
+  <div class="callout teal">
+    <strong>Where you'll see this pattern the most:</strong> The <code>role</code> and <code>status</code> fields throughout the entire project. Every time code checks <code>user.role === "ADMIN"</code>, TypeScript knows the only valid values and will warn you if you typo it as <code>"admin"</code> or <code>"Admin"</code>.
+  </div>
+</section>
+
+<!-- ═══ INTERSECTION ═══ -->
+<section id="intersection">
+  <h2>Intersection Types — <code>&</code></h2>
+  <p>An intersection type means a value must be <strong>all of multiple types at once</strong>. The <code>&</code> symbol reads as "and". The result is a type that has all properties from both.</p>
+
+  <pre><code><span class="cm">// From briefThunk.ts:</span>
+<span class="kw">async</span> ({ id, data, userRole }: <span class="tp">UpdateBriefPayload</span> & { userRole?: <span class="tp">string</span> }, thunkAPI) => {
+<span class="cm">// UpdateBriefPayload & { userRole?: string }
+// means: something that has ALL fields of UpdateBriefPayload
+//        PLUS an optional userRole string field</span>
+
+<span class="cm">// Equivalent to writing out:</span>
+<span class="kw">type</span> <span class="tp">Combined</span> = {
+  id:       <span class="tp">string</span>;
+  data:     <span class="tp">Partial</span>&lt;<span class="tp">CreateBriefPayload</span>&gt; & { status?: <span class="tp">BriefStatus</span>; statusReason?: <span class="tp">string</span> };
+  userRole?: <span class="tp">string</span>;
+}</code></pre>
+
+  <p>Intersection is useful when you want to extend a type without creating a whole new interface. You're saying "take this existing type and add these extra fields".</p>
+</section>
+
+<!-- ═══ OPTIONAL ═══ -->
+<section id="optional">
+  <h2>Optional Properties — <code>?</code></h2>
+  <p>A property marked with <code>?</code> is optional — it may or may not be present on an object. TypeScript will tell you to check for its existence before using it.</p>
+
+  <pre><code><span class="cm">// From authTypes.ts:</span>
+<span class="kw">interface</span> <span class="tp">RegisterPayload</span> {
+  firstName: <span class="tp">string</span>;   <span class="cm">// required — must always be there</span>
+  lastName:  <span class="tp">string</span>;   <span class="cm">// required</span>
+  email:     <span class="tp">string</span>;   <span class="cm">// required</span>
+  password:  <span class="tp">string</span>;   <span class="cm">// required</span>
+  phone?:    <span class="tp">string</span>;   <span class="cm">// optional — might not be provided</span>
+  rememberMe?: <span class="tp">boolean</span>; <span class="cm">// optional</span>
+}
+
+<span class="cm">// Using an optional property safely:</span>
+<span class="kw">function</span> <span class="fn">formatUser</span>(user: <span class="tp">RegisterPayload</span>) {
+  console.log(user.firstName);       <span class="cm">// ✅ always exists</span>
+  console.log(user.phone);           <span class="cm">// ✅ but might be undefined</span>
+  console.log(user.phone.length);    <span class="cm">// ❌ Error! phone might be undefined</span>
+  console.log(user.phone?.length);   <span class="cm">// ✅ optional chaining — safe</span>
+  console.log(user.phone ?? <span class="str">"N/A"</span>); <span class="cm">// ✅ nullish coalescing — default value</span>
+}</code></pre>
+
+  <h3>Optional Chaining <code>?.</code></h3>
+  <p>This is JavaScript but TypeScript makes it necessary. The <code>?.</code> operator short-circuits to <code>undefined</code> if the value before it is <code>null</code> or <code>undefined</code>, instead of throwing an error.</p>
+
+  <pre><code><span class="cm">// From briefSlice.ts:</span>
+<span class="kw">if</span> (state.currentBrief?.id === action.payload.id) {
+  state.currentBrief = action.payload;
+}
+<span class="cm">// Without ?.  this would crash if currentBrief is null</span>
+<span class="cm">// With ?.    it safely evaluates to undefined and the if is false</span>
+
+<span class="cm">// From authSelectors.ts:</span>
+<span class="kw">export const</span> selectIsAdmin = (state: <span class="tp">RootState</span>) =>
+  state.auth.user?.role === <span class="str">"ADMIN"</span>;
+<span class="cm">// user might be null → user?.role returns undefined → not "ADMIN" → false</span>
+
+<span class="cm">// From brief.controller.ts:</span>
+<span class="kw">const</span> adminEmail = process.env.ADMIN_EMAIL || process.env.EMAIL_USER;
+<span class="cm">// process.env values are string | undefined — handle with ||</span></code></pre>
+
+  <h3>Nullish Coalescing <code>??</code></h3>
+  <pre><code><span class="cm">// ?? returns the right side only if the left side is null or undefined</span>
+<span class="kw">const</span> PORT = process.env.PORT ?? <span class="nm">3000</span>;
+<span class="cm">// If PORT env var is set: use it. If not set (undefined): use 3000.</span>
+
+<span class="cm">// vs || which triggers on any falsy value (including "0", "", false)</span>
+<span class="kw">const</span> PORT2 = process.env.PORT || <span class="nm">3000</span>;
+<span class="cm">// If PORT is "0" → || would use 3000 (wrong!), ?? would use "0" (correct)</span></code></pre>
+</section>
+
+<!-- ═══ ANY VS UNKNOWN ═══ -->
+<section id="any-unknown">
+  <h2><code>any</code> vs <code>unknown</code></h2>
+  <p>Both <code>any</code> and <code>unknown</code> mean "I don't know the type". But they behave very differently.</p>
+
+  <table>
+    <tr><th>Type</th><th>What it means</th><th>Can you use it directly?</th><th>Safe?</th></tr>
+    <tr>
+      <td><code>any</code></td>
+      <td>TypeScript gives up — no type checking at all</td>
+      <td>Yes — you can call any method, access any property</td>
+      <td>No — bypasses all safety</td>
+    </tr>
+    <tr>
+      <td><code>unknown</code></td>
+      <td>Could be anything, but you must check before using</td>
+      <td>No — must narrow the type first with typeof / instanceof</td>
+      <td>Yes — forces you to handle it properly</td>
+    </tr>
+  </table>
+
+  <pre><code><span class="cm">// From all thunks — catch (error: unknown)</span>
+<span class="kw">const</span> <span class="fn">getErrorMessage</span> = (error: <span class="kw">unknown</span>, fallback: <span class="tp">string</span>) => {
+  <span class="kw">if</span> (error <span class="kw">instanceof</span> AxiosError) {
+    <span class="cm">// ✅ Now TypeScript knows it's an AxiosError, gives you .response</span>
+    <span class="kw">return</span> (error.response?.data <span class="kw">as</span> { message?: <span class="tp">string</span> } | <span class="kw">undefined</span>)?.message
+      || fallback;
+  }
+  <span class="kw">return</span> fallback;
+};
+
+<span class="cm">// Why unknown instead of any?</span>
+<span class="kw">catch</span> (error: <span class="kw">any</span>) {
+  console.log(error.message);      <span class="cm">// ✅ compiles — but crashes if error has no .message</span>
+}
+<span class="kw">catch</span> (error: <span class="kw">unknown</span>) {
+  console.log(error.message);      <span class="cm">// ❌ Error — must check type first</span>
+  <span class="kw">if</span> (error <span class="kw">instanceof</span> Error) {
+    console.log(error.message);    <span class="cm">// ✅ Now safe</span>
+  }
+}
+
+<span class="cm">// In the backend controllers — error: any is used for simplicity:</span>
+} <span class="kw">catch</span> (error: <span class="kw">any</span>) {
+  res.status(<span class="nm">500</span>).json({ message: error.message });
+  <span class="cm">// This works but is less strict — the backend trusts Error objects</span>
+}</code></pre>
+
+  <div class="callout yellow">
+    <strong>Best practice:</strong> Use <code>unknown</code> in catch blocks and narrow the type with <code>instanceof</code>. The project uses both — <code>unknown</code> in the frontend thunks (safest) and <code>any</code> in the backend controllers (pragmatic shortcut).
+  </div>
+</section>
+
+<!-- ═══ VOID NEVER ═══ -->
+<section id="void-never">
+  <h2><code>void</code> and <code>never</code></h2>
+  <h3>void</h3>
+  <p><code>void</code> means a function <strong>doesn't return a useful value</strong>. It's what you use for async functions that just do work (like sending a response) without returning data the caller needs.</p>
+
+  <pre><code><span class="cm">// This function sends a response, it doesn't return anything useful</span>
+<span class="kw">async function</span> <span class="fn">register</span>(req: <span class="tp">Request</span>, res: <span class="tp">Response</span>): <span class="tp">Promise</span>&lt;<span class="kw">void</span>&gt; {
+  res.status(<span class="nm">200</span>).json({ message: <span class="str">"ok"</span> });
+  <span class="cm">// no return value — that's void</span>
+}</code></pre>
+
+  <h3>never</h3>
+  <p><code>never</code> means a function <strong>never returns at all</strong> — either it always throws an error, or it runs forever (infinite loop). It's rare in normal code.</p>
+
+  <pre><code><span class="cm">// A function that always throws never returns</span>
+<span class="kw">function</span> <span class="fn">assertUnreachable</span>(x: <span class="kw">never</span>): <span class="kw">never</span> {
+  <span class="kw">throw new</span> Error(<span class="str">"Should never reach here"</span>);
+}
+
+<span class="cm">// TypeScript uses never internally for exhaustive checks</span>
+<span class="cm">// and for error states that can't happen</span></code></pre>
+</section>
+
+<hr />
+
+<!-- ═══════════════ DEFINING SHAPES ═══════════════ -->
+
+<!-- ═══ INTERFACE ═══ -->
+<section id="interface">
+  <h2>Interfaces</h2>
+  <p>An <code>interface</code> defines the <strong>shape of an object</strong> — what properties it has and what types they are. It's like a contract: any object of this type must have exactly these fields.</p>
+
+  <pre><code><span class="cm">// From authTypes.ts — defines what a User object looks like:</span>
+<span class="kw">export interface</span> <span class="tp">User</span> {
+  id:        <span class="tp">string</span>;
+  firstName: <span class="tp">string</span>;
+  lastName:  <span class="tp">string</span>;
+  email:     <span class="tp">string</span>;
+  phone?:    <span class="tp">string</span>;       <span class="cm">// optional</span>
+  role:      <span class="str">"ADMIN"</span> | <span class="str">"CLIENT"</span> | <span class="str">"EMPLOYEE"</span>;
+  provider:  <span class="str">"LOCAL"</span> | <span class="str">"GOOGLE"</span>;
+  createdAt: <span class="tp">string</span>;
+}
+
+<span class="cm">// From brief-service/middlewares/auth.middleware.ts:</span>
+<span class="kw">export interface</span> <span class="tp">AuthContext</span> {
+  userId: <span class="tp">string</span>;
+  role:   <span class="tp">UserRole</span>;
+}
+
+<span class="cm">// From briefService.ts:</span>
+<span class="kw">export interface</span> <span class="tp">CreateBriefInput</span> {
+  title:       <span class="tp">string</span>;
+  projectType: <span class="tp">ProjectType</span>;
+  description: <span class="tp">string</span>;
+  features:    <span class="tp">string</span>[];
+  budgetRange: <span class="tp">string</span>;
+  deadline:    <span class="tp">Date</span>;
+  attachments: <span class="tp">string</span>[];
+}
+
+<span class="cm">// Once defined, you use it as a type annotation:</span>
+<span class="kw">function</span> <span class="fn">createBrief</span>(auth: <span class="tp">AuthContext</span>, input: <span class="tp">CreateBriefInput</span>): <span class="tp">Promise</span>&lt;<span class="tp">Brief</span>&gt; {
+  <span class="cm">// TypeScript now knows auth.userId, auth.role, input.title, etc.</span>
+}</code></pre>
+
+  <p>Interfaces are one of the most important TypeScript features. They make your code self-documenting — you can see exactly what data a function expects without reading the implementation.</p>
+</section>
+
+<!-- ═══ TYPE ALIAS ═══ -->
+<section id="type-alias">
+  <h2>Type Aliases</h2>
+  <p>The <code>type</code> keyword creates a <strong>type alias</strong> — a name for any type expression, including primitives, unions, intersections, and complex objects. Unlike interfaces, they can represent things that aren't objects.</p>
+
+  <pre><code><span class="cm">// Simple type aliases for unions — from briefTypes.ts and briefService.ts:</span>
+<span class="kw">export type</span> <span class="tp">BriefStatus</span>  = <span class="str">'PENDING'</span> | <span class="str">'ACCEPTED'</span> | <span class="str">'REFUSED'</span> | <span class="str">'IN_PROGRESS'</span> | <span class="str">'COMPLETED'</span>;
+<span class="kw">export type</span> <span class="tp">ProjectType</span>  = <span class="str">'SITE_WEB'</span> | <span class="str">'SEO'</span> | <span class="str">'GOOGLE_ADS'</span> | <span class="str">'SOCIAL_MEDIA'</span> | <span class="str">'OTHER'</span>;
+<span class="kw">export type</span> <span class="tp">UserRole</span>     = <span class="str">"ADMIN"</span> | <span class="str">"CLIENT"</span> | <span class="str">"EMPLOYEE"</span>;
+
+<span class="cm">// Now you can use these names wherever you need them</span>
+<span class="kw">const</span> status: <span class="tp">BriefStatus</span> = <span class="str">'ACCEPTED'</span>; <span class="cm">// ✅</span>
+<span class="kw">const</span> status: <span class="tp">BriefStatus</span> = <span class="str">'DONE'</span>;     <span class="cm">// ❌ Error: not in the union</span>
+
+<span class="cm">// Type alias for a complex object (same syntax as interface):</span>
+<span class="kw">type</span> <span class="tp">UpdateBriefPayload</span> = {
+  id:   <span class="tp">string</span>;
+  data: <span class="tp">Partial</span>&lt;<span class="tp">CreateBriefPayload</span>&gt; & {
+    status?:       <span class="tp">BriefStatus</span>;
+    statusReason?: <span class="tp">string</span>;
+  };
+};
+
+<span class="cm">// Function type alias</span>
+<span class="kw">type</span> <span class="tp">RequestHandler</span> = (req: <span class="tp">Request</span>, res: <span class="tp">Response</span>) => <span class="tp">Promise</span>&lt;<span class="kw">void</span>&gt;;</code></pre>
+</section>
+
+<!-- ═══ INTERFACE VS TYPE ═══ -->
+<section id="interface-vs-type">
+  <h2>interface vs type — When to Use Which</h2>
+
+  <table>
+    <tr><th>Feature</th><th>interface</th><th>type</th></tr>
+    <tr><td>Define object shapes</td><td>✅ Primary use</td><td>✅ Works too</td></tr>
+    <tr><td>Union types (<code>A | B</code>)</td><td>❌ Can't</td><td>✅ Primary use</td></tr>
+    <tr><td>Intersection (<code>A & B</code>)</td><td>Via <code>extends</code></td><td>✅ Via <code>&</code></td></tr>
+    <tr><td>Declaration merging</td><td>✅ Interfaces can be redeclared and merged</td><td>❌ Can't</td></tr>
+    <tr><td>Extend another type</td><td><code>interface B extends A</code></td><td><code>type B = A & {...}</code></td></tr>
+  </table>
+
+  <p>In this project: <code>interface</code> is used for object shapes (User, Brief, AuthState, payloads) and <code>type</code> is used for union types (BriefStatus, UserRole, ProjectType). This is the most common convention.</p>
+
+  <div class="callout">
+    The <strong>declaration merging</strong> ability of <code>interface</code> is why it's used for module augmentation (see <a href="#module-aug">Module Augmentation</a> below) — you can reopen an interface from a library and add fields to it.
+  </div>
+</section>
+
+<!-- ═══ ENUMS ═══ -->
+<section id="enums">
+  <h2>Enums</h2>
+  <p>An enum is a named set of constants. TypeScript supports enums natively, and Prisma generates its own enums from the schema.</p>
+
+  <pre><code><span class="cm">// TypeScript native enum:</span>
+<span class="kw">enum</span> <span class="tp">Direction</span> {
+  Up    = <span class="str">"UP"</span>,
+  Down  = <span class="str">"DOWN"</span>,
+  Left  = <span class="str">"LEFT"</span>,
+  Right = <span class="str">"RIGHT"</span>,
+}
+<span class="kw">const</span> dir: <span class="tp">Direction</span> = Direction.Up; <span class="cm">// = "UP"</span>
+
+<span class="cm">// This project doesn't use TypeScript enums directly.</span>
+<span class="cm">// Instead it uses string literal unions (as type aliases):</span>
+<span class="kw">type</span> <span class="tp">BriefStatus</span> = <span class="str">'PENDING'</span> | <span class="str">'ACCEPTED'</span> | <span class="str">'REFUSED'</span> | <span class="str">'IN_PROGRESS'</span> | <span class="str">'COMPLETED'</span>;
+
+<span class="cm">// And Zod enums for validation in the backend:</span>
+<span class="kw">export const</span> BriefStatusEnum = z.<span class="fn">enum</span>([
+  <span class="str">"PENDING"</span>, <span class="str">"ACCEPTED"</span>, <span class="str">"REFUSED"</span>, <span class="str">"IN_PROGRESS"</span>, <span class="str">"COMPLETED"</span>
+]);
+
+<span class="cm">// And Prisma-generated enums for the database:</span>
+<span class="cm">// (from services/brief-service/src/generated/prisma/enums.ts)</span>
+<span class="kw">export const</span> BriefStatus = {
+  PENDING:     <span class="str">'PENDING'</span>,
+  ACCEPTED:    <span class="str">'ACCEPTED'</span>,
+  REFUSED:     <span class="str">'REFUSED'</span>,
+  IN_PROGRESS: <span class="str">'IN_PROGRESS'</span>,
+  COMPLETED:   <span class="str">'COMPLETED'</span>,
+} <span class="kw">as const</span>;</code></pre>
+
+  <h3>Why string literal unions instead of TypeScript enums?</h3>
+  <p>TypeScript enums have a quirk: they compile to JavaScript objects, which adds runtime code. String literal unions are <strong>erased completely at compile time</strong> — no runtime overhead. They also play better with JSON and databases since the values are just plain strings.</p>
+</section>
+
+<hr />
+
+<!-- ═══════════════ ADVANCED TYPES ═══════════════ -->
+
+<!-- ═══ GENERICS ═══ -->
+<section id="generics">
+  <h2>Generics — <code>&lt;T&gt;</code></h2>
+  <p>Generics let you write functions, interfaces, and classes that work with <strong>any type you specify later</strong>. Think of <code>&lt;T&gt;</code> as a type parameter — a placeholder that gets filled in when you use the function.</p>
+
+  <pre><code><span class="cm">// A generic function — works with any type</span>
+<span class="kw">function</span> <span class="fn">identity</span>&lt;<span class="tp">T</span>&gt;(value: <span class="tp">T</span>): <span class="tp">T</span> {
+  <span class="kw">return</span> value;
+}
+<span class="fn">identity</span>&lt;<span class="tp">string</span>&gt;(<span class="str">"hello"</span>);  <span class="cm">// T = string</span>
+<span class="fn">identity</span>&lt;<span class="tp">number</span>&gt;(<span class="nm">42</span>);     <span class="cm">// T = number</span>
+
+<span class="cm">// The Map class uses generics:</span>
+<span class="cm">// From authClient.ts in brief-service:</span>
+<span class="kw">const</span> map = <span class="kw">new</span> Map&lt;<span class="tp">string</span>, <span class="tp">UserSnapshot</span>&gt;();
+<span class="cm">// string = key type, UserSnapshot = value type</span>
+
+<span class="cm">// From authClient.ts — generic axios response:</span>
+<span class="kw">const</span> response = <span class="k">await</span> axios.get&lt;<span class="tp">UserSnapshot</span>[]&gt;(url);
+<span class="cm">// Tells TypeScript: response.data is UserSnapshot[]</span>
+
+<span class="cm">// Promise is generic:</span>
+<span class="kw">async function</span> <span class="fn">getUser</span>(id: <span class="tp">string</span>): <span class="tp">Promise</span>&lt;<span class="tp">User</span>&gt; {
+  <span class="cm">// TypeScript knows this async function resolves to a User</span>
+}</code></pre>
+
+  <h3>Generics in Redux Toolkit — <code>createAsyncThunk</code></h3>
+  <p>The most complex use of generics in this project. <code>createAsyncThunk</code> takes type parameters to know what the thunk returns and what arguments it accepts:</p>
+
+  <pre><code><span class="cm">// createAsyncThunk&lt;ReturnType, ArgType, ThunkConfig&gt;</span>
+
+<span class="cm">// From authThunk.ts — this thunk takes LoginPayload and returns { user, token }</span>
+<span class="kw">export const</span> loginThunk = <span class="fn">createAsyncThunk</span>(
+  <span class="str">"auth/login"</span>,
+  <span class="kw">async</span> (data: <span class="tp">LoginPayload</span>, thunkAPI) => {
+    <span class="kw">const</span> response = <span class="kw">await</span> api.post(<span class="str">"/auth/login"</span>, data);
+    <span class="kw">return</span> response.data; <span class="cm">// TypeScript infers the return type</span>
+  }
+)
+
+<span class="cm">// In the slice — action.payload has the correct type automatically:</span>
+.addCase(loginThunk.fulfilled, (state, action) => {
+  state.user  = action.payload.user;   <span class="cm">// ✅ TypeScript knows .user exists</span>
+  state.token = action.payload.token;  <span class="cm">// ✅ TypeScript knows .token exists</span>
+})
+
+<span class="cm">// TypedUseSelectorHook — from hooks.ts:</span>
+<span class="kw">export const</span> useAppSelector: <span class="tp">TypedUseSelectorHook</span>&lt;<span class="tp">RootState</span>&gt; = useSelector;
+<span class="cm">// TypedUseSelectorHook&lt;RootState&gt; means: this hook knows the full Redux state shape</span>
+<span class="cm">// So state.auth.user gives you User | null, not unknown</span></code></pre>
+
+  <h3>Multiple Type Parameters</h3>
+  <pre><code><span class="cm">// Map&lt;K, V&gt; has two type parameters</span>
+<span class="kw">const</span> usersMap: <span class="tp">Map</span>&lt;<span class="tp">string</span>, <span class="tp">UserSnapshot</span>&gt; =
+  <span class="kw">new</span> Map(response.data.map(user => [user.id, user]));
+<span class="cm">// K = string (the key), V = UserSnapshot (the value)
+// usersMap.get("some-id") returns UserSnapshot | undefined</span></code></pre>
+</section>
+
+<!-- ═══ UTILITY TYPES ═══ -->
+<section id="utility-types">
+  <h2>Utility Types</h2>
+  <p>TypeScript comes with built-in "utility types" — generic types that transform other types. This project uses several of them.</p>
+
+  <h3><code>Partial&lt;T&gt;</code></h3>
+  <p>Makes every property of <code>T</code> optional. Used when you want to update only some fields of an object.</p>
+
+  <pre><code><span class="cm">// From briefTypes.ts:</span>
+<span class="kw">interface</span> <span class="tp">UpdateBriefPayload</span> {
+  id:   <span class="tp">string</span>;
+  data: <span class="tp">Partial</span>&lt;<span class="tp">CreateBriefPayload</span>&gt; & { status?: <span class="tp">BriefStatus</span>; statusReason?: <span class="tp">string</span> };
+}
+
+<span class="cm">// CreateBriefPayload has: title, projectType, description, features, etc.
+// Partial&lt;CreateBriefPayload&gt; has: title?, projectType?, description?, features?, etc.
+// (all become optional — you only send what you're changing)</span></code></pre>
+
+  <h3><code>Omit&lt;T, Keys&gt;</code></h3>
+  <p>Creates a type like <code>T</code> but with certain keys removed.</p>
+
+  <pre><code><span class="cm">// From authServices.ts:</span>
+<span class="kw">function</span> <span class="fn">excludePassword</span>(user: <span class="tp">User</span>): <span class="tp">Omit</span>&lt;<span class="tp">User</span>, <span class="str">"password"</span>&gt; {
+  <span class="kw">const</span> { password, ...safeUser } = user;
+  <span class="kw">return</span> safeUser;
+}
+<span class="cm">// The return type is User without the password field
+// TypeScript will error if you try to access .password on the result</span>
+
+<span class="cm">// In controllers — same pattern without the explicit Omit:</span>
+<span class="kw">const</span> { password, ...safeUser } = user;
+res.json({ user: safeUser }); <span class="cm">// password never reaches the client</span></code></pre>
+
+  <h3><code>Record&lt;K, V&gt;</code></h3>
+  <p>An object whose keys are all type <code>K</code> and all values are type <code>V</code>. Useful for maps/dictionaries.</p>
+
+  <pre><code><span class="cm">// From emailService.ts in brief-service:</span>
+<span class="kw">const</span> STATUS_LABELS: <span class="tp">Record</span>&lt;<span class="tp">string</span>, <span class="tp">string</span>&gt; = {
+  PENDING:     <span class="str">"En attente"</span>,
+  ACCEPTED:    <span class="str">"Accepté"</span>,
+  REFUSED:     <span class="str">"Refusé"</span>,
+  IN_PROGRESS: <span class="str">"En cours de production"</span>,
+  COMPLETED:   <span class="str">"Terminé"</span>,
+};
+<span class="cm">// Record&lt;string, string&gt; = object with string keys and string values
+// STATUS_LABELS["ACCEPTED"] returns string</span>
+
+<span class="cm">// From authController.ts:</span>
+<span class="kw">const</span> data: <span class="tp">Record</span>&lt;<span class="tp">string</span>, <span class="kw">unknown</span>&gt; = {};
+<span class="cm">// An object that can hold any values (used to build update payload dynamically)</span></code></pre>
+
+  <h3><code>ReturnType&lt;T&gt;</code></h3>
+  <p>Extracts the return type of a function type.</p>
+
+  <pre><code><span class="cm">// From store.ts:</span>
+<span class="kw">export type</span> <span class="tp">RootState</span> = <span class="tp">ReturnType</span>&lt;<span class="kw">typeof</span> store.getState&gt;;
+<span class="cm">// store.getState is a function
+// ReturnType extracts what it returns → the full Redux state object
+// This gives you a type with shape: { auth: AuthState, briefs: BriefState }
+// Without writing that type out manually — it's derived from the store itself</span></code></pre>
+</section>
+
+<!-- ═══ TYPEOF ═══ -->
+<section id="typeof">
+  <h2><code>typeof</code> Operator (TypeScript)</h2>
+  <p>In plain JavaScript, <code>typeof</code> checks the type at runtime. In TypeScript, <code>typeof</code> also works at the <strong>type level</strong> — it gets the type of a value to use as a type annotation.</p>
+
+  <pre><code><span class="cm">// From store.ts:</span>
+<span class="kw">export type</span> <span class="tp">AppDispatch</span> = <span class="kw">typeof</span> store.dispatch;
+<span class="cm">// store.dispatch has a very complex type (dispatch function)
+// typeof store.dispatch extracts that type so you can use it elsewhere
+
+export type RootState = ReturnType&lt;typeof store.getState&gt;;
+// typeof store.getState → the type of the getState function
+// ReturnType&lt;...&gt; → what that function returns = the full state type</span>
+
+<span class="cm">// From hooks.ts:</span>
+<span class="kw">export const</span> useAppDispatch = () => <span class="fn">useDispatch</span>&lt;<span class="tp">AppDispatch</span>&gt;();
+<span class="cm">// AppDispatch came from typeof store.dispatch
+// So useAppDispatch() knows exactly what actions you can dispatch</span></code></pre>
+
+  <p>This pattern (<code>typeof store.getState</code> and <code>typeof store.dispatch</code>) is the standard Redux Toolkit pattern for TypeScript. It derives your types from the actual store definition, so if you add a new slice, the types update automatically.</p>
+</section>
+
+<!-- ═══ TYPE ASSERTION ═══ -->
+<section id="type-assertion">
+  <h2>Type Assertion — <code>as</code></h2>
+  <p>Sometimes TypeScript doesn't know the specific type of a value, but you do. <code>as</code> is how you tell TypeScript "trust me, this is of type X".</p>
+
+  <pre><code><span class="cm">// From gateway/index.ts:</span>
+<span class="kw">const</span> decoded = jwt.<span class="fn">verify</span>(token, JWT_SECRET) <span class="kw">as</span> { id: <span class="tp">string</span>, role: <span class="tp">string</span> };
+<span class="cm">// jwt.verify() returns string | JwtPayload — TypeScript doesn't know the shape
+// as {...} tells TypeScript: I know the payload has id and role fields</span>
+
+<span class="cm">// From gateway/index.ts:</span>
+<span class="kw">const</span> JWT_SECRET = process.env.JWT_SECRET <span class="kw">as</span> <span class="tp">string</span>;
+<span class="cm">// process.env.JWT_SECRET is string | undefined
+// as string tells TypeScript: I know it's definitely a string
+// (we validated it exists with the if(!process.env.JWT_SECRET) throw above)</span>
+
+<span class="cm">// From authSlice.ts — casting unknown Redux payload to string:</span>
+state.error = action.payload <span class="kw">as</span> <span class="tp">string</span>;
+<span class="cm">// action.payload is typed as unknown by Redux
+// We know our thunks always reject with a string message
+// as string tells TypeScript to trust us</span>
+
+<span class="cm">// From authMiddleware.ts:</span>
+<span class="kw">const</span> user = req.user <span class="kw">as</span> <span class="kw">any</span>;
+<span class="cm">// req.user is Express's generic User type
+// as any stops TypeScript from complaining about .id, .role accesses</span></code></pre>
+
+  <div class="callout red">
+    <strong>Warning:</strong> <code>as</code> is a promise to TypeScript — it disables type checking for that value. If you lie (<code>as string</code> when it's actually <code>undefined</code>), you get a runtime error. Use it when you genuinely know the type better than TypeScript does, not to silence errors you don't understand.
+  </div>
+</section>
+
+<!-- ═══ NON-NULL ═══ -->
+<section id="non-null">
+  <h2>Non-null Assertion — <code>!</code></h2>
+  <p>The <code>!</code> operator after an expression tells TypeScript "I guarantee this is not null or undefined." It's a shorter version of <code>as string</code> for nullable types.</p>
+
+  <pre><code><span class="cm">// Without !</span>
+<span class="kw">const</span> el = document.<span class="fn">getElementById</span>(<span class="str">"root"</span>); <span class="cm">// HTMLElement | null</span>
+el.style.display = <span class="str">"none"</span>;  <span class="cm">// ❌ Error: el might be null</span>
+
+<span class="cm">// With !</span>
+<span class="kw">const</span> el = document.<span class="fn">getElementById</span>(<span class="str">"root"</span>)!; <span class="cm">// HTMLElement (null removed)</span>
+el.style.display = <span class="str">"none"</span>;  <span class="cm">// ✅ TypeScript trusts you</span>
+
+<span class="cm">// From main.tsx (React entry point):</span>
+ReactDOM.createRoot(document.<span class="fn">getElementById</span>(<span class="str">'root'</span>)!).render(...)
+<span class="cm">// getElementById returns HTMLElement | null
+// The ! says: I know this element exists in index.html</span></code></pre>
+
+  <div class="callout yellow">
+    Use <code>!</code> sparingly. Only use it when you're 100% certain the value can't be null at that point. It completely removes null checking — if you're wrong, you get a silent runtime crash.
+  </div>
+</section>
+
+<!-- ═══ TS-IGNORE ═══ -->
+<section id="ts-ignore">
+  <h2><code>@ts-ignore</code></h2>
+  <p>A special comment that tells TypeScript to <strong>completely ignore the next line</strong>, no matter what errors it has.</p>
+
+  <pre><code><span class="cm">// From brief.controller.ts:</span>
+<span class="kw">const</span> <span class="fn">getAuth</span> = (req: <span class="tp">Request</span>): briefService.<span class="tp">AuthContext</span> => {
+  <span class="cm">// @ts-ignore</span>
+  <span class="kw">return</span> req.user;
+};
+<span class="cm">// req.user is typed as Express's generic User type
+// but in our app it's actually briefService.AuthContext
+// @ts-ignore suppresses the type mismatch error
+// The correct solution is module augmentation (see below)</span></code></pre>
+
+  <div class="callout red">
+    <strong><code>@ts-ignore</code> is a last resort.</strong> It hides the error but doesn't fix it. It means you're telling TypeScript "shut up" instead of solving the type mismatch. The alternative — properly augmenting the Express types — was done correctly in the auth middleware (see <a href="#module-aug">Module Augmentation</a>).
+  </div>
+</section>
+
+<!-- ═══ IMPORT TYPE ═══ -->
+<section id="import-type">
+  <h2><code>import type</code></h2>
+  <p>TypeScript has a special import syntax for importing <strong>only types</strong> (not runtime values). These imports are completely erased during compilation — they contribute zero bytes to the final JavaScript.</p>
+
+  <pre><code><span class="cm">// From authSlice.ts:</span>
+<span class="kw">import type</span> { <span class="tp">AuthState</span> } <span class="kw">from</span> <span class="str">"./authTypes"</span>;
+<span class="cm">// AuthState is only a type — it doesn't exist at runtime
+// import type makes this explicit and guarantees the import is erased</span>
+
+<span class="cm">// From briefSlice.ts:</span>
+<span class="kw">import type</span> { <span class="tp">BriefState</span> } <span class="kw">from</span> <span class="str">"./briefTypes"</span>;
+
+<span class="cm">// From authSelectors.ts:</span>
+<span class="kw">import type</span> { <span class="tp">RootState</span> } <span class="kw">from</span> <span class="str">"../../../app/store"</span>;
+
+<span class="cm">// Compare to regular import (imports a value that exists at runtime):</span>
+<span class="kw">import</span> { createSlice } <span class="kw">from</span> <span class="str">"@reduxjs/toolkit"</span>;
+<span class="cm">// createSlice is a function — it must exist at runtime</span></code></pre>
+
+  <p><code>import type</code> is a best practice — it makes your intent clear, prevents accidental use of a type as a value, and can improve build performance since bundlers can skip these imports entirely.</p>
+</section>
+
+<hr />
+
+<!-- ═══════════════ IN THIS PROJECT ═══════════════ -->
+
+<!-- ═══ TS + EXPRESS ═══ -->
+<section id="ts-express">
+  <h2>TypeScript + Express</h2>
+  <p>Express is a JavaScript library. The TypeScript types for it are in a separate package called <code>@types/express</code>. This package tells TypeScript the shapes of Express's objects like <code>Request</code>, <code>Response</code>, and <code>NextFunction</code>.</p>
+
+  <pre><code><span class="cm">// Every route handler in this project uses these Express types:</span>
+<span class="kw">import</span> { <span class="tp">Request</span>, <span class="tp">Response</span>, <span class="tp">NextFunction</span> } <span class="kw">from</span> <span class="str">"express"</span>;
+
+<span class="cm">// A route handler's type signature:</span>
+<span class="kw">async function</span> <span class="fn">register</span>(
+  req: <span class="tp">Request</span>,    <span class="cm">// the incoming HTTP request (body, headers, params, query)</span>
+  res: <span class="tp">Response</span>   <span class="cm">// the outgoing HTTP response (to send back)</span>
+): <span class="tp">Promise</span>&lt;<span class="kw">void</span>&gt; {
+  <span class="kw">const</span> { firstName, email } = req.body;  <span class="cm">// TypeScript knows req.body exists</span>
+  res.status(<span class="nm">200</span>).json({ ok: <span class="kw">true</span> });      <span class="cm">// TypeScript knows .status() and .json() exist</span>
+}
+
+<span class="cm">// A middleware's type signature (has a third parameter: next)</span>
+<span class="kw">export function</span> <span class="fn">authenticate</span>(
+  req:  <span class="tp">Request</span>,
+  res:  <span class="tp">Response</span>,
+  next: <span class="tp">NextFunction</span>  <span class="cm">// call next() to pass to the next middleware/route</span>
+): <span class="tp">Promise</span>&lt;<span class="kw">void</span>&gt; {
+  <span class="cm">// ...</span>
+  next();
+}</code></pre>
+
+  <h3>Accessing route parameters</h3>
+  <pre><code><span class="cm">// req.body — the POST/PATCH request body (JSON)</span>
+<span class="kw">const</span> { email, password } = req.body;
+
+<span class="cm">// req.params — URL parameters like /briefs/:id</span>
+<span class="kw">const</span> briefId = req.params.briefId <span class="kw">as</span> <span class="tp">string</span>;
+<span class="cm">// req.params is typed as Record&lt;string, string&gt; — so .briefId is string</span>
+
+<span class="cm">// req.query — URL query parameters like /users?ids=1,2,3</span>
+<span class="kw">const</span> { ids } = req.query;
+<span class="cm">// req.query is typed as ParsedQs — values can be string | string[] | undefined</span>
+
+<span class="cm">// req.headers — HTTP headers</span>
+<span class="kw">const</span> userId = req.header(<span class="str">"x-user-id"</span>); <span class="cm">// string | undefined</span>
+
+<span class="cm">// req.user — set by passport.js or your auth middleware</span>
+<span class="cm">// (this is why module augmentation is needed — see next section)</span>
+<span class="kw">const</span> user = req.user <span class="kw">as</span> <span class="kw">any</span>;</code></pre>
+</section>
+
+<!-- ═══ MODULE AUGMENTATION ═══ -->
+<section id="module-aug">
+  <h2>Module Augmentation &amp; <code>declare global</code></h2>
+  <p>This is an advanced TypeScript feature used in this project to add the <code>user</code> property to Express's <code>Request</code> type. By default, <code>req.user</code> doesn't exist on Express's <code>Request</code> type — it's not part of the standard Express API. To tell TypeScript it exists, you extend the type.</p>
+
+  <pre><code><span class="cm">// From brief-service/middlewares/auth.middleware.ts:</span>
+
+<span class="cm">// This "reopens" the Express module's type definitions</span>
+<span class="cm">// and adds a new property to the Request interface</span>
+<span class="kw">declare global</span> {
+  <span class="kw">namespace</span> <span class="tp">Express</span> {
+    <span class="kw">interface</span> <span class="tp">Request</span> {
+      user?: <span class="tp">AuthContext</span>;  <span class="cm">// adds req.user to every Request</span>
+    }
+  }
+}
+
+<span class="cm">// Now TypeScript knows req.user is AuthContext | undefined</span>
+<span class="kw">export function</span> <span class="fn">requireAuth</span>(req: <span class="tp">Request</span>, res: <span class="tp">Response</span>, next: <span class="tp">NextFunction</span>) {
+  req.user = { userId, role }; <span class="cm">// ✅ TypeScript accepts this</span>
+  next();
+}</code></pre>
+
+  <p>Here's what each keyword means:</p>
+  <ul>
+    <li><strong><code>declare global</code></strong> — "I'm adding to the global type namespace"</li>
+    <li><strong><code>namespace Express</code></strong> — "specifically inside the Express namespace"</li>
+    <li><strong><code>interface Request</code></strong> — "reopen and extend the Request interface"</li>
+  </ul>
+
+  <p>This is called <strong>declaration merging</strong> — TypeScript's ability to merge multiple declarations of the same interface into one. This is why interfaces (not type aliases) are used here — only interfaces can be reopened and merged.</p>
+
+  <div class="callout teal">
+    <strong>Why this matters:</strong> Without this augmentation, every time you access <code>req.user</code> TypeScript would show a red underline. The correct fix is to augment the type (as the brief-service middleware does). The quick fix is <code>as any</code> (as the auth-service uses in its controllers).
+  </div>
+</section>
+
+<!-- ═══ TS + REACT ═══ -->
+<section id="ts-react">
+  <h2>TypeScript + React</h2>
+  <p>Using TypeScript with React means typing your <strong>component props</strong>, <strong>event handlers</strong>, and <strong>hooks</strong>. In modern React (v18+) you don't need to explicitly type components as <code>FC</code> — just type the props.</p>
+
+  <h3>Typing Component Props</h3>
+  <pre><code><span class="cm">// From BriefModal.tsx:</span>
+<span class="kw">interface</span> <span class="tp">BriefModalProps</span> {
+  brief:     <span class="tp">Brief</span> | <span class="kw">null</span>;
+  isOpen:    <span class="tp">boolean</span>;
+  onClose:   () => <span class="kw">void</span>;  <span class="cm">// a function that returns nothing</span>
+  userRole:  <span class="tp">string</span> | <span class="kw">undefined</span>;
+}
+
+<span class="kw">export default function</span> <span class="fn">BriefModal</span>({ brief, isOpen, onClose, userRole }: <span class="tp">BriefModalProps</span>) {
+  <span class="cm">// TypeScript knows the exact types of all props inside here</span>
+  <span class="kw">if</span> (!brief) <span class="kw">return null</span>; <span class="cm">// handles the null case</span>
+}</code></pre>
+
+  <h3>Typing useState</h3>
+  <pre><code><span class="cm">// TypeScript infers the type from the initial value</span>
+<span class="kw">const</span> [isOpen, setIsOpen] = useState(<span class="kw">false</span>);
+<span class="cm">// inferred: boolean</span>
+
+<span class="kw">const</span> [selected, setSelected] = useState&lt;<span class="tp">string</span>[]&gt;([]);
+<span class="cm">// explicit generic needed: starts as [], but TypeScript needs to know it's string[]</span>
+
+<span class="cm">// From BriefModal.tsx:</span>
+<span class="kw">const</span> [selectedEmployees, setSelectedEmployees] = useState&lt;<span class="tp">string</span>[]&gt;([]);</code></pre>
+
+  <h3>Typing Event Handlers</h3>
+  <pre><code><span class="cm">// Button click event:</span>
+<span class="kw">const</span> <span class="fn">handleClick</span> = (e: <span class="tp">React.MouseEvent</span>&lt;<span class="tp">HTMLButtonElement</span>&gt;) => {
+  e.preventDefault();
+}
+
+<span class="cm">// Input change event:</span>
+<span class="kw">const</span> <span class="fn">handleChange</span> = (e: <span class="tp">React.ChangeEvent</span>&lt;<span class="tp">HTMLInputElement</span>&gt;) => {
+  setValue(e.target.value);
+}
+
+<span class="cm">// Form submit event:</span>
+<span class="kw">const</span> <span class="fn">handleSubmit</span> = (e: <span class="tp">React.FormEvent</span>&lt;<span class="tp">HTMLFormElement</span>&gt;) => {
+  e.preventDefault();
+}</code></pre>
+
+  <h3>Typing useParams and useNavigate</h3>
+  <pre><code><span class="cm">// From BriefDetails.tsx:</span>
+<span class="kw">const</span> { id } = useParams&lt;{ id: <span class="tp">string</span> }&gt;();
+<span class="cm">// &lt;{ id: string }&gt; tells TypeScript the shape of URL params
+// id is string | undefined because the param might not be in the URL</span>
+
+<span class="kw">const</span> navigate = useNavigate();
+navigate(<span class="nm">-1</span>);     <span class="cm">// go back</span>
+navigate(<span class="str">"/login"</span>); <span class="cm">// go to route</span></code></pre>
+
+  <h3>Typing JSX Props</h3>
+  <pre><code><span class="cm">// TypeScript checks all your JSX props:</span>
+&lt;<span class="tp">BriefModal</span>
+  brief={brief}          <span class="cm">// Brief | null ✅</span>
+  isOpen={true}          <span class="cm">// boolean ✅</span>
+  onClose={() => {}}     <span class="cm">// () => void ✅</span>
+  userRole="ADMIN"       <span class="cm">// string ✅</span>
+  unknownProp="x"        <span class="cm">// ❌ Error: not in BriefModalProps</span>
+/&gt;</code></pre>
+
+  <h3>import type in React</h3>
+  <pre><code><span class="cm">// From BriefDetails.tsx:</span>
+<span class="kw">import type</span> { <span class="tp">BriefStatus</span> } <span class="kw">from</span> <span class="str">"../../features/briefs/briefSlice/briefTypes"</span>;
+<span class="cm">// Only needed as a type annotation — pure type import, zero runtime cost</span></code></pre>
+</section>
+
+<!-- ═══ TS + REDUX ═══ -->
+<section id="ts-redux">
+  <h2>TypeScript + Redux Toolkit</h2>
+  <p>Redux Toolkit is designed with TypeScript in mind. The pattern used in this project sets up fully typed state and actions.</p>
+
+  <h3>The Complete Pattern</h3>
+  <pre><code><span class="cm">// ── 1. DEFINE STATE TYPE ──────────────────────────────</span>
+<span class="cm">// authTypes.ts</span>
+<span class="kw">export interface</span> <span class="tp">AuthState</span> {
+  user:        <span class="tp">User</span> | <span class="kw">null</span>;
+  token:       <span class="tp">string</span> | <span class="kw">null</span>;
+  loading:     <span class="tp">boolean</span>;
+  error:       <span class="tp">string</span> | <span class="kw">null</span>;
+  initialized: <span class="tp">boolean</span>;
+}
+
+<span class="cm">// ── 2. TYPED INITIAL STATE ────────────────────────────</span>
+<span class="cm">// authSlice.ts</span>
+<span class="kw">const</span> initialState: <span class="tp">AuthState</span> = {
+  user: <span class="kw">null</span>, token: <span class="kw">null</span>, loading: <span class="kw">false</span>, error: <span class="kw">null</span>, initialized: <span class="kw">false</span>
+}
+
+<span class="cm">// ── 3. TYPED THUNK ────────────────────────────────────</span>
+<span class="cm">// authThunk.ts</span>
+<span class="kw">export const</span> loginThunk = <span class="fn">createAsyncThunk</span>(
+  <span class="str">"auth/login"</span>,
+  <span class="kw">async</span> (data: <span class="tp">LoginPayload</span>, thunkAPI) => {
+    <span class="kw">try</span> {
+      <span class="kw">const</span> response = <span class="kw">await</span> api.post(<span class="str">"/auth/login"</span>, data);
+      <span class="kw">return</span> response.data; <span class="cm">// return type inferred from response</span>
+    } <span class="kw">catch</span> (error: <span class="kw">unknown</span>) {
+      <span class="kw">return</span> thunkAPI.<span class="fn">rejectWithValue</span>(<span class="fn">getErrorMessage</span>(error, <span class="str">"Login failed"</span>));
+      <span class="cm">// rejectWithValue passes a value to the rejected action.payload</span>
+    }
+  }
+)
+
+<span class="cm">// ── 4. TYPED STORE ────────────────────────────────────</span>
+<span class="cm">// store.ts</span>
+<span class="kw">export type</span> <span class="tp">RootState</span>  = <span class="tp">ReturnType</span>&lt;<span class="kw">typeof</span> store.getState&gt;;
+<span class="kw">export type</span> <span class="tp">AppDispatch</span> = <span class="kw">typeof</span> store.dispatch;
+
+<span class="cm">// ── 5. TYPED HOOKS ────────────────────────────────────</span>
+<span class="cm">// hooks.ts</span>
+<span class="kw">export const</span> useAppDispatch = () => <span class="fn">useDispatch</span>&lt;<span class="tp">AppDispatch</span>&gt;();
+<span class="kw">export const</span> useAppSelector: <span class="tp">TypedUseSelectorHook</span>&lt;<span class="tp">RootState</span>&gt; = useSelector;
+
+<span class="cm">// ── 6. TYPED SELECTORS ────────────────────────────────</span>
+<span class="cm">// authSelectors.ts</span>
+<span class="kw">export const</span> selectUser = (state: <span class="tp">RootState</span>) => state.auth.user;
+<span class="cm">// return type automatically inferred as: User | null</span>
+
+<span class="cm">// ── 7. USING IN COMPONENTS ────────────────────────────</span>
+<span class="kw">const</span> user     = <span class="fn">useAppSelector</span>(selectUser);    <span class="cm">// User | null</span>
+<span class="kw">const</span> dispatch = <span class="fn">useAppDispatch</span>();
+<span class="kw">await</span> dispatch(<span class="fn">loginThunk</span>({ email, password, rememberMe }));</code></pre>
+
+  <h3>Why <code>action.payload as string</code> in slices</h3>
+  <pre><code><span class="cm">// In the slice — handling rejected thunk:</span>
+.addCase(loginThunk.rejected, (state, action) => {
+  state.error = action.payload <span class="kw">as</span> <span class="tp">string</span>;
+})
+<span class="cm">// action.payload is typed as unknown when using rejectWithValue
+// The as string assertion tells TypeScript: our thunks always
+// call rejectWithValue with a string message</span></code></pre>
+</section>
+
+<!-- ═══ TS + ASYNC ═══ -->
+<section id="ts-async">
+  <h2>async / await with TypeScript</h2>
+  <p>Async functions always return a <code>Promise</code>. TypeScript makes you explicit about what type the Promise resolves to.</p>
+
+  <pre><code><span class="cm">// A regular function returning a string:</span>
+<span class="kw">function</span> <span class="fn">getName</span>(): <span class="tp">string</span> { <span class="kw">return</span> <span class="str">"Omar"</span>; }
+
+<span class="cm">// An async function returning a string (wrapped in Promise automatically):</span>
+<span class="kw">async function</span> <span class="fn">getName</span>(): <span class="tp">Promise</span>&lt;<span class="tp">string</span>&gt; { <span class="kw">return</span> <span class="str">"Omar"</span>; }
+
+<span class="cm">// From authServices.ts — returns a User (without password field)</span>
+<span class="kw">async function</span> <span class="fn">logUser</span>(email: <span class="tp">string</span>, password: <span class="tp">string</span>):
+  <span class="tp">Promise</span>&lt;{ user: <span class="tp">Omit</span>&lt;<span class="tp">User</span>, <span class="str">"password"</span>&gt;, token: <span class="tp">string</span> }&gt; {
+    <span class="kw">const</span> user = <span class="kw">await</span> prisma.user.<span class="fn">findUnique</span>({ where: { email } });
+    <span class="kw">if</span> (!user) <span class="kw">throw new</span> Error(<span class="str">"Invalid credentials"</span>);
+    <span class="kw">const</span> token = jwt.<span class="fn">sign</span>({ id: user.id, role: user.role }, JWT_SECRET);
+    <span class="kw">return</span> { user: <span class="fn">excludePassword</span>(user), token };
+}
+
+<span class="cm">// Error handling in async functions:</span>
+<span class="kw">try</span> {
+  <span class="kw">const</span> result = <span class="kw">await</span> <span class="fn">logUser</span>(email, password);
+  <span class="cm">// result.user is Omit&lt;User, "password"&gt;</span>
+  <span class="cm">// result.token is string</span>
+} <span class="kw">catch</span> (error: <span class="kw">unknown</span>) {
+  <span class="cm">// error could be anything — Error, string, object, etc.</span>
+  <span class="kw">if</span> (error <span class="kw">instanceof</span> Error) {
+    console.log(error.message); <span class="cm">// now TypeScript knows it's an Error</span>
+  }
+}</code></pre>
+
+  <h3>Promise.all — fetching multiple things</h3>
+  <pre><code><span class="cm">// Not used in this project but worth knowing:</span>
+<span class="kw">const</span> [users, briefs] = <span class="kw">await</span> Promise.<span class="fn">all</span>([
+  <span class="fn">fetchUsers</span>(),   <span class="cm">// Promise&lt;User[]&gt;</span>
+  <span class="fn">fetchBriefs</span>(),  <span class="cm">// Promise&lt;Brief[]&gt;</span>
+]);
+<span class="cm">// users is User[], briefs is Brief[] — TypeScript infers both</span></code></pre>
+</section>
+
+<!-- ═══ TS + PRISMA ═══ -->
+<section id="ts-prisma">
+  <h2>TypeScript + Prisma</h2>
+  <p>Prisma generates a fully-typed client from your schema. Every database operation returns proper TypeScript types — you get autocomplete for every field and error checking for every query.</p>
+
+  <pre><code><span class="cm">// Prisma generates types like this from your schema:</span>
+<span class="kw">type</span> <span class="tp">User</span> = {
+  id:        <span class="tp">string</span>;
+  email:     <span class="tp">string</span>;
+  firstName: <span class="tp">string</span>;
+  lastName:  <span class="tp">string</span>;
+  password:  <span class="tp">string</span> | <span class="kw">null</span>;
+  role:      <span class="tp">Role</span>;       <span class="cm">// = "ADMIN" | "CLIENT" | "EMPLOYEE"</span>
+  googleId:  <span class="tp">string</span> | <span class="kw">null</span>;
+  createdAt: <span class="tp">Date</span>;
+  updatedAt: <span class="tp">Date</span>;
+}
+
+<span class="cm">// Every query is typed:</span>
+<span class="kw">const</span> user = <span class="kw">await</span> prisma.user.<span class="fn">findUnique</span>({ where: { email } });
+<span class="cm">// user is: User | null</span>
+
+<span class="kw">const</span> user = <span class="kw">await</span> prisma.user.<span class="fn">findUniqueOrThrow</span>({ where: { email } });
+<span class="cm">// user is: User (throws if not found — no null)</span>
+
+<span class="kw">const</span> briefs = <span class="kw">await</span> prisma.brief.<span class="fn">findMany</span>({ where: { clientId } });
+<span class="cm">// briefs is: Brief[]</span>
+
+<span class="cm">// Prisma's select narrows the type:</span>
+<span class="kw">const</span> users = <span class="kw">await</span> prisma.user.<span class="fn">findMany</span>({
+  where: { role: <span class="str">"EMPLOYEE"</span> },
+  select: { id: <span class="kw">true</span>, firstName: <span class="kw">true</span>, email: <span class="kw">true</span> }
+});
+<span class="cm">// users is: { id: string; firstName: string; email: string }[]
+// NOT User[] — only the selected fields, TypeScript knows this</span>
+
+<span class="cm">// Prisma's import — from services/auth-service/db/prisma.ts:</span>
+<span class="kw">import</span> { <span class="tp">PrismaClient</span> } <span class="kw">from</span> <span class="str">"../src/generated/prisma/index.js"</span>;
+<span class="cm">// The generated client lives in src/generated/prisma/
+// It's created by running: prisma generate</span></code></pre>
+
+  <div class="callout teal">
+    <strong>Prisma + TypeScript = no guessing:</strong> Without Prisma, you'd write raw SQL and get back <code>any[]</code>. With Prisma, every query result has a precise TypeScript type that exactly matches your database schema. If you rename a column in the schema and regenerate, TypeScript will show errors everywhere that column is used.
+  </div>
+</section>
+
+<!-- ═══ REAL EXAMPLES ═══ -->
+<section id="real-examples">
+  <h2>Real Code Examples — TypeScript Doing Its Job</h2>
+  <p>Let's look at specific patterns from the project where TypeScript catches real mistakes or enables clean patterns.</p>
+
+  <h3>1. Exhaustive Role Handling</h3>
+  <pre><code><span class="cm">// From getBriefsHandler in brief.controller.ts:</span>
+<span class="kw">const</span> auth = <span class="fn">getAuth</span>(req);
+<span class="kw">let</span> briefs: <span class="tp">Brief</span>[];
+
+<span class="kw">if</span> (auth.role === <span class="str">"ADMIN"</span>) {
+  briefs = <span class="kw">await</span> briefService.<span class="fn">getAllBriefs</span>();
+} <span class="kw">else if</span> (auth.role === <span class="str">"CLIENT"</span>) {
+  briefs = <span class="kw">await</span> briefService.<span class="fn">getClientBriefs</span>(auth.userId);
+} <span class="kw">else if</span> (auth.role === <span class="str">"EMPLOYEE"</span>) {
+  briefs = <span class="kw">await</span> briefService.<span class="fn">getEmployeeBriefs</span>(auth.userId);
+}
+<span class="cm">// TypeScript knows auth.role can only be these 3 values
+// If someone adds a new role later, TypeScript will warn about unhandled cases</span></code></pre>
+
+  <h3>2. Safe Object Spread (removing a field)</h3>
+  <pre><code><span class="cm">// Pattern used in multiple controllers:</span>
+<span class="kw">const</span> user = <span class="kw">await</span> prisma.user.<span class="fn">findUnique</span>({ where: { id } });
+<span class="kw">const</span> { password, ...safeUser } = user;
+<span class="cm">// Destructuring assignment:
+// password  = user.password (type: string | null)
+// safeUser  = everything else (type: Omit&lt;User, "password"&gt;)
+// Then we send safeUser — password is never in the response</span></code></pre>
+
+  <h3>3. Type Narrowing</h3>
+  <pre><code><span class="cm">// TypeScript narrows types inside conditions:</span>
+<span class="kw">const</span> user: <span class="tp">User</span> | <span class="kw">null</span> = <span class="kw">await</span> prisma.user.<span class="fn">findUnique</span>({...});
+
+<span class="cm">// Before the check: user is User | null</span>
+<span class="kw">if</span> (!user) {
+  <span class="kw">throw new</span> Error(<span class="str">"User not found"</span>);
+}
+<span class="cm">// After the check: TypeScript knows user is definitely User (not null)
+// because if it were null, we would have thrown already</span>
+console.log(user.email); <span class="cm">// ✅ safe — null case was handled</span></code></pre>
+
+  <h3>4. Destructuring with Types</h3>
+  <pre><code><span class="cm">// Destructuring function parameters with an interface:</span>
+<span class="kw">export default function</span> <span class="fn">BriefModal</span>({
+  brief, isOpen, onClose, userRole
+}: <span class="tp">BriefModalProps</span>) {
+  <span class="cm">// All 4 variables are immediately available and typed correctly</span>
+}
+
+<span class="cm">// Destructuring with renaming:</span>
+<span class="kw">const</span> { id: briefId } = req.params;
+<span class="cm">// briefId is the value of req.params.id, named differently locally</span>
+
+<span class="cm">// Destructuring with defaults:</span>
+<span class="kw">const</span> { rememberMe = <span class="kw">false</span> } = loginData;
+<span class="cm">// if rememberMe is undefined in loginData, it defaults to false</span></code></pre>
+
+  <h3>5. Generic Map for User Lookups</h3>
+  <pre><code><span class="cm">// From authClient.ts in brief-service:</span>
+<span class="kw">export async function</span> <span class="fn">fetchUsersFromAuthService</span>(
+  userIds: <span class="tp">string</span>[]
+): <span class="tp">Promise</span>&lt;<span class="tp">Map</span>&lt;<span class="tp">string</span>, <span class="tp">UserSnapshot</span>&gt;&gt; {
+
+  <span class="kw">const</span> response = <span class="kw">await</span> axios.get&lt;<span class="tp">UserSnapshot</span>[]&gt;(url, { params: { ids } });
+  <span class="cm">// axios.get&lt;UserSnapshot[]&gt; tells TypeScript response.data is UserSnapshot[]</span>
+
+  <span class="kw">return new</span> Map(response.data.<span class="fn">map</span>(user => [user.id, user]));
+  <span class="cm">// returns Map&lt;string, UserSnapshot&gt;</span>
+}
+
+<span class="cm">// Using it in brief.controller.ts:</span>
+<span class="kw">const</span> usersMap = <span class="kw">await</span> <span class="fn">fetchUsersFromAuthService</span>([updated.clientId]);
+<span class="kw">const</span> client   = usersMap.get(updated.clientId);
+<span class="cm">// client is: UserSnapshot | undefined
+// TypeScript forces you to handle the "not found" case</span>
+<span class="kw">if</span> (client?.email) {
+  <span class="kw">await</span> <span class="fn">sendBriefStatusEmail</span>(client.email, ...);
+}</code></pre>
+
+  <h3>6. Zod Schema Inferring Types</h3>
+  <pre><code><span class="cm">// From brief.schema.ts — Zod generates TypeScript types from schemas:</span>
+<span class="kw">export const</span> updateBriefStatusSchema = z.object({
+  status: BriefStatusEnum,
+  reason: z.string().optional(),
+});
+
+<span class="cm">// You can extract the TypeScript type from a Zod schema:</span>
+<span class="kw">type</span> <span class="tp">UpdateBriefStatus</span> = z.<span class="fn">infer</span>&lt;<span class="kw">typeof</span> updateBriefStatusSchema&gt;;
+<span class="cm">// = { status: "PENDING"|"ACCEPTED"|..., reason: string | undefined }</span>
+
+<span class="cm">// In the handler — after .parse(), TypeScript knows the exact shape:</span>
+<span class="kw">const</span> body = updateBriefStatusSchema.<span class="fn">parse</span>(req.body);
+<span class="cm">// body.status is BriefStatus (validated and typed)
+// body.reason is string | undefined</span></code></pre>
+
+  <hr />
+
+  <h3>Quick Reference — TypeScript Syntax Cheat Sheet</h3>
+
+  <table>
+    <tr><th>Syntax</th><th>Name</th><th>Example in Project</th></tr>
+    <tr><td><code>: string</code></td><td>Type annotation</td><td><code>firstName: string</code></td></tr>
+    <tr><td><code>?:</code></td><td>Optional property</td><td><code>phone?: string</code></td></tr>
+    <tr><td><code>A | B</code></td><td>Union type</td><td><code>User | null</code></td></tr>
+    <tr><td><code>A & B</code></td><td>Intersection type</td><td><code>UpdateBriefPayload & { userRole?: string }</code></td></tr>
+    <tr><td><code>value as Type</code></td><td>Type assertion</td><td><code>process.env.JWT_SECRET as string</code></td></tr>
+    <tr><td><code>value!</code></td><td>Non-null assertion</td><td><code>getElementById('root')!</code></td></tr>
+    <tr><td><code>value?.</code></td><td>Optional chaining</td><td><code>state.currentBrief?.id</code></td></tr>
+    <tr><td><code>a ?? b</code></td><td>Nullish coalescing</td><td><code>process.env.PORT ?? 3000</code></td></tr>
+    <tr><td><code>interface I {}</code></td><td>Object type definition</td><td><code>interface User { id: string }</code></td></tr>
+    <tr><td><code>type T =</code></td><td>Type alias</td><td><code>type BriefStatus = 'PENDING' | ...</code></td></tr>
+    <tr><td><code>&lt;T&gt;</code></td><td>Generic parameter</td><td><code>Map&lt;string, UserSnapshot&gt;</code></td></tr>
+    <tr><td><code>Partial&lt;T&gt;</code></td><td>All fields optional</td><td><code>Partial&lt;CreateBriefPayload&gt;</code></td></tr>
+    <tr><td><code>Omit&lt;T, K&gt;</code></td><td>Remove fields</td><td><code>Omit&lt;User, "password"&gt;</code></td></tr>
+    <tr><td><code>Record&lt;K, V&gt;</code></td><td>Object with typed keys/values</td><td><code>Record&lt;string, string&gt;</code></td></tr>
+    <tr><td><code>ReturnType&lt;T&gt;</code></td><td>Extract function return type</td><td><code>ReturnType&lt;typeof store.getState&gt;</code></td></tr>
+    <tr><td><code>typeof x</code></td><td>Get type of a value</td><td><code>typeof store.dispatch</code></td></tr>
+    <tr><td><code>import type</code></td><td>Type-only import</td><td><code>import type { AuthState }</code></td></tr>
+    <tr><td><code>declare global</code></td><td>Extend global types</td><td>Express Request augmentation</td></tr>
+    <tr><td><code>// @ts-ignore</code></td><td>Suppress next-line error</td><td><code>// @ts-ignore; return req.user</code></td></tr>
+  </table>
+</section>
+
+<hr />
+<div style="text-align:center;padding:24px 0 48px;color:var(--dim);font-size:12px;">
+  TypeScript Documentation · Smart Brief · Agence 47
+</div>
+
+</main>
+</div>
+
+<script>
+  const sections = document.querySelectorAll('section[id], h2[id]');
+  const links    = document.querySelectorAll('nav a');
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        links.forEach(l => l.classList.remove('active'));
+        const a = document.querySelector(`nav a[href="#${e.target.id}"]`);
+        if (a) a.classList.add('active');
+      }
+    });
+  }, { threshold: 0.15, rootMargin: '-60px 0px -55% 0px' });
+  sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>

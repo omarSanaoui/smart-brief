@@ -1,0 +1,1547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>React · Redux · Redux Toolkit · Axios — Smart Brief Docs</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0d1117;
+      --surface: #161b27;
+      --card: #1a2238;
+      --border: #2e3a5c;
+      --teal: #62d2b2;
+      --purple: #4a55d0;
+      --blue: #4a9edd;
+      --red: #f47068;
+      --yellow: #f0c060;
+      --green: #5cb85c;
+      --text: #cdd9f5;
+      --muted: #6b7a99;
+      --sidebar-w: 270px;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      min-height: 100vh;
+      line-height: 1.7;
+    }
+
+    /* ─── SIDEBAR ─────────────────────────────────────────────── */
+    nav {
+      position: fixed;
+      top: 0; left: 0;
+      width: var(--sidebar-w);
+      height: 100vh;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      overflow-y: auto;
+      padding: 28px 0 40px;
+    }
+    nav .logo {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--teal);
+      padding: 0 22px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    nav .logo span { color: var(--purple); }
+    nav .section-label {
+      font-size: .65rem;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding: 18px 22px 6px;
+    }
+    nav a {
+      display: block;
+      padding: 7px 22px;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: .83rem;
+      border-left: 2px solid transparent;
+      transition: all .15s;
+    }
+    nav a:hover { color: var(--text); background: rgba(255,255,255,.03); }
+    nav a.active { color: var(--teal); border-left-color: var(--teal); background: rgba(98,210,178,.06); }
+
+    /* ─── MAIN CONTENT ────────────────────────────────────────── */
+    main {
+      margin-left: var(--sidebar-w);
+      padding: 60px 64px 120px;
+      max-width: calc(var(--sidebar-w) + 900px);
+      width: 100%;
+    }
+
+    h1 { font-size: 2.6rem; color: #fff; font-weight: 800; line-height: 1.15; }
+    h1 .hl-teal { color: var(--teal); }
+    h1 .hl-purple { color: var(--purple); }
+    .page-sub {
+      color: var(--muted);
+      font-size: 1.05rem;
+      margin-top: 10px;
+      margin-bottom: 48px;
+      max-width: 640px;
+    }
+
+    h2 {
+      font-size: 1.6rem;
+      color: #fff;
+      font-weight: 700;
+      margin: 64px 0 18px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+      scroll-margin-top: 32px;
+    }
+    h3 {
+      font-size: 1.1rem;
+      color: var(--teal);
+      font-weight: 600;
+      margin: 32px 0 10px;
+      scroll-margin-top: 32px;
+    }
+    h4 {
+      font-size: .9rem;
+      color: var(--yellow);
+      font-weight: 600;
+      margin: 24px 0 8px;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+
+    p { margin-bottom: 14px; color: var(--text); }
+    ul, ol { padding-left: 22px; margin-bottom: 14px; }
+    li { margin-bottom: 5px; }
+    strong { color: #fff; }
+    code {
+      font-family: 'Cascadia Code', 'Fira Code', monospace;
+      background: rgba(255,255,255,.07);
+      color: var(--teal);
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-size: .88em;
+    }
+
+    /* ─── CODE BLOCKS ─────────────────────────────────────────── */
+    pre {
+      background: #0a0e1a;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px 22px;
+      overflow-x: auto;
+      font-family: 'Cascadia Code', 'Fira Code', monospace;
+      font-size: .82rem;
+      line-height: 1.65;
+      margin: 12px 0 22px;
+      position: relative;
+    }
+    pre .file-label {
+      position: absolute;
+      top: 10px; right: 14px;
+      font-size: .68rem;
+      color: var(--muted);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-family: inherit;
+    }
+    /* syntax tokens */
+    .kw  { color: #c792ea; }   /* keyword: import, const, async, return */
+    .tp  { color: #82b1ff; }   /* type: string, number, boolean, interfaces */
+    .str { color: #c3e88d; }   /* strings */
+    .fn  { color: var(--teal); } /* function names */
+    .cm  { color: #546e7a; font-style: italic; } /* comments */
+    .nm  { color: #f78c6c; }   /* numbers / booleans */
+    .op  { color: #89ddff; }   /* operators, arrows */
+    .ts  { color: var(--yellow); } /* JSX tags / special */
+    .pk  { color: var(--purple); font-weight: 600; } /* package names */
+
+    /* ─── CALLOUT BOXES ───────────────────────────────────────── */
+    .callout {
+      border-radius: 10px;
+      padding: 16px 20px;
+      margin: 18px 0;
+      border-left: 4px solid;
+      font-size: .9rem;
+    }
+    .callout.info  { background: rgba(74,158,221,.1); border-color: var(--blue); }
+    .callout.warn  { background: rgba(240,192,96,.1);  border-color: var(--yellow); }
+    .callout.tip   { background: rgba(98,210,178,.1);  border-color: var(--teal); }
+    .callout.danger{ background: rgba(244,112,104,.1); border-color: var(--red); }
+    .callout strong { display: block; margin-bottom: 4px; font-size: .8rem; text-transform: uppercase; letter-spacing: .07em; }
+    .callout.info   strong { color: var(--blue); }
+    .callout.warn   strong { color: var(--yellow); }
+    .callout.tip    strong { color: var(--teal); }
+    .callout.danger strong { color: var(--red); }
+
+    /* ─── COMPARISON ──────────────────────────────────────────── */
+    .compare {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin: 12px 0 22px;
+    }
+    .compare > div { border-radius: 10px; overflow: hidden; }
+    .compare > div > .compare-label {
+      font-size: .7rem;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      padding: 8px 16px;
+    }
+    .compare .bad  .compare-label { background: rgba(244,112,104,.2); color: var(--red); }
+    .compare .good .compare-label { background: rgba(98,210,178,.2);  color: var(--teal); }
+    .compare pre { margin: 0; border-radius: 0 0 10px 10px; border-top: none; }
+
+    /* ─── FLOW DIAGRAM ────────────────────────────────────────── */
+    .flow {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 20px 0;
+    }
+    .flow-box {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 16px;
+      font-size: .82rem;
+      font-weight: 600;
+      text-align: center;
+      min-width: 110px;
+    }
+    .flow-box.teal   { border-color: var(--teal);   color: var(--teal); }
+    .flow-box.purple { border-color: var(--purple);  color: #8891e8; }
+    .flow-box.blue   { border-color: var(--blue);    color: var(--blue); }
+    .flow-box.yellow { border-color: var(--yellow);  color: var(--yellow); }
+    .flow-box.green  { border-color: var(--green);   color: var(--green); }
+    .flow-arrow { color: var(--muted); font-size: 1.1rem; }
+
+    /* ─── TABLE ───────────────────────────────────────────────── */
+    table { width: 100%; border-collapse: collapse; margin: 16px 0 24px; font-size: .87rem; }
+    th { background: var(--card); color: var(--teal); font-weight: 600; padding: 10px 14px; text-align: left; border-bottom: 2px solid var(--border); }
+    td { padding: 9px 14px; border-bottom: 1px solid var(--border); color: var(--text); vertical-align: top; }
+    tr:last-child td { border-bottom: none; }
+
+    /* ─── CONCEPT CARD ────────────────────────────────────────── */
+    .concept-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin: 18px 0; }
+    .concept-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px 18px;
+    }
+    .concept-card h5 { font-size: .9rem; color: #fff; margin-bottom: 6px; }
+    .concept-card p  { font-size: .82rem; color: var(--muted); margin: 0; }
+
+    /* ─── DIVIDER ─────────────────────────────────────────────── */
+    hr { border: none; border-top: 1px solid var(--border); margin: 40px 0; }
+
+    /* ─── SCROLLBAR ───────────────────────────────────────────── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════ SIDEBAR ═══════════ -->
+<nav id="sidebar">
+  <div class="logo">⚛ <span>Smart</span>Brief · React Guide</div>
+
+  <div class="section-label">React Foundations</div>
+  <a href="#what-is-react">What is React?</a>
+  <a href="#components">Components</a>
+  <a href="#jsx">JSX</a>
+  <a href="#props">Props</a>
+  <a href="#usestate">useState</a>
+  <a href="#useeffect">useEffect</a>
+  <a href="#react-router">React Router</a>
+
+  <div class="section-label">State Management Problem</div>
+  <a href="#why-redux">Why Redux Exists</a>
+  <a href="#redux-core">Redux Core Concepts</a>
+  <a href="#redux-flow">The Redux Flow</a>
+
+  <div class="section-label">Redux Toolkit</div>
+  <a href="#rtk-intro">What is Redux Toolkit?</a>
+  <a href="#configure-store">configureStore</a>
+  <a href="#create-slice">createSlice</a>
+  <a href="#reducers">reducers vs extraReducers</a>
+  <a href="#selectors">Selectors</a>
+  <a href="#typed-hooks">Typed Hooks</a>
+
+  <div class="section-label">Async Thunks</div>
+  <a href="#thunk-intro">What is a Thunk?</a>
+  <a href="#create-async-thunk">createAsyncThunk</a>
+  <a href="#thunk-lifecycle">Lifecycle Actions</a>
+  <a href="#thunk-api">thunkAPI &amp; rejectWithValue</a>
+  <a href="#thunk-patterns">Thunk Patterns</a>
+
+  <div class="section-label">Axios</div>
+  <a href="#axios-intro">What is Axios?</a>
+  <a href="#axios-instance">axios.create</a>
+  <a href="#interceptors">Interceptors</a>
+  <a href="#axios-methods">HTTP Methods</a>
+
+  <div class="section-label">Full Integration</div>
+  <a href="#provider">Provider Setup</a>
+  <a href="#full-flow">The Complete Flow</a>
+  <a href="#login-walkthrough">Login Walkthrough</a>
+  <a href="#brief-walkthrough">Brief CRUD Walkthrough</a>
+  <a href="#patterns">Project Patterns</a>
+  <a href="#cheatsheet">Cheat Sheet</a>
+</nav>
+
+<!-- ═══════════ MAIN ═══════════ -->
+<main>
+  <h1><span class="hl-teal">React</span> · <span class="hl-purple">Redux</span> · RTK · Axios</h1>
+  <p class="page-sub">
+    Everything you need to understand how Smart Brief's frontend works — from individual React components to full async data flows with Redux Toolkit and Axios.
+  </p>
+
+  <!-- ══════════════════════════════════════════════════════════
+       REACT FOUNDATIONS
+  ══════════════════════════════════════════════════════════ -->
+
+  <h2 id="what-is-react">What is React?</h2>
+  <p>
+    React is a JavaScript <strong>UI library</strong> made by Meta. Its job is simple: turn data into HTML on the screen, and update only the parts that changed when the data changes. You do not manually call <code>document.getElementById</code> or touch the DOM — React does that automatically through something called the <strong>Virtual DOM</strong>.
+  </p>
+
+  <h3>Virtual DOM — why it matters</h3>
+  <p>
+    Every time your data changes, React builds a lightweight copy of the DOM (the "virtual DOM") in memory and compares it to the previous version. It figures out the smallest possible set of real DOM changes to apply. This is called <strong>reconciliation</strong> and it is what makes React fast.
+  </p>
+
+  <div class="flow">
+    <div class="flow-box teal">State changes</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box blue">React re-renders<br><small>virtual DOM</small></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box purple">Diff with old<br><small>virtual DOM</small></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box yellow">Patch only<br><small>changed nodes</small></div>
+  </div>
+
+  <div class="callout tip">
+    <strong>Key mental model</strong>
+    Think of React as a function: <code>UI = f(state)</code>. Given the same state, you always get the same UI. When state changes, React calls your components again and re-renders what changed.
+  </div>
+
+  <!-- ───────────────────────────────────────────── -->
+  <h2 id="components">Components</h2>
+  <p>
+    A React <strong>component</strong> is just a TypeScript function that returns JSX (HTML-like syntax). Components are the building blocks of your app — every button, page, modal, and form is a component.
+  </p>
+
+  <pre><span class="cm">// The simplest possible component</span>
+<span class="kw">function</span> <span class="fn">Hello</span>() {
+  <span class="kw">return</span> <span class="ts">&lt;h1&gt;</span>Hello World<span class="ts">&lt;/h1&gt;</span>;
+}
+
+<span class="cm">// Used as if it were an HTML tag</span>
+<span class="ts">&lt;Hello /&gt;</span></pre>
+
+  <p>
+    Components can be small (a button) or large (an entire page). In Smart Brief, <code>BriefDetails</code> is a full page component and <code>StatusBadgeLarge</code> is a tiny presentational component defined in the same file:
+  </p>
+
+<pre><span class="file-label">BriefDetails.tsx</span>
+<span class="kw">const</span> <span class="fn">StatusBadgeLarge</span> <span class="op">=</span> ({ status }: { status: <span class="tp">BriefStatus</span> }) <span class="op">=&gt;</span> {
+  <span class="kw">switch</span> (status) {
+    <span class="kw">case</span> <span class="str">'PENDING'</span>:
+      <span class="kw">return</span> <span class="ts">&lt;div</span> <span class="kw">className</span><span class="op">=</span><span class="str">"flex items-center gap-2 text-yellow-400 ..."</span><span class="ts">&gt;</span>
+               <span class="ts">&lt;Clock</span> <span class="kw">size</span><span class="op">={</span><span class="nm">16</span><span class="op">}</span> <span class="ts">/&gt;</span> PENDING REVIEW
+             <span class="ts">&lt;/div&gt;</span>;
+    <span class="kw">case</span> <span class="str">'ACCEPTED'</span>:
+      <span class="kw">return</span> <span class="ts">&lt;div</span> <span class="kw">className</span><span class="op">=</span><span class="str">"... text-sbteal ..."</span><span class="ts">&gt;</span>ACCEPTED<span class="ts">&lt;/div&gt;</span>;
+    <span class="cm">// ... more cases</span>
+  }
+}
+
+<span class="kw">export default function</span> <span class="fn">BriefDetails</span>() {
+  <span class="cm">// This is the page component — uses StatusBadgeLarge inside</span>
+  <span class="kw">return</span> (
+    <span class="ts">&lt;section&gt;</span>
+      <span class="ts">&lt;StatusBadgeLarge</span> <span class="kw">status</span><span class="op">={</span>brief.status<span class="op">}</span> <span class="ts">/&gt;</span>
+    <span class="ts">&lt;/section&gt;</span>
+  );
+}</pre>
+
+  <!-- ───────────────────────────────────────────── -->
+  <h2 id="jsx">JSX</h2>
+  <p>
+    JSX looks like HTML but it is actually JavaScript under the hood. The browser does not understand JSX — Vite (your build tool) compiles it into regular <code>React.createElement()</code> calls before the browser ever sees it.
+  </p>
+
+  <div class="compare">
+    <div class="bad">
+      <div class="compare-label">What you write (JSX)</div>
+      <pre><span class="kw">return</span> (
+  <span class="ts">&lt;button</span>
+    <span class="kw">className</span><span class="op">=</span><span class="str">"btn"</span>
+    <span class="kw">onClick</span><span class="op">={</span>handleClick<span class="op">}</span>
+  <span class="ts">&gt;</span>
+    Click me
+  <span class="ts">&lt;/button&gt;</span>
+);</pre>
+    </div>
+    <div class="good">
+      <div class="compare-label">What it compiles to</div>
+      <pre><span class="kw">return</span> React.<span class="fn">createElement</span>(
+  <span class="str">"button"</span>,
+  {
+    className: <span class="str">"btn"</span>,
+    onClick: handleClick
+  },
+  <span class="str">"Click me"</span>
+);</pre>
+    </div>
+  </div>
+
+  <h4>JSX Rules you must know</h4>
+  <ul>
+    <li><strong>Use <code>className</code> not <code>class</code></strong> — <code>class</code> is a reserved JS keyword</li>
+    <li><strong>JavaScript inside <code>{ }</code></strong> — <code>{brief.title}</code>, <code>{isAdmin &amp;&amp; &lt;button&gt;...&lt;/button&gt;}</code></li>
+    <li><strong>One root element</strong> — every component returns a single root. Use <code>&lt;&gt;...&lt;/&gt;</code> (Fragment) to group without adding a DOM node</li>
+    <li><strong>Self-close empty tags</strong> — <code>&lt;Clock size={16} /&gt;</code> not <code>&lt;Clock size={16}&gt;&lt;/Clock&gt;</code></li>
+    <li><strong>camelCase event handlers</strong> — <code>onClick</code>, <code>onChange</code>, <code>onSubmit</code></li>
+  </ul>
+
+  <!-- ───────────────────────────────────────────── -->
+  <h2 id="props">Props</h2>
+  <p>
+    Props (short for "properties") are how you pass data into a component — just like arguments to a function. In TypeScript you always type them explicitly.
+  </p>
+
+<pre><span class="cm">// Defining props with a TypeScript interface</span>
+<span class="kw">interface</span> <span class="tp">EditBriefModalProps</span> {
+  brief:   <span class="tp">Brief</span>;
+  isOpen:  <span class="tp">boolean</span>;
+  onClose: () <span class="op">=&gt;</span> <span class="tp">void</span>;
+}
+
+<span class="cm">// The component receives props and uses them</span>
+<span class="kw">export default function</span> <span class="fn">EditBriefModal</span>({ brief, isOpen, onClose }: <span class="tp">EditBriefModalProps</span>) {
+  <span class="kw">if</span> (!isOpen) <span class="kw">return null</span>;
+
+  <span class="kw">return</span> (
+    <span class="ts">&lt;div</span> <span class="kw">className</span><span class="op">=</span><span class="str">"modal"</span><span class="ts">&gt;</span>
+      <span class="ts">&lt;h2&gt;</span>{brief.title}<span class="ts">&lt;/h2&gt;</span>
+      <span class="ts">&lt;button</span> <span class="kw">onClick</span><span class="op">={</span>onClose<span class="op">}</span><span class="ts">&gt;</span>Close<span class="ts">&lt;/button&gt;</span>
+    <span class="ts">&lt;/div&gt;</span>
+  );
+}
+
+<span class="cm">// Using it — notice onClose is a callback function passed as a prop</span>
+<span class="ts">&lt;EditBriefModal</span>
+  <span class="kw">brief</span><span class="op">={</span>brief<span class="op">}</span>
+  <span class="kw">isOpen</span>
+  <span class="kw">onClose</span><span class="op">={() =></span> setIsEditOpen(<span class="nm">false</span>)<span class="op">}</span>
+<span class="ts">/&gt;</span></pre>
+
+  <div class="callout tip">
+    <strong>isOpen without a value</strong>
+    Writing <code>&lt;Modal isOpen /&gt;</code> is the same as <code>&lt;Modal isOpen={true} /&gt;</code>. A prop present but without a value is implicitly <code>true</code>.
+  </div>
+
+  <!-- ───────────────────────────────────────────── -->
+  <h2 id="usestate">useState</h2>
+  <p>
+    <code>useState</code> is React's hook for local component state. When state changes, React re-renders the component. It returns a tuple: <code>[currentValue, setterFunction]</code>.
+  </p>
+
+<pre><span class="kw">import</span> { useState } <span class="kw">from</span> <span class="str">"react"</span>;
+
+<span class="cm">// TypeScript infers the type from the initial value (boolean here)</span>
+<span class="kw">const</span> [isEditOpen, setIsEditOpen] <span class="op">=</span> <span class="fn">useState</span>(<span class="nm">false</span>);
+
+<span class="cm">// Open the modal</span>
+<span class="fn">setIsEditOpen</span>(<span class="nm">true</span>);
+
+<span class="cm">// Close it</span>
+<span class="fn">setIsEditOpen</span>(<span class="nm">false</span>);</pre>
+
+  <p>With complex types, you provide the generic explicitly:</p>
+
+<pre><span class="cm">// state can be a string or null</span>
+<span class="kw">const</span> [error, setError] <span class="op">=</span> <span class="fn">useState</span><span class="op">&lt;</span><span class="tp">string | null</span><span class="op">&gt;</span>(<span class="nm">null</span>);
+
+<span class="cm">// state is an array of strings</span>
+<span class="kw">const</span> [features, setFeatures] <span class="op">=</span> <span class="fn">useState</span><span class="op">&lt;</span><span class="tp">string[]</span><span class="op">&gt;</span>([]);
+
+<span class="cm">// state is a full object (type comes from authTypes.ts)</span>
+<span class="kw">const</span> [formData, setFormData] <span class="op">=</span> <span class="fn">useState</span><span class="op">&lt;</span><span class="tp">RegisterPayload</span><span class="op">&gt;</span>({
+  firstName: <span class="str">""</span>,
+  lastName:  <span class="str">""</span>,
+  email:     <span class="str">""</span>,
+  password:  <span class="str">""</span>,
+});</pre>
+
+  <h3>Updating objects in state — do it immutably</h3>
+  <p>React only re-renders if it detects a new reference. You must never mutate state directly. Use the spread operator to create a new object:</p>
+
+<pre><span class="cm">// ❌ WRONG — mutates existing object, React won't re-render</span>
+formData.email <span class="op">=</span> <span class="str">"new@email.com"</span>;
+<span class="fn">setFormData</span>(formData);
+
+<span class="cm">// ✅ CORRECT — creates a new object with the spread operator</span>
+<span class="fn">setFormData</span>(prev <span class="op">=&gt;</span> ({ ...prev, email: <span class="str">"new@email.com"</span> }));</pre>
+
+  <!-- ───────────────────────────────────────────── -->
+  <h2 id="useeffect">useEffect</h2>
+  <p>
+    <code>useEffect</code> runs side effects — things that happen outside of rendering: fetching data, setting up event listeners, reading from localStorage. It runs <em>after</em> the component renders.
+  </p>
+
+<pre><span class="cm">// From BriefDetails.tsx — fetch the brief when the page loads</span>
+<span class="fn">useEffect</span>(() <span class="op">=&gt;</span> {
+  <span class="kw">if</span> (id) <span class="fn">dispatch</span>(<span class="fn">fetchBriefByIdThunk</span>(id));
+}, [id, dispatch]);
+<span class="cm">//  ^^^^^^^^^^^^^^^^^^
+//  Dependency array — runs when id or dispatch changes</span></pre>
+
+  <table>
+    <thead><tr><th>Dependency Array</th><th>When it runs</th></tr></thead>
+    <tbody>
+      <tr><td><code>useEffect(() =&gt; { ... })</code></td><td>After every single render</td></tr>
+      <tr><td><code>useEffect(() =&gt; { ... }, [])</code></td><td>Once — on mount only (like componentDidMount)</td></tr>
+      <tr><td><code>useEffect(() =&gt; { ... }, [id])</code></td><td>On mount, and whenever <code>id</code> changes</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Cleanup</h3>
+  <p>If your effect sets up something that needs tearing down (timers, WebSocket connections), return a cleanup function:</p>
+
+<pre><span class="fn">useEffect</span>(() <span class="op">=&gt;</span> {
+  <span class="kw">const</span> timer <span class="op">=</span> <span class="fn">setInterval</span>(() <span class="op">=&gt;</span> <span class="fn">tick</span>(), <span class="nm">1000</span>);
+  <span class="kw">return</span> () <span class="op">=&gt;</span> <span class="fn">clearInterval</span>(timer); <span class="cm">// cleanup on unmount</span>
+}, []);</pre>
+
+  <!-- ───────────────────────────────────────────── -->
+  <h2 id="react-router">React Router</h2>
+  <p>
+    React Router handles navigation in a Single Page Application (SPA). Instead of the browser loading a new HTML file on every click, React Router swaps the component being shown based on the URL — no full page reload.
+  </p>
+
+<pre><span class="cm">// useParams — read URL parameters like /briefs/:id</span>
+<span class="kw">const</span> { id } <span class="op">=</span> <span class="fn">useParams</span><span class="op">&lt;</span>{ id: <span class="tp">string</span> }<span class="op">&gt;</span>();
+
+<span class="cm">// useNavigate — programmatic navigation</span>
+<span class="kw">const</span> navigate <span class="op">=</span> <span class="fn">useNavigate</span>();
+<span class="fn">navigate</span>(<span class="str">"/dashboard"</span>);   <span class="cm">// go to a path</span>
+<span class="fn">navigate</span>(<span class="op">-</span><span class="nm">1</span>);              <span class="cm">// go back (like browser back button)</span></pre>
+
+  <p>The app's routes are declared in <code>App.tsx</code> using <code>&lt;Route&gt;</code> components, and React Router matches the current URL to the right component automatically.</p>
+
+  <hr />
+
+  <!-- ══════════════════════════════════════════════════════════
+       STATE MANAGEMENT
+  ══════════════════════════════════════════════════════════ -->
+
+  <h2 id="why-redux">Why Redux Exists — The Problem</h2>
+  <p>
+    React's <code>useState</code> is perfect for local component state (is this modal open? what is this input's value?). But what happens when <em>many</em> components across the app need the same piece of data?
+  </p>
+  <p>
+    Imagine the logged-in user object. It is needed on the navbar, the profile page, the brief creation form, the brief details page, and more. Without Redux, you would have to <strong>prop-drill</strong> — pass the user down through every component in the tree, even ones that don't need it themselves.
+  </p>
+
+  <div class="flow">
+    <div class="flow-box yellow">App (has user)</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box" style="color:var(--muted)">Layout (passes user)</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box" style="color:var(--muted)">Page (passes user)</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box teal">Component (needs user)</div>
+  </div>
+
+  <p>Redux solves this by creating a <strong>single global store</strong> — a JavaScript object that any component can read from or write to directly, without passing props through the tree.</p>
+
+  <div class="flow">
+    <div class="flow-box yellow">Redux Store<br><small>(global state)</small></div>
+    <div class="flow-arrow">↔</div>
+    <div class="flow-box teal">Navbar</div>
+    <div class="flow-arrow" style="margin-left:8px">↔</div>
+    <div class="flow-box teal">BriefDetails</div>
+    <div class="flow-arrow" style="margin-left:8px">↔</div>
+    <div class="flow-box teal">Profile Page</div>
+  </div>
+
+  <!-- ───────────────────────────────────────────── -->
+  <h2 id="redux-core">Redux Core Concepts</h2>
+
+  <div class="concept-grid">
+    <div class="concept-card">
+      <h5>Store</h5>
+      <p>The single object holding all your app's state. Created once, lives for the app's lifetime.</p>
+    </div>
+    <div class="concept-card">
+      <h5>State</h5>
+      <p>The data inside the store. In Smart Brief: <code>{ auth: {...}, briefs: {...} }</code></p>
+    </div>
+    <div class="concept-card">
+      <h5>Action</h5>
+      <p>A plain object describing what happened. Has a <code>type</code> string and optional <code>payload</code>.</p>
+    </div>
+    <div class="concept-card">
+      <h5>Reducer</h5>
+      <p>A pure function that takes old state + action, returns new state. Never mutates directly.</p>
+    </div>
+    <div class="concept-card">
+      <h5>Dispatch</h5>
+      <p>The function you call to send an action to the store. Only way to change state.</p>
+    </div>
+    <div class="concept-card">
+      <h5>Selector</h5>
+      <p>A function that reads a specific piece of state from the store for use in a component.</p>
+    </div>
+  </div>
+
+  <!-- ───────────────────────────────────────────── -->
+  <h2 id="redux-flow">The Redux Flow</h2>
+  <p>
+    Understanding this flow is the key to understanding everything else. Every state change follows this exact path:
+  </p>
+
+  <div class="flow">
+    <div class="flow-box teal">Component<br><small>calls dispatch()</small></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box blue">Action<br><small>{ type, payload }</small></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box purple">Reducer<br><small>computes new state</small></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box yellow">Store<br><small>state updated</small></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box green">Component<br><small>re-renders</small></div>
+  </div>
+
+  <p>For async operations (API calls), a <strong>Thunk</strong> sits between the component and the action:</p>
+
+  <div class="flow">
+    <div class="flow-box teal">Component<br><small>dispatch(thunk)</small></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box" style="border-color:var(--red);color:var(--red)">Thunk<br><small>calls API</small></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box blue">Action<br><small>fulfilled/rejected</small></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box purple">Reducer</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box green">Re-render</div>
+  </div>
+
+  <hr />
+
+  <!-- ══════════════════════════════════════════════════════════
+       REDUX TOOLKIT
+  ══════════════════════════════════════════════════════════ -->
+
+  <h2 id="rtk-intro">What is Redux Toolkit (RTK)?</h2>
+  <p>
+    Vanilla Redux requires a lot of boilerplate: action type constants, action creator functions, long switch-case reducers, manual TypeScript typing. Redux Toolkit (RTK) is the official, recommended way to write Redux — it eliminates the boilerplate without changing how Redux works.
+  </p>
+
+  <table>
+    <thead><tr><th>You need to do this</th><th>Vanilla Redux</th><th>Redux Toolkit</th></tr></thead>
+    <tbody>
+      <tr><td>Define action types</td><td>Manual string constants</td><td>Auto-generated by <code>createSlice</code></td></tr>
+      <tr><td>Write reducers</td><td>Switch/case, manual immutability</td><td>Direct mutation (Immer handles it)</td></tr>
+      <tr><td>Handle async</td><td>Write middleware, thunks manually</td><td><code>createAsyncThunk</code></td></tr>
+      <tr><td>Configure store</td><td>applyMiddleware, compose, DevTools</td><td><code>configureStore</code> (all built-in)</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout info">
+    <strong>Immer — why you can "mutate" in RTK</strong>
+    Redux Toolkit uses a library called <strong>Immer</strong> under the hood. Inside a Redux Toolkit reducer, when you write <code>state.loading = true</code>, you're not actually mutating the state — Immer wraps your operation and produces a new immutable state object. Outside of a Redux Toolkit reducer, you must still follow immutability rules.
+  </div>
+
+  <!-- ───────────────────────────────────────────── -->
+  <h2 id="configure-store">configureStore</h2>
+  <p>
+    <code>configureStore</code> is RTK's replacement for Redux's <code>createStore</code>. It sets up the store with good defaults: Redux DevTools extension support and <code>redux-thunk</code> middleware (for async thunks) are included automatically.
+  </p>
+
+<pre><span class="file-label">app/store.ts</span>
+<span class="kw">import</span> { configureStore } <span class="kw">from</span> <span class="str">"@reduxjs/toolkit"</span>;
+<span class="kw">import</span> authReducer  <span class="kw">from</span> <span class="str">"../features/auth/authSlice/authSlice"</span>;
+<span class="kw">import</span> briefReducer <span class="kw">from</span> <span class="str">"../features/briefs/briefSlice/briefSlice"</span>;
+
+<span class="kw">export const</span> store <span class="op">=</span> <span class="fn">configureStore</span>({
+  reducer: {
+    auth:   authReducer,   <span class="cm">// manages state.auth</span>
+    briefs: briefReducer,  <span class="cm">// manages state.briefs</span>
+  }
+});
+
+<span class="cm">// These types are derived automatically from the store — never write them manually</span>
+<span class="kw">export type</span> <span class="tp">RootState</span>  <span class="op">=</span> <span class="tp">ReturnType</span><span class="op">&lt;</span><span class="kw">typeof</span> store.getState<span class="op">&gt;</span>;
+<span class="kw">export type</span> <span class="tp">AppDispatch</span> <span class="op">=</span> <span class="kw">typeof</span> store.dispatch;</pre>
+
+  <h3>RootState and AppDispatch explained</h3>
+  <p>
+    <code>RootState</code> is the TypeScript type of the entire store's state object. <code>ReturnType&lt;typeof store.getState&gt;</code> means "whatever <code>store.getState()</code> returns, that's the type". This is derived automatically — if you add a new slice, the type updates automatically.
+  </p>
+  <p>
+    <code>AppDispatch</code> is the type of the <code>dispatch</code> function. It is more specific than the default Redux dispatch — it knows about thunks, so TypeScript gives you proper types when you dispatch async actions.
+  </p>
+
+  <p>What the store looks like in memory at runtime:</p>
+<pre><span class="cm">// state.auth</span>
+{
+  user:        { id: <span class="str">"..."</span>, firstName: <span class="str">"Omar"</span>, role: <span class="str">"ADMIN"</span>, ... },
+  token:       <span class="str">"eyJhbGciOiJIUzI1NiJ9..."</span>,
+  loading:     <span class="nm">false</span>,
+  error:       <span class="nm">null</span>,
+  initialized: <span class="nm">true</span>
+}
+
+<span class="cm">// state.briefs</span>
+{
+  briefs:       [ { id: <span class="str">"..."</span>, title: <span class="str">"New Website"</span>, status: <span class="str">"PENDING"</span>, ... }, ... ],
+  currentBrief: { id: <span class="str">"..."</span>, title: <span class="str">"New Website"</span>, ... },
+  employees:    [ { id: <span class="str">"..."</span>, firstName: <span class="str">"Mehdi"</span>, ... } ],
+  loading:      <span class="nm">false</span>,
+  error:        <span class="nm">null</span>
+}</pre>
+
+  <!-- ───────────────────────────────────────────── -->
+  <h2 id="create-slice">createSlice</h2>
+  <p>
+    A <strong>slice</strong> is a piece of the Redux store dedicated to one feature. <code>createSlice</code> takes a name, initial state, and reducers, and produces everything you need automatically: the reducer function and action creators.
+  </p>
+
+<pre><span class="file-label">authSlice/authSlice.ts</span>
+<span class="kw">import</span> { createSlice } <span class="kw">from</span> <span class="str">"@reduxjs/toolkit"</span>;
+<span class="kw">import type</span> { <span class="tp">AuthState</span> } <span class="kw">from</span> <span class="str">"./authTypes"</span>;
+
+<span class="kw">const</span> initialState: <span class="tp">AuthState</span> <span class="op">=</span> {
+  user:        <span class="nm">null</span>,
+  token:       localStorage.<span class="fn">getItem</span>(<span class="str">"token"</span>) || sessionStorage.<span class="fn">getItem</span>(<span class="str">"token"</span>),
+  loading:     <span class="nm">false</span>,
+  error:       <span class="nm">null</span>,
+  initialized: <span class="nm">false</span>,
+};
+<span class="cm">//                                    ↑
+// On page load, check if there's a token in storage already.
+// This is how "remember me" works — the token survives page reload.</span>
+
+<span class="kw">const</span> authSlice <span class="op">=</span> <span class="fn">createSlice</span>({
+  name: <span class="str">"auth"</span>,   <span class="cm">// prefix for action types → "auth/logout", "auth/clearError"</span>
+  initialState,
+  reducers: {
+    <span class="fn">logout</span>: (state) <span class="op">=&gt;</span> {
+      state.user  <span class="op">=</span> <span class="nm">null</span>;
+      state.token <span class="op">=</span> <span class="nm">null</span>;
+      localStorage.<span class="fn">removeItem</span>(<span class="str">"token"</span>);
+      sessionStorage.<span class="fn">removeItem</span>(<span class="str">"token"</span>);
+    },
+    <span class="fn">clearError</span>: (state) <span class="op">=&gt;</span> { state.error <span class="op">=</span> <span class="nm">null</span>; },
+    <span class="fn">setToken</span>: (state, action: { payload: <span class="tp">string</span> }) <span class="op">=&gt;</span> {
+      state.token <span class="op">=</span> action.payload;
+    }
+  },
+  <span class="cm">// extraReducers handles actions from thunks (see next section)</span>
+  extraReducers(builder) { <span class="cm">/* ... */</span> }
+});
+
+<span class="cm">// Export the action creators so components can dispatch them</span>
+<span class="kw">export const</span> { logout, clearError, setToken } <span class="op">=</span> authSlice.actions;
+
+<span class="cm">// Export the reducer to be registered in the store</span>
+<span class="kw">export default</span> authSlice.reducer;</pre>
+
+  <div class="callout tip">
+    <strong>What does createSlice generate?</strong>
+    For the <code>logout</code> reducer, RTK automatically creates an action creator function <code>logout()</code> that produces <code>{ type: "auth/logout" }</code>. You never write action type strings manually.
+  </div>
+
+  <!-- ───────────────────────────────────────────── -->
+  <h2 id="reducers">reducers vs extraReducers</h2>
+
+  <h3>reducers</h3>
+  <p>
+    Used for <strong>synchronous actions</strong> defined within the same slice. Every key in <code>reducers</code> becomes both a reducer case and an exported action creator.
+  </p>
+
+  <h3>extraReducers</h3>
+  <p>
+    Used to handle actions that come from <strong>outside the slice</strong> — mainly from <code>createAsyncThunk</code>. You use the <strong>builder pattern</strong> to add cases.
+  </p>
+  <p>Each async thunk automatically creates three action types: <code>.pending</code>, <code>.fulfilled</code>, <code>.rejected</code>. You handle all three in <code>extraReducers</code>:</p>
+
+<pre><span class="file-label">authSlice/authSlice.ts — extraReducers</span>
+extraReducers(builder) {
+  builder
+    <span class="cm">// loginThunk.pending fires when the API call starts</span>
+    .<span class="fn">addCase</span>(loginThunk.pending, (state) <span class="op">=&gt;</span> {
+      state.loading <span class="op">=</span> <span class="nm">true</span>;
+      state.error   <span class="op">=</span> <span class="nm">null</span>;
+    })
+    <span class="cm">// loginThunk.fulfilled fires when the API call succeeds</span>
+    <span class="cm">// action.payload = whatever the thunk returned</span>
+    .<span class="fn">addCase</span>(loginThunk.fulfilled, (state, action) <span class="op">=&gt;</span> {
+      state.loading <span class="op">=</span> <span class="nm">false</span>;
+      state.user    <span class="op">=</span> action.payload.user;
+      state.token   <span class="op">=</span> action.payload.token;
+
+      <span class="cm">// Persist token based on rememberMe flag sent from the component</span>
+      <span class="kw">if</span> (action.meta.arg.rememberMe) {
+        localStorage.<span class="fn">setItem</span>(<span class="str">"token"</span>, action.payload.token);
+      } <span class="kw">else</span> {
+        sessionStorage.<span class="fn">setItem</span>(<span class="str">"token"</span>, action.payload.token);
+      }
+    })
+    <span class="cm">// loginThunk.rejected fires when the API call fails</span>
+    <span class="cm">// action.payload = the error message (set via rejectWithValue)</span>
+    .<span class="fn">addCase</span>(loginThunk.rejected, (state, action) <span class="op">=&gt;</span> {
+      state.loading <span class="op">=</span> <span class="nm">false</span>;
+      state.error   <span class="op">=</span> action.payload <span class="kw">as</span> <span class="tp">string</span>;
+    });
+}</pre>
+
+  <div class="callout info">
+    <strong>action.meta.arg</strong>
+    Inside <code>extraReducers</code>, <code>action.meta.arg</code> gives you the original argument that was passed to the thunk when it was dispatched. In the login example, <code>action.meta.arg.rememberMe</code> is the <code>rememberMe</code> field from the <code>LoginPayload</code> object that the component sent.
+  </div>
+
+  <!-- ───────────────────────────────────────────── -->
+  <h2 id="selectors">Selectors</h2>
+  <p>
+    A selector is a function that reads a piece of state from the store. They live in a dedicated <code>*Selectors.ts</code> file. Why not just access <code>state.auth.user</code> directly in components? Three reasons:
+  </p>
+  <ol>
+    <li><strong>Single source of truth</strong> — if you rename a state field, you only update the selector, not every component</li>
+    <li><strong>Composability</strong> — selectors can compute derived values (<code>selectIsAdmin</code> = check user.role)</li>
+    <li><strong>TypeScript</strong> — the selector's return type is inferred, so components get full type safety</li>
+  </ol>
+
+<pre><span class="file-label">authSlice/authSelectors.ts</span>
+<span class="kw">import type</span> { <span class="tp">RootState</span> } <span class="kw">from</span> <span class="str">"../../../app/store"</span>;
+
+<span class="cm">// Simple selectors — just read from state</span>
+<span class="kw">export const</span> <span class="fn">selectUser</span>    <span class="op">=</span> (state: <span class="tp">RootState</span>) <span class="op">=&gt;</span> state.auth.user;
+<span class="kw">export const</span> <span class="fn">selectToken</span>   <span class="op">=</span> (state: <span class="tp">RootState</span>) <span class="op">=&gt;</span> state.auth.token;
+<span class="kw">export const</span> <span class="fn">selectAuthLoading</span> <span class="op">=</span> (state: <span class="tp">RootState</span>) <span class="op">=&gt;</span> state.auth.loading;
+
+<span class="cm">// Derived selector — computes a boolean from user data</span>
+<span class="kw">export const</span> <span class="fn">selectIsLoggedIn</span> <span class="op">=</span> (state: <span class="tp">RootState</span>) <span class="op">=&gt;</span> !!state.auth.token;
+<span class="kw">export const</span> <span class="fn">selectIsAdmin</span>    <span class="op">=</span> (state: <span class="tp">RootState</span>) <span class="op">=&gt;</span> state.auth.user?.role <span class="op">===</span> <span class="str">"ADMIN"</span>;
+
+<span class="cm">// Brief selector that takes an extra argument</span>
+<span class="kw">export const</span> <span class="fn">selectBriefById</span> <span class="op">=</span> (state: <span class="tp">RootState</span>, briefId: <span class="tp">string</span>) <span class="op">=&gt;</span>
+  state.briefs.briefs.<span class="fn">find</span>(brief <span class="op">=&gt;</span> brief.id <span class="op">===</span> briefId);</pre>
+
+  <p>In a component, you use them with <code>useAppSelector</code>:</p>
+
+<pre><span class="cm">// Each call subscribes to exactly the piece of state it needs</span>
+<span class="kw">const</span> user    <span class="op">=</span> <span class="fn">useAppSelector</span>(selectUser);
+<span class="kw">const</span> loading <span class="op">=</span> <span class="fn">useAppSelector</span>(selectAuthLoading);
+<span class="kw">const</span> isAdmin <span class="op">=</span> <span class="fn">useAppSelector</span>(selectIsAdmin);</pre>
+
+  <!-- ───────────────────────────────────────────── -->
+  <h2 id="typed-hooks">Typed Hooks</h2>
+  <p>
+    Redux provides two hooks out of the box: <code>useDispatch</code> and <code>useSelector</code>. But they don't know about your store's specific types. Smart Brief wraps them with typed versions in <code>app/hooks.ts</code>:
+  </p>
+
+<pre><span class="file-label">app/hooks.ts</span>
+<span class="kw">import</span> { <span class="kw">type</span> <span class="tp">TypedUseSelectorHook</span>, useDispatch, useSelector } <span class="kw">from</span> <span class="str">"react-redux"</span>;
+<span class="kw">import type</span> { <span class="tp">RootState</span>, <span class="tp">AppDispatch</span> } <span class="kw">from</span> <span class="str">"./store"</span>;
+
+<span class="cm">// Returns dispatch typed as AppDispatch — knows about thunks</span>
+<span class="kw">export const</span> <span class="fn">useAppDispatch</span> <span class="op">=</span> () <span class="op">=&gt;</span> <span class="fn">useDispatch</span><span class="op">&lt;</span><span class="tp">AppDispatch</span><span class="op">&gt;</span>();
+
+<span class="cm">// TypedUseSelectorHook makes useSelector know the shape of RootState</span>
+<span class="kw">export const</span> useAppSelector: <span class="tp">TypedUseSelectorHook</span><span class="op">&lt;</span><span class="tp">RootState</span><span class="op">&gt;</span> <span class="op">=</span> useSelector;</pre>
+
+  <p>Why <code>useAppDispatch</code> is a factory function: <code>useAppDispatch</code> is <code>() =&gt; useDispatch&lt;AppDispatch&gt;()</code> — a function that calls a hook and returns it. You call it inside components like this:</p>
+
+<pre><span class="cm">// In a component</span>
+<span class="kw">const</span> dispatch <span class="op">=</span> <span class="fn">useAppDispatch</span>();
+<span class="cm">// Now "dispatch" is fully typed — TypeScript knows it can handle thunks</span>
+
+dispatch(<span class="fn">loginThunk</span>({ email: <span class="str">"..."</span>, password: <span class="str">"..."</span>, rememberMe: <span class="nm">true</span> }));
+<span class="cm">//        ↑ TypeScript knows this thunk's argument shape</span></pre>
+
+  <hr />
+
+  <!-- ══════════════════════════════════════════════════════════
+       ASYNC THUNKS
+  ══════════════════════════════════════════════════════════ -->
+
+  <h2 id="thunk-intro">What is a Thunk?</h2>
+  <p>
+    Redux reducers are <strong>synchronous and pure</strong> — they cannot do async things like make HTTP requests. A <strong>thunk</strong> is a function that can be dispatched just like an action, but instead of being handled by a reducer directly, it runs custom async logic first, then dispatches real actions.
+  </p>
+  <p>
+    The word "thunk" is a programming term for a function that wraps another function to delay execution. In Redux, a thunk is a function that returns another function that receives <code>dispatch</code>.
+  </p>
+
+  <div class="callout info">
+    <strong>Why middleware?</strong>
+    Redux Toolkit includes <code>redux-thunk</code> middleware automatically via <code>configureStore</code>. This middleware intercepts dispatched functions (instead of plain objects) and calls them with <code>dispatch</code> and <code>getState</code>. That's what makes thunks work.
+  </div>
+
+  <!-- ───────────────────────────────────────────── -->
+  <h2 id="create-async-thunk">createAsyncThunk</h2>
+  <p>
+    <code>createAsyncThunk</code> is RTK's helper for creating thunks. You give it a type prefix and an async function, and it generates the three lifecycle action creators automatically.
+  </p>
+
+<pre><span class="file-label">authSlice/authThunk.ts</span>
+<span class="kw">export const</span> loginThunk <span class="op">=</span> <span class="fn">createAsyncThunk</span>(
+<span class="cm">//                         ↑ takes two arguments:</span>
+  <span class="str">"auth/login"</span>,    <span class="cm">// 1. Action type prefix (string)</span>
+
+  <span class="kw">async</span> (data: <span class="tp">LoginPayload</span>, thunkAPI) <span class="op">=&gt;</span> {  <span class="cm">// 2. Payload creator</span>
+    <span class="kw">try</span> {
+      <span class="kw">const</span> response <span class="op">=</span> <span class="kw">await</span> api.<span class="fn">post</span>(<span class="str">"/auth/login"</span>, data);
+      <span class="kw">return</span> response.data; <span class="cm">// → becomes action.payload in .fulfilled</span>
+    } <span class="kw">catch</span> (error: <span class="tp">unknown</span>) {
+      <span class="kw">return</span> thunkAPI.<span class="fn">rejectWithValue</span>(<span class="fn">getErrorMessage</span>(error, <span class="str">"Login failed"</span>));
+      <span class="cm">// ↑ → becomes action.payload in .rejected</span>
+    }
+  }
+);</pre>
+
+  <p>After creating this thunk, you automatically get:</p>
+  <ul>
+    <li><code>loginThunk.pending</code> — action type: <code>"auth/login/pending"</code></li>
+    <li><code>loginThunk.fulfilled</code> — action type: <code>"auth/login/fulfilled"</code></li>
+    <li><code>loginThunk.rejected</code> — action type: <code>"auth/login/rejected"</code></li>
+  </ul>
+
+  <!-- ───────────────────────────────────────────── -->
+  <h2 id="thunk-lifecycle">Lifecycle Actions — pending / fulfilled / rejected</h2>
+
+  <p>These three states mirror the lifecycle of a Promise. Here is what happens step by step when a component calls <code>dispatch(loginThunk(...))</code>:</p>
+
+  <ol>
+    <li>Redux dispatches <code>{ type: "auth/login/pending" }</code> immediately</li>
+    <li>The async function runs (the API call happens)</li>
+    <li><strong>If the promise resolves</strong> → dispatches <code>{ type: "auth/login/fulfilled", payload: responseData }</code></li>
+    <li><strong>If the promise rejects</strong> → dispatches <code>{ type: "auth/login/rejected", payload: errorMessage }</code></li>
+  </ol>
+
+<pre><span class="cm">// What these action objects look like:</span>
+
+<span class="cm">// pending</span>
+{ type: <span class="str">"auth/login/pending"</span>, meta: { arg: { email: <span class="str">"..."</span>, password: <span class="str">"..."</span>, rememberMe: <span class="nm">true</span> } } }
+
+<span class="cm">// fulfilled</span>
+{ type: <span class="str">"auth/login/fulfilled"</span>, payload: { user: {...}, token: <span class="str">"eyJ..."</span> } }
+
+<span class="cm">// rejected</span>
+{ type: <span class="str">"auth/login/rejected"</span>, payload: <span class="str">"Invalid credentials"</span> }</pre>
+
+  <p>You handle all three in <code>extraReducers</code> to update the loading/error/data state accordingly.</p>
+
+  <!-- ───────────────────────────────────────────── -->
+  <h2 id="thunk-api">thunkAPI &amp; rejectWithValue</h2>
+  <p>
+    The second argument to the payload creator is <code>thunkAPI</code> — an object with several powerful utilities.
+  </p>
+
+  <table>
+    <thead><tr><th>Method / Property</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><td><code>thunkAPI.rejectWithValue(value)</code></td><td>Reject the thunk with a specific payload instead of the thrown error. Used for user-friendly error messages.</td></tr>
+      <tr><td><code>thunkAPI.dispatch(action)</code></td><td>Dispatch another action from inside the thunk</td></tr>
+      <tr><td><code>thunkAPI.getState()</code></td><td>Read the current Redux state from inside the thunk</td></tr>
+      <tr><td><code>thunkAPI.signal</code></td><td>An AbortSignal for cancelling the request</td></tr>
+    </tbody>
+  </table>
+
+  <h3>The getErrorMessage pattern</h3>
+  <p>Both thunk files in Smart Brief use this helper function to extract clean error messages from Axios errors:</p>
+
+<pre><span class="file-label">authThunk.ts / briefThunk.ts</span>
+<span class="kw">const</span> <span class="fn">getErrorMessage</span> <span class="op">=</span> (error: <span class="tp">unknown</span>, fallback: <span class="tp">string</span>) <span class="op">=&gt;</span> {
+  <span class="kw">if</span> (error <span class="kw">instanceof</span> <span class="tp">AxiosError</span>) {
+    <span class="cm">// Try to get the message from the server's response body</span>
+    <span class="kw">return</span> (error.response?.data <span class="kw">as</span> { message?: <span class="tp">string</span> } | <span class="tp">undefined</span>)?.message || fallback;
+  }
+  <span class="kw">return</span> fallback; <span class="cm">// Non-axios error (network down, etc.)</span>
+};
+
+<span class="cm">// Usage inside a thunk's catch block:</span>
+<span class="kw">return</span> thunkAPI.<span class="fn">rejectWithValue</span>(<span class="fn">getErrorMessage</span>(error, <span class="str">"Login failed"</span>));
+<span class="cm">// If server sent { message: "Invalid credentials" }, that's what the user sees
+// Otherwise the fallback "Login failed" is used</span></pre>
+
+  <div class="callout warn">
+    <strong>Why not just throw the error?</strong>
+    If you throw inside a thunk instead of using <code>rejectWithValue</code>, the rejected action's <code>payload</code> will be <code>undefined</code> and the error details won't reach your reducer. Always use <code>rejectWithValue</code> to pass clean error data to the <code>.rejected</code> case.
+  </div>
+
+  <!-- ───────────────────────────────────────────── -->
+  <h2 id="thunk-patterns">Thunk Patterns from the Codebase</h2>
+
+  <h3>Pattern 1: Simple GET (no arguments)</h3>
+<pre><span class="file-label">briefThunk.ts</span>
+<span class="kw">export const</span> fetchBriefsThunk <span class="op">=</span> <span class="fn">createAsyncThunk</span>(
+  <span class="str">"briefs/fetchAll"</span>,
+  <span class="kw">async</span> (_, thunkAPI) <span class="op">=&gt;</span> { <span class="cm">// _ means "no argument expected"</span>
+    <span class="kw">try</span> {
+      <span class="kw">const</span> response <span class="op">=</span> <span class="kw">await</span> api.<span class="fn">get</span>(<span class="str">"/briefs"</span>);
+      <span class="kw">return</span> response.data;
+    } <span class="kw">catch</span> (error: <span class="tp">unknown</span>) {
+      <span class="kw">return</span> thunkAPI.<span class="fn">rejectWithValue</span>(<span class="fn">getErrorMessage</span>(error, <span class="str">"Failed to fetch briefs"</span>));
+    }
+  }
+);</pre>
+
+  <h3>Pattern 2: GET with a path parameter</h3>
+<pre><span class="file-label">briefThunk.ts</span>
+<span class="kw">export const</span> fetchBriefByIdThunk <span class="op">=</span> <span class="fn">createAsyncThunk</span>(
+  <span class="str">"briefs/fetchById"</span>,
+  <span class="kw">async</span> (id: <span class="tp">string</span>, thunkAPI) <span class="op">=&gt;</span> { <span class="cm">// typed argument</span>
+    <span class="kw">try</span> {
+      <span class="kw">const</span> response <span class="op">=</span> <span class="kw">await</span> api.<span class="fn">get</span>(<span class="str">`/briefs/<span class="op">${</span>id<span class="op">}</span>`</span>); <span class="cm">// template literal</span>
+      <span class="kw">return</span> response.data;
+    } <span class="kw">catch</span> (error: <span class="tp">unknown</span>) {
+      <span class="kw">return</span> thunkAPI.<span class="fn">rejectWithValue</span>(<span class="fn">getErrorMessage</span>(error, <span class="str">"Failed to fetch brief"</span>));
+    }
+  }
+);</pre>
+
+  <h3>Pattern 3: POST with a typed payload object</h3>
+<pre><span class="file-label">authThunk.ts</span>
+<span class="kw">export const</span> loginThunk <span class="op">=</span> <span class="fn">createAsyncThunk</span>(
+  <span class="str">"auth/login"</span>,
+  <span class="kw">async</span> (data: <span class="tp">LoginPayload</span>, thunkAPI) <span class="op">=&gt;</span> {
+    <span class="kw">try</span> {
+      <span class="kw">const</span> response <span class="op">=</span> <span class="kw">await</span> api.<span class="fn">post</span>(<span class="str">"/auth/login"</span>, data); <span class="cm">// data is the request body</span>
+      <span class="kw">return</span> response.data; <span class="cm">// { user: User, token: string }</span>
+    } <span class="kw">catch</span> (error: <span class="tp">unknown</span>) {
+      <span class="kw">return</span> thunkAPI.<span class="fn">rejectWithValue</span>(<span class="fn">getErrorMessage</span>(error, <span class="str">"Login failed"</span>));
+    }
+  }
+);</pre>
+
+  <h3>Pattern 4: Dynamic routing based on role</h3>
+<pre><span class="file-label">briefThunk.ts</span>
+<span class="kw">export const</span> updateBriefThunk <span class="op">=</span> <span class="fn">createAsyncThunk</span>(
+  <span class="str">"briefs/update"</span>,
+  <span class="kw">async</span> ({ id, data, userRole }: <span class="tp">UpdateBriefPayload</span> <span class="op">&amp;</span> { userRole?: <span class="tp">string</span> }, thunkAPI) <span class="op">=&gt;</span> {
+    <span class="kw">try</span> {
+      <span class="cm">// Status-only update → use role-specific endpoint</span>
+      <span class="kw">if</span> (data.status <span class="op">&amp;&amp;</span> Object.<span class="fn">keys</span>(data).length <span class="op">&lt;=</span> <span class="nm">2</span>) {
+        <span class="kw">let</span> endpoint <span class="op">=</span> <span class="str">`/briefs/<span class="op">${</span>id<span class="op">}</span>/status`</span>;
+        <span class="kw">if</span>      (userRole <span class="op">===</span> <span class="str">"ADMIN"</span>)    endpoint <span class="op">=</span> <span class="str">`/briefs/admin/<span class="op">${</span>id<span class="op">}</span>/status`</span>;
+        <span class="kw">else if</span> (userRole <span class="op">===</span> <span class="str">"EMPLOYEE"</span>) endpoint <span class="op">=</span> <span class="str">`/briefs/employee/<span class="op">${</span>id<span class="op">}</span>/status`</span>;
+
+        <span class="kw">const</span> response <span class="op">=</span> <span class="kw">await</span> api.<span class="fn">patch</span>(endpoint, { status: data.status, reason: data.statusReason });
+        <span class="kw">return</span> response.data;
+      }
+      <span class="cm">// Full update → generic PATCH</span>
+      <span class="kw">const</span> response <span class="op">=</span> <span class="kw">await</span> api.<span class="fn">patch</span>(<span class="str">`/briefs/<span class="op">${</span>id<span class="op">}</span>`</span>, data);
+      <span class="kw">return</span> response.data;
+    } <span class="kw">catch</span> (error: <span class="tp">unknown</span>) {
+      <span class="kw">return</span> thunkAPI.<span class="fn">rejectWithValue</span>(<span class="fn">getErrorMessage</span>(error, <span class="str">"Failed to update brief"</span>));
+    }
+  }
+);</pre>
+
+  <h3>Pattern 5: DELETE that returns the ID (not the object)</h3>
+<pre><span class="file-label">briefThunk.ts</span>
+<span class="kw">export const</span> deleteBriefThunk <span class="op">=</span> <span class="fn">createAsyncThunk</span>(
+  <span class="str">"briefs/delete"</span>,
+  <span class="kw">async</span> (id: <span class="tp">string</span>, thunkAPI) <span class="op">=&gt;</span> {
+    <span class="kw">try</span> {
+      <span class="kw">await</span> api.<span class="fn">delete</span>(<span class="str">`/briefs/<span class="op">${</span>id<span class="op">}</span>`</span>); <span class="cm">// no return value from DELETE</span>
+      <span class="kw">return</span> id; <span class="cm">// return the id so the reducer can remove it from the array</span>
+    } <span class="kw">catch</span> (error: <span class="tp">unknown</span>) {
+      <span class="kw">return</span> thunkAPI.<span class="fn">rejectWithValue</span>(<span class="fn">getErrorMessage</span>(error, <span class="str">"Failed to delete brief"</span>));
+    }
+  }
+);
+
+<span class="cm">// In briefSlice.ts — the reducer uses the returned id to filter the array</span>
+.<span class="fn">addCase</span>(deleteBriefThunk.fulfilled, (state, action) <span class="op">=&gt;</span> {
+  state.loading <span class="op">=</span> <span class="nm">false</span>;
+  state.briefs  <span class="op">=</span> state.briefs.<span class="fn">filter</span>(b <span class="op">=&gt;</span> b.id <span class="op">!==</span> action.payload); <span class="cm">// action.payload is the id</span>
+})</pre>
+
+  <hr />
+
+  <!-- ══════════════════════════════════════════════════════════
+       AXIOS
+  ══════════════════════════════════════════════════════════ -->
+
+  <h2 id="axios-intro">What is Axios?</h2>
+  <p>
+    Axios is an HTTP client for JavaScript/TypeScript. It is used instead of the browser's built-in <code>fetch</code> because it is more convenient: it automatically parses JSON responses, has cleaner error handling, supports request/response interceptors, and handles timeouts.
+  </p>
+
+  <table>
+    <thead><tr><th>Feature</th><th>fetch</th><th>Axios</th></tr></thead>
+    <tbody>
+      <tr><td>JSON body serialization</td><td>Manual: <code>JSON.stringify(data)</code></td><td>Automatic</td></tr>
+      <tr><td>JSON response parsing</td><td>Manual: <code>await res.json()</code></td><td>Automatic: <code>response.data</code></td></tr>
+      <tr><td>Error on non-2xx status</td><td>No — must check <code>res.ok</code> manually</td><td>Yes — throws automatically</td></tr>
+      <tr><td>Request interceptors</td><td>No built-in support</td><td>Yes — great for adding auth headers</td></tr>
+      <tr><td>Response interceptors</td><td>No built-in support</td><td>Yes — great for 401 handling</td></tr>
+      <tr><td>Instance with base URL</td><td>No</td><td>Yes — <code>axios.create</code></td></tr>
+    </tbody>
+  </table>
+
+  <!-- ───────────────────────────────────────────── -->
+  <h2 id="axios-instance">axios.create — Creating an Instance</h2>
+  <p>
+    Instead of calling <code>axios.get("https://full-url.com/endpoint")</code> every time, you create an <strong>instance</strong> with a pre-configured base URL. Smart Brief has two instances — one for the gateway (briefs) and one also used for auth:
+  </p>
+
+<pre><span class="file-label">features/briefs/api/briefAxios.ts</span>
+<span class="kw">import</span> axios <span class="kw">from</span> <span class="str">"axios"</span>;
+
+<span class="kw">const</span> api <span class="op">=</span> axios.<span class="fn">create</span>({
+  <span class="cm">// VITE_API_URL comes from your .env file (the Railway gateway URL in production)</span>
+  baseURL: import.meta.env.<span class="nm">VITE_API_URL</span> || <span class="str">"http://localhost:8080"</span>,
+  headers: {
+    <span class="str">"Content-Type"</span>: <span class="str">"application/json"</span>
+  }
+});
+
+<span class="kw">export default</span> api;</pre>
+
+  <p>Now in a thunk you write <code>api.get("/briefs")</code> and the full URL becomes <code>https://gateway.up.railway.app/briefs</code> automatically.</p>
+
+  <!-- ───────────────────────────────────────────── -->
+  <h2 id="interceptors">Interceptors</h2>
+  <p>
+    Interceptors are middleware for Axios. They intercept every request before it is sent, or every response before it reaches your <code>.then()</code>. Smart Brief uses both:
+  </p>
+
+  <h3>Request Interceptor — Attach JWT Token</h3>
+  <p>
+    Every API call needs to include the JWT token in the <code>Authorization</code> header. Instead of manually adding it in every thunk, the request interceptor adds it automatically:
+  </p>
+
+<pre><span class="file-label">briefAxios.ts</span>
+api.interceptors.request.<span class="fn">use</span>((config) <span class="op">=&gt;</span> {
+  <span class="cm">// Check both storages — depends on whether "remember me" was ticked</span>
+  <span class="kw">const</span> token <span class="op">=</span> localStorage.<span class="fn">getItem</span>(<span class="str">"token"</span>) || sessionStorage.<span class="fn">getItem</span>(<span class="str">"token"</span>);
+
+  <span class="kw">if</span> (token) {
+    config.headers.Authorization <span class="op">=</span> <span class="str">`Bearer <span class="op">${</span>token<span class="op">}</span>`</span>;
+    <span class="cm">// Result: every request has the header:
+    // Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJpZCI6Ii4...</span>
+  }
+
+  <span class="kw">return</span> config; <span class="cm">// MUST return config or the request won't be sent</span>
+});</pre>
+
+  <h3>Response Interceptor — Handle 401 Unauthorized</h3>
+  <p>
+    If a token expires and the server returns <code>401</code>, the user's session is invalid. The response interceptor catches this globally and redirects to the login page:
+  </p>
+
+<pre><span class="file-label">briefAxios.ts</span>
+api.interceptors.response.<span class="fn">use</span>(
+  (response) <span class="op">=&gt;</span> response, <span class="cm">// Success path — just pass through</span>
+
+  (error) <span class="op">=&gt;</span> {            <span class="cm">// Error path — called on any non-2xx status</span>
+    <span class="kw">if</span> (error.response?.status <span class="op">===</span> <span class="nm">401</span>) {
+      localStorage.<span class="fn">removeItem</span>(<span class="str">"token"</span>);
+      sessionStorage.<span class="fn">removeItem</span>(<span class="str">"token"</span>);
+      window.location.href <span class="op">=</span> <span class="str">"/login"</span>; <span class="cm">// Hard redirect</span>
+    }
+    <span class="kw">return</span> Promise.<span class="fn">reject</span>(error); <span class="cm">// Re-throw so thunk catch blocks still fire</span>
+  }
+);</pre>
+
+  <div class="callout warn">
+    <strong>Promise.reject(error) at the end</strong>
+    Even when you handle the 401, you must still call <code>Promise.reject(error)</code> to re-throw the error. If you don't, Axios would treat the error as resolved — your thunk's <code>catch</code> block would never run, and <code>loading</code> would stay <code>true</code> forever.
+  </div>
+
+  <!-- ───────────────────────────────────────────── -->
+  <h2 id="axios-methods">HTTP Methods with Axios</h2>
+
+<pre><span class="cm">// GET — fetch data (response in response.data)</span>
+<span class="kw">const</span> response <span class="op">=</span> <span class="kw">await</span> api.<span class="fn">get</span>(<span class="str">"/briefs"</span>);
+<span class="kw">const</span> response <span class="op">=</span> <span class="kw">await</span> api.<span class="fn">get</span>(<span class="str">`/briefs/<span class="op">${</span>id<span class="op">}</span>`</span>);
+
+<span class="cm">// POST — create (second arg = request body)</span>
+<span class="kw">const</span> response <span class="op">=</span> <span class="kw">await</span> api.<span class="fn">post</span>(<span class="str">"/auth/login"</span>, { email, password });
+<span class="kw">const</span> response <span class="op">=</span> <span class="kw">await</span> api.<span class="fn">post</span>(<span class="str">"/briefs"</span>, briefData);
+
+<span class="cm">// PATCH — partial update</span>
+<span class="kw">const</span> response <span class="op">=</span> <span class="kw">await</span> api.<span class="fn">patch</span>(<span class="str">`/briefs/<span class="op">${</span>id<span class="op">}</span>`</span>, { status: <span class="str">"ACCEPTED"</span> });
+
+<span class="cm">// PUT — full update (replaces entire resource)</span>
+<span class="kw">const</span> response <span class="op">=</span> <span class="kw">await</span> api.<span class="fn">put</span>(<span class="str">`/users/<span class="op">${</span>id<span class="op">}</span>`</span>, updatedUser);
+
+<span class="cm">// DELETE</span>
+<span class="kw">await</span> api.<span class="fn">delete</span>(<span class="str">`/briefs/<span class="op">${</span>id<span class="op">}</span>`</span>);
+
+<span class="cm">// DELETE with a body (deleteMeThunk — sends password for verification)</span>
+<span class="kw">await</span> api.<span class="fn">delete</span>(<span class="str">"/auth/me"</span>, { data: { password } });</pre>
+
+  <hr />
+
+  <!-- ══════════════════════════════════════════════════════════
+       FULL INTEGRATION
+  ══════════════════════════════════════════════════════════ -->
+
+  <h2 id="provider">Provider Setup — Connecting Redux to React</h2>
+  <p>
+    For any component to access the Redux store, the entire app must be wrapped with a <code>Provider</code> component from <code>react-redux</code>. This uses React's Context API internally to make the store available everywhere.
+  </p>
+
+<pre><span class="file-label">main.tsx</span>
+<span class="kw">import</span> { StrictMode }  <span class="kw">from</span> <span class="str">"react"</span>;
+<span class="kw">import</span> { createRoot }  <span class="kw">from</span> <span class="str">"react-dom/client"</span>;
+<span class="kw">import</span> { Provider }    <span class="kw">from</span> <span class="str">"react-redux"</span>;
+<span class="kw">import</span> { store }       <span class="kw">from</span> <span class="str">"./app/store"</span>;
+<span class="kw">import</span> { BrowserRouter } <span class="kw">from</span> <span class="str">"react-router-dom"</span>;
+<span class="kw">import</span> App <span class="kw">from</span> <span class="str">"./App"</span>;
+
+<span class="fn">createRoot</span>(document.<span class="fn">getElementById</span>(<span class="str">"root"</span>)!).<span class="fn">render</span>(
+  <span class="ts">&lt;StrictMode&gt;</span>
+    <span class="ts">&lt;Provider</span> <span class="kw">store</span><span class="op">={</span>store<span class="op">}</span><span class="ts">&gt;</span>        <span class="cm">&lt;!-- Redux --&gt;</span>
+      <span class="ts">&lt;BrowserRouter&gt;</span>             <span class="cm">&lt;!-- Router --&gt;</span>
+        <span class="ts">&lt;App /&gt;</span>
+      <span class="ts">&lt;/BrowserRouter&gt;</span>
+    <span class="ts">&lt;/Provider&gt;</span>
+  <span class="ts">&lt;/StrictMode&gt;</span>
+);</pre>
+
+  <p><code>Provider</code> wraps everything. <code>BrowserRouter</code> wraps everything that needs routing. Your <code>App</code> component is at the center, with its route tree inside.</p>
+
+  <!-- ───────────────────────────────────────────── -->
+  <h2 id="full-flow">The Complete Flow — All Pieces Together</h2>
+  <p>Here is the complete picture of how a component, Redux, a thunk, and Axios work together:</p>
+
+<pre><span class="cm">┌────────────────────────────────────────────────────────────────┐
+│                        REACT COMPONENT                         │
+│                                                                │
+│  1. const dispatch = useAppDispatch()                          │
+│  2. dispatch(loginThunk({ email, password, rememberMe }))      │
+│                                                                │
+└───────────────────────────┬────────────────────────────────────┘
+                            │
+                            ▼ (redux-thunk middleware intercepts)
+┌────────────────────────────────────────────────────────────────┐
+│                    createAsyncThunk                            │
+│                                                                │
+│  3. Dispatches loginThunk.pending → state.loading = true       │
+│  4. Calls api.post("/auth/login", data)     ──────────────►    │
+│     (Axios request interceptor adds JWT header)                │
+│                                               BACKEND          │
+│  5. Response arrives: { user, token }   ◄──────────────        │
+│  6. Returns response.data                                      │
+│                                                                │
+└───────────────────────────┬────────────────────────────────────┘
+                            │
+                            ▼ (dispatches loginThunk.fulfilled)
+┌────────────────────────────────────────────────────────────────┐
+│                    REDUCER (in authSlice)                      │
+│                                                                │
+│  7. state.loading = false                                      │
+│  8. state.user    = action.payload.user                        │
+│  9. state.token   = action.payload.token                       │
+│ 10. localStorage.setItem("token", ...)  (if rememberMe)        │
+│                                                                │
+└───────────────────────────┬────────────────────────────────────┘
+                            │
+                            ▼ (store notifies subscribed components)
+┌────────────────────────────────────────────────────────────────┐
+│                    REACT COMPONENT (re-renders)                │
+│                                                                │
+│ 11. useAppSelector(selectUser) → now returns the logged-in user│
+│ 12. Component renders the authenticated UI                     │
+│                                                                │
+└────────────────────────────────────────────────────────────────┘</span></pre>
+
+  <!-- ───────────────────────────────────────────── -->
+  <h2 id="login-walkthrough">Login Walkthrough — Line by Line</h2>
+  <p>Let's trace a complete login from form submission to the user appearing on screen.</p>
+
+  <h3>Step 1 — Component dispatches the thunk</h3>
+<pre><span class="cm">// In a login form component</span>
+<span class="kw">const</span> dispatch <span class="op">=</span> <span class="fn">useAppDispatch</span>();
+
+<span class="kw">const</span> <span class="fn">handleSubmit</span> <span class="op">=</span> <span class="kw">async</span> (e: <span class="tp">React.FormEvent</span>) <span class="op">=&gt;</span> {
+  e.<span class="fn">preventDefault</span>();
+  <span class="kw">await</span> <span class="fn">dispatch</span>(<span class="fn">loginThunk</span>({ email, password, rememberMe }));
+};</pre>
+
+  <h3>Step 2 — pending fires immediately</h3>
+<pre><span class="cm">// extraReducers inside authSlice handles loginThunk.pending</span>
+.<span class="fn">addCase</span>(loginThunk.pending, (state) <span class="op">=&gt;</span> {
+  state.loading <span class="op">=</span> <span class="nm">true</span>;   <span class="cm">// Component reading selectAuthLoading re-renders → show spinner</span>
+  state.error   <span class="op">=</span> <span class="nm">null</span>;
+})</pre>
+
+  <h3>Step 3 — Axios sends the request with the JWT header</h3>
+<pre><span class="cm">// Inside loginThunk payload creator</span>
+<span class="kw">const</span> response <span class="op">=</span> <span class="kw">await</span> api.<span class="fn">post</span>(<span class="str">"/auth/login"</span>, data);
+<span class="cm">// Before the request is sent, the request interceptor runs:
+// config.headers.Authorization = `Bearer ${token}` (if a token exists)
+// The request goes to: https://gateway.up.railway.app/auth/login</span></pre>
+
+  <h3>Step 4a — Success path: fulfilled fires</h3>
+<pre><span class="cm">// Server responds with { user: {...}, token: "eyJ..." }
+// Thunk returns response.data
+// Redux dispatches loginThunk.fulfilled with that data as payload</span>
+
+.<span class="fn">addCase</span>(loginThunk.fulfilled, (state, action) <span class="op">=&gt;</span> {
+  state.loading <span class="op">=</span> <span class="nm">false</span>;
+  state.user    <span class="op">=</span> action.payload.user;   <span class="cm">// { id, firstName, role, ... }</span>
+  state.token   <span class="op">=</span> action.payload.token;  <span class="cm">// "eyJ..."</span>
+  <span class="kw">if</span> (action.meta.arg.rememberMe) {
+    localStorage.<span class="fn">setItem</span>(<span class="str">"token"</span>, action.payload.token);
+  } <span class="kw">else</span> {
+    sessionStorage.<span class="fn">setItem</span>(<span class="str">"token"</span>, action.payload.token);
+  }
+})</pre>
+
+  <h3>Step 4b — Error path: rejected fires</h3>
+<pre><span class="cm">// Server responds with 400 { message: "Invalid credentials" }
+// catch block calls: thunkAPI.rejectWithValue("Invalid credentials")
+// Redux dispatches loginThunk.rejected with "Invalid credentials" as payload</span>
+
+.<span class="fn">addCase</span>(loginThunk.rejected, (state, action) <span class="op">=&gt;</span> {
+  state.loading <span class="op">=</span> <span class="nm">false</span>;
+  state.error   <span class="op">=</span> action.payload <span class="kw">as</span> <span class="tp">string</span>; <span class="cm">// "Invalid credentials"</span>
+})</pre>
+
+  <h3>Step 5 — Component re-renders with the result</h3>
+<pre><span class="cm">// In the login form component</span>
+<span class="kw">const</span> error   <span class="op">=</span> <span class="fn">useAppSelector</span>(selectAuthError);   <span class="cm">// "Invalid credentials" or null</span>
+<span class="kw">const</span> loading <span class="op">=</span> <span class="fn">useAppSelector</span>(selectAuthLoading); <span class="cm">// false</span>
+<span class="kw">const</span> user    <span class="op">=</span> <span class="fn">useAppSelector</span>(selectUser);        <span class="cm">// User object or null</span>
+
+<span class="cm">// In JSX:</span>
+{error   <span class="op">&amp;&amp;</span> <span class="ts">&lt;p</span> <span class="kw">className</span><span class="op">=</span><span class="str">"text-red-400"</span><span class="ts">&gt;</span>{error}<span class="ts">&lt;/p&gt;</span>}
+{loading <span class="op">&amp;&amp;</span> <span class="ts">&lt;Spinner /&gt;</span>}
+{user    <span class="op">&amp;&amp;</span> <span class="ts">&lt;Navigate</span> <span class="kw">to</span><span class="op">=</span><span class="str">"/dashboard"</span> <span class="ts">/&gt;</span>}</pre>
+
+  <!-- ───────────────────────────────────────────── -->
+  <h2 id="brief-walkthrough">Brief CRUD Walkthrough</h2>
+
+  <h3>Create a brief</h3>
+<pre><span class="cm">// Component calls this when the form is submitted</span>
+<span class="kw">await</span> <span class="fn">dispatch</span>(<span class="fn">createBriefThunk</span>({
+  title:       <span class="str">"New Website"</span>,
+  projectType: <span class="str">"SITE_WEB"</span>,
+  description: <span class="str">"..."</span>,
+  features:    [<span class="str">"Contact form"</span>, <span class="str">"Blog"</span>],
+  budgetRange: <span class="str">"5000-10000 MAD"</span>,
+  deadline:    <span class="str">"2026-06-01"</span>
+}));
+
+<span class="cm">// In the reducer .fulfilled case:</span>
+state.briefs.<span class="fn">push</span>(action.payload); <span class="cm">// new brief appears in the list immediately</span></pre>
+
+  <h3>Load a brief by ID (BriefDetails page)</h3>
+<pre><span class="cm">// BriefDetails.tsx reads the :id from the URL</span>
+<span class="kw">const</span> { id } <span class="op">=</span> <span class="fn">useParams</span><span class="op">&lt;</span>{ id: <span class="tp">string</span> }<span class="op">&gt;</span>();
+
+<span class="cm">// When the component mounts, dispatch the fetch thunk</span>
+<span class="fn">useEffect</span>(() <span class="op">=&gt;</span> {
+  <span class="kw">if</span> (id) <span class="fn">dispatch</span>(<span class="fn">fetchBriefByIdThunk</span>(id));
+}, [id, dispatch]);
+
+<span class="cm">// Read the result from the store</span>
+<span class="kw">const</span> brief   <span class="op">=</span> <span class="fn">useAppSelector</span>(selectCurrentBrief); <span class="cm">// Brief | null</span>
+<span class="kw">const</span> loading <span class="op">=</span> <span class="fn">useAppSelector</span>(selectBriefsLoading);
+
+<span class="cm">// Show spinner while loading</span>
+<span class="kw">if</span> (loading || !brief) {
+  <span class="kw">return</span> <span class="ts">&lt;Spinner /&gt;</span>;
+}
+
+<span class="cm">// Render the brief</span>
+<span class="kw">return</span> <span class="ts">&lt;h1&gt;</span>{brief.title}<span class="ts">&lt;/h1&gt;</span>;</pre>
+
+  <h3>Update brief status (admin accepts)</h3>
+<pre><span class="cm">// BriefDetails.tsx</span>
+<span class="kw">const</span> user <span class="op">=</span> <span class="fn">useAppSelector</span>(selectUser);
+
+<span class="kw">const</span> <span class="fn">handleUpdateStatus</span> <span class="op">=</span> <span class="kw">async</span> (status: <span class="tp">BriefStatus</span>) <span class="op">=&gt;</span> {
+  <span class="kw">if</span> (!brief) <span class="kw">return</span>;
+  <span class="kw">await</span> <span class="fn">dispatch</span>(<span class="fn">updateBriefThunk</span>({
+    id:       brief.id,
+    data:     { status },
+    userRole: user?.role     <span class="cm">// "ADMIN" → uses /briefs/admin/:id/status</span>
+  }));
+};
+
+<span class="cm">// In JSX:</span>
+{isAdmin <span class="op">&amp;&amp;</span> brief.status <span class="op">===</span> <span class="str">'PENDING'</span> <span class="op">&amp;&amp;</span> (
+  <span class="ts">&lt;button</span> <span class="kw">onClick</span><span class="op">={() =></span> <span class="fn">handleUpdateStatus</span>(<span class="str">'ACCEPTED'</span>)<span class="op">}</span><span class="ts">&gt;</span>Accept<span class="ts">&lt;/button&gt;</span>
+)}</pre>
+
+  <h3>Delete a brief</h3>
+<pre><span class="kw">const</span> <span class="fn">handleDelete</span> <span class="op">=</span> <span class="kw">async</span> () <span class="op">=&gt;</span> {
+  <span class="kw">if</span> (!brief || !window.<span class="fn">confirm</span>(<span class="str">"Are you sure?"</span>)) <span class="kw">return</span>;
+  <span class="kw">await</span> <span class="fn">dispatch</span>(<span class="fn">deleteBriefThunk</span>(brief.id));
+  <span class="fn">navigate</span>(<span class="op">-</span><span class="nm">1</span>); <span class="cm">// go back after deletion</span>
+};
+
+<span class="cm">// Reducer removes the brief from the array using filter:</span>
+state.briefs <span class="op">=</span> state.briefs.<span class="fn">filter</span>(b <span class="op">=&gt;</span> b.id <span class="op">!==</span> action.payload);</pre>
+
+  <!-- ───────────────────────────────────────────── -->
+  <h2 id="patterns">Project Patterns &amp; Conventions</h2>
+
+  <h3>Feature folder structure</h3>
+<pre>features/
+├── auth/
+│   ├── api/
+│   │   └── authAxios.ts          <span class="cm">← axios instance</span>
+│   └── authSlice/
+│       ├── authSlice.ts          <span class="cm">← createSlice (state + reducers)</span>
+│       ├── authThunk.ts          <span class="cm">← createAsyncThunk (API calls)</span>
+│       ├── authSelectors.ts      <span class="cm">← selector functions</span>
+│       └── authTypes.ts          <span class="cm">← TypeScript interfaces</span>
+└── briefs/
+    ├── api/
+    │   └── briefAxios.ts
+    └── briefSlice/
+        ├── briefSlice.ts
+        ├── briefThunk.ts
+        ├── briefSelectors.ts
+        └── briefTypes.ts</pre>
+
+  <h3>The loading/error pattern — every slice follows this</h3>
+<pre><span class="cm">// Initial state always has loading and error</span>
+<span class="kw">const</span> initialState: <span class="tp">SomeState</span> <span class="op">=</span> {
+  data:    <span class="nm">null</span>,
+  loading: <span class="nm">false</span>,
+  error:   <span class="nm">null</span>
+};
+
+<span class="cm">// Every thunk's three cases follow the same pattern:</span>
+.<span class="fn">addCase</span>(someThunk.pending,   (state)          <span class="op">=&gt;</span> { state.loading <span class="op">=</span> <span class="nm">true</span>;  state.error <span class="op">=</span> <span class="nm">null</span>; })
+.<span class="fn">addCase</span>(someThunk.fulfilled, (state, action) <span class="op">=&gt;</span> { state.loading <span class="op">=</span> <span class="nm">false</span>; state.data <span class="op">=</span> action.payload; })
+.<span class="fn">addCase</span>(someThunk.rejected,  (state, action) <span class="op">=&gt;</span> { state.loading <span class="op">=</span> <span class="nm">false</span>; state.error <span class="op">=</span> action.payload <span class="kw">as</span> <span class="tp">string</span>; })</pre>
+
+  <h3>Awaiting dispatch and checking the result</h3>
+  <p>When you dispatch a thunk with <code>await</code>, it returns an action object. You can inspect it to know if the thunk succeeded:</p>
+
+<pre><span class="kw">const</span> result <span class="op">=</span> <span class="kw">await</span> <span class="fn">dispatch</span>(<span class="fn">loginThunk</span>(data));
+
+<span class="cm">// Check if it was fulfilled or rejected</span>
+<span class="kw">if</span> (<span class="fn">loginThunk</span>.<span class="fn">fulfilled</span>.<span class="fn">match</span>(result)) {
+  <span class="fn">navigate</span>(<span class="str">"/dashboard"</span>);    <span class="cm">// success</span>
+} <span class="kw">else</span> {
+  console.<span class="fn">log</span>(<span class="str">"Login failed"</span>); <span class="cm">// error is already in state.auth.error</span>
+}</pre>
+
+  <h3>Conditional rendering based on role</h3>
+<pre><span class="kw">const</span> user       <span class="op">=</span> <span class="fn">useAppSelector</span>(selectUser);
+<span class="kw">const</span> isAdmin    <span class="op">=</span> user?.role <span class="op">===</span> <span class="str">"ADMIN"</span>;
+<span class="kw">const</span> isEmployee <span class="op">=</span> user?.role <span class="op">===</span> <span class="str">"EMPLOYEE"</span>;
+<span class="kw">const</span> isClient   <span class="op">=</span> user?.role <span class="op">===</span> <span class="str">"CLIENT"</span>;
+
+<span class="cm">// Only admins see the Accept/Refuse buttons</span>
+{isAdmin <span class="op">&amp;&amp;</span> brief.status <span class="op">===</span> <span class="str">'PENDING'</span> <span class="op">&amp;&amp;</span> (
+  <span class="ts">&lt;&gt;</span>
+    <span class="ts">&lt;button</span> <span class="kw">onClick</span><span class="op">={() =></span> <span class="fn">handleUpdateStatus</span>(<span class="str">'ACCEPTED'</span>)<span class="op">}</span><span class="ts">&gt;</span>Accept<span class="ts">&lt;/button&gt;</span>
+    <span class="ts">&lt;button</span> <span class="kw">onClick</span><span class="op">={() =></span> <span class="fn">handleUpdateStatus</span>(<span class="str">'REFUSED'</span>)<span class="op">}</span><span class="ts">&gt;</span>Refuse<span class="ts">&lt;/button&gt;</span>
+  <span class="ts">&lt;/&gt;</span>
+)}
+<span class="cm">// Only employees see "Start Working"</span>
+{isEmployee <span class="op">&amp;&amp;</span> brief.status <span class="op">===</span> <span class="str">'ACCEPTED'</span> <span class="op">&amp;&amp;</span> (
+  <span class="ts">&lt;button</span> <span class="kw">onClick</span><span class="op">={() =></span> <span class="fn">handleUpdateStatus</span>(<span class="str">'IN_PROGRESS'</span>)<span class="op">}</span><span class="ts">&gt;</span>Start Working<span class="ts">&lt;/button&gt;</span>
+)}</pre>
+
+  <hr />
+
+  <!-- ══════════════════════════════════════════════════════════
+       CHEAT SHEET
+  ══════════════════════════════════════════════════════════ -->
+
+  <h2 id="cheatsheet">Cheat Sheet</h2>
+
+  <h3>React Hooks</h3>
+  <table>
+    <thead><tr><th>Hook</th><th>What it does</th><th>Example</th></tr></thead>
+    <tbody>
+      <tr><td><code>useState</code></td><td>Local component state</td><td><code>const [open, setOpen] = useState(false)</code></td></tr>
+      <tr><td><code>useEffect</code></td><td>Side effects after render</td><td><code>useEffect(() =&gt; { fetch() }, [id])</code></td></tr>
+      <tr><td><code>useParams</code></td><td>URL parameters</td><td><code>const { id } = useParams()</code></td></tr>
+      <tr><td><code>useNavigate</code></td><td>Programmatic navigation</td><td><code>navigate("/dashboard")</code></td></tr>
+      <tr><td><code>useAppSelector</code></td><td>Read Redux state</td><td><code>const user = useAppSelector(selectUser)</code></td></tr>
+      <tr><td><code>useAppDispatch</code></td><td>Dispatch actions/thunks</td><td><code>const dispatch = useAppDispatch()</code></td></tr>
+    </tbody>
+  </table>
+
+  <h3>Redux Toolkit Functions</h3>
+  <table>
+    <thead><tr><th>Function</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td><code>configureStore</code></td><td>Creates the Redux store with DevTools and thunk middleware</td></tr>
+      <tr><td><code>createSlice</code></td><td>Creates state + reducers + auto-generated action creators</td></tr>
+      <tr><td><code>createAsyncThunk</code></td><td>Creates an async action creator with pending/fulfilled/rejected</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Axios Instance API</h3>
+  <table>
+    <thead><tr><th>Method</th><th>Use case</th></tr></thead>
+    <tbody>
+      <tr><td><code>api.get(url)</code></td><td>Fetch data</td></tr>
+      <tr><td><code>api.post(url, body)</code></td><td>Create resource</td></tr>
+      <tr><td><code>api.patch(url, body)</code></td><td>Partial update</td></tr>
+      <tr><td><code>api.put(url, body)</code></td><td>Full replace</td></tr>
+      <tr><td><code>api.delete(url)</code></td><td>Delete resource</td></tr>
+      <tr><td><code>api.interceptors.request.use</code></td><td>Middleware for outgoing requests (add auth header)</td></tr>
+      <tr><td><code>api.interceptors.response.use</code></td><td>Middleware for incoming responses (handle 401)</td></tr>
+    </tbody>
+  </table>
+
+  <h3>The Mental Model in One Table</h3>
+  <table>
+    <thead><tr><th>Layer</th><th>File</th><th>Responsibility</th></tr></thead>
+    <tbody>
+      <tr><td>Types</td><td><code>*Types.ts</code></td><td>TypeScript interfaces — the shape of data</td></tr>
+      <tr><td>HTTP</td><td><code>*Axios.ts</code></td><td>Axios instance — base URL + auth interceptors</td></tr>
+      <tr><td>Async Logic</td><td><code>*Thunk.ts</code></td><td>createAsyncThunk — calls API, returns data or error</td></tr>
+      <tr><td>State Logic</td><td><code>*Slice.ts</code></td><td>createSlice — manages state, handles thunk lifecycles</td></tr>
+      <tr><td>Read State</td><td><code>*Selectors.ts</code></td><td>Functions to read specific parts of the store</td></tr>
+      <tr><td>Store</td><td><code>store.ts</code></td><td>Combines all slices into one global store</td></tr>
+      <tr><td>Hooks</td><td><code>hooks.ts</code></td><td>Typed wrappers for useDispatch / useSelector</td></tr>
+      <tr><td>UI</td><td><code>*.tsx</code></td><td>Components — dispatch thunks, read selectors, render UI</td></tr>
+    </tbody>
+  </table>
+
+</main>
+
+<script>
+  // Active sidebar link based on scroll position
+  const sections = document.querySelectorAll('h2[id], h3[id]');
+  const links    = document.querySelectorAll('nav a');
+
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        links.forEach(l => l.classList.remove('active'));
+        const active = document.querySelector(`nav a[href="#${entry.target.id}"]`);
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px' });
+
+  sections.forEach(s => obs.observe(s));
+</script>
+</body>
+</html>

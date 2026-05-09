@@ -17,6 +17,10 @@ dist/
 *.log
 **/logs/
 
+# Uploaded files
+services/brief-service/uploads/*
+!services/brief-service/uploads/.gitkeep
+
 # OS files
 .DS_Store
 Thumbs.db

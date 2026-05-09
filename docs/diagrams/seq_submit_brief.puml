@@ -1,0 +1,50 @@
+@startuml SmartBrief - Séquence : Soumission d'un brief
+
+skinparam backgroundColor #1A2238
+skinparam participantBackgroundColor #1E2D4A
+skinparam participantBorderColor #6C63FF
+skinparam participantFontColor #FFFFFF
+skinparam sequenceArrowColor #6C63FF
+skinparam sequenceLifeLineBorderColor #2E3A5C
+skinparam sequenceBoxBackgroundColor #12192B
+skinparam sequenceBoxBorderColor #2E3A5C
+skinparam noteBorderColor #00B4D8
+skinparam noteBackgroundColor #0D3A4A
+skinparam noteFontColor #FFFFFF
+
+actor "Client" as client
+participant "React Frontend" as frontend
+participant "brief-service\n(Express)" as api
+participant "PostgreSQL\n(via Prisma)" as db
+participant "Nodemailer\n(Email)" as email
+
+client -> frontend : Accède à /new-project
+activate frontend
+
+client -> frontend : Remplit le formulaire\n(nom, service, fonctionnalités,\nbudget, date, fichiers)
+frontend -> frontend : Validation des champs\n(Redux Form State)
+
+client -> frontend : Clique sur "Créer"
+frontend -> api : POST /briefs\n(multipart/form-data + JWT)
+activate api
+
+api -> api : Vérifie le JWT\n(middleware auth)
+api -> db : INSERT Brief\n(status = PENDING)
+activate db
+db --> api : Brief créé (id, status)
+deactivate db
+
+api -> email : Envoie email de\nconfirmation au client
+activate email
+email --> api : Email envoyé
+deactivate email
+
+api --> frontend : 201 Created\n{ brief: {...} }
+deactivate api
+
+frontend -> frontend : Dispatch briefCreated\n(Redux Store)
+frontend --> client : Affiche écran succès\n"BRIEF SOUMIS !"
+
+note over api, db : Le brief apparaît\nimmédiatement dans le\ntableau de bord Admin\nau prochain chargement
+
+@enduml

@@ -1,0 +1,1065 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Tailwind CSS — Smart Brief Docs</title>
+<style>
+  :root {
+    --bg:#0f1117; --surface:#1a1d27; --surface2:#222536; --border:#2e3249;
+    --accent:#7c6af7; --accent2:#56cfb2; --accent3:#f7c06a; --accent4:#f76a8a;
+    --text:#e2e4f0; --muted:#8b8fa8; --code-bg:#13151f; --sidebar-w:270px;
+    --tw:#38bdf8;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;font-size:15px;line-height:1.7;display:flex;}
+  nav{width:var(--sidebar-w);min-height:100vh;background:var(--surface);border-right:1px solid var(--border);padding:24px 0;position:fixed;top:0;left:0;overflow-y:auto;display:flex;flex-direction:column;gap:2px;}
+  nav .logo{padding:0 20px 20px;font-size:17px;font-weight:700;color:var(--accent);border-bottom:1px solid var(--border);margin-bottom:10px;}
+  nav .logo span{color:var(--accent2);}
+  nav a{display:block;padding:7px 20px;color:var(--muted);text-decoration:none;font-size:13px;border-left:3px solid transparent;transition:all .15s;}
+  nav a:hover{color:var(--text);background:rgba(124,106,247,.08);}
+  nav a.active{color:var(--accent);border-left-color:var(--accent);background:rgba(124,106,247,.12);}
+  nav .section-title{padding:14px 20px 4px;font-size:10px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);font-weight:600;}
+  main{margin-left:var(--sidebar-w);padding:48px 56px;max-width:980px;width:100%;}
+  h1{font-size:38px;font-weight:800;color:#fff;margin-bottom:12px;}
+  h2{font-size:26px;font-weight:700;color:#fff;margin:56px 0 18px;padding-top:16px;border-top:1px solid var(--border);}
+  h2:first-of-type{border-top:none;}
+  h3{font-size:18px;font-weight:600;color:var(--accent2);margin:32px 0 12px;}
+  h4{font-size:15px;font-weight:600;color:var(--accent3);margin:22px 0 8px;}
+  p{color:var(--text);margin-bottom:14px;}
+  ul,ol{padding-left:22px;margin-bottom:14px;}
+  li{margin-bottom:5px;color:var(--text);}
+  strong{color:#fff;}
+  code{background:var(--code-bg);padding:2px 7px;border-radius:4px;font-family:'Cascadia Code','Fira Code',monospace;font-size:13px;color:var(--accent2);}
+  pre{background:var(--code-bg);border:1px solid var(--border);border-radius:10px;padding:20px 22px;overflow-x:auto;margin:16px 0 24px;font-family:'Cascadia Code','Fira Code',monospace;font-size:13.5px;line-height:1.65;}
+  pre .c{color:#4a5568;} pre .k{color:#c792ea;} pre .s{color:#c3e88d;}
+  pre .n{color:var(--accent2);} pre .t{color:var(--accent3);} pre .tw{color:var(--tw);}
+  pre .f{color:#82aaff;} pre .p{color:var(--text);}
+  .callout{border-radius:10px;padding:16px 20px;margin:20px 0;border-left:4px solid;}
+  .callout.info{background:rgba(86,207,178,.08);border-color:var(--accent2);}
+  .callout.warn{background:rgba(247,192,106,.08);border-color:var(--accent3);}
+  .callout.error{background:rgba(247,106,138,.08);border-color:var(--accent4);}
+  .callout.tip{background:rgba(124,106,247,.08);border-color:var(--accent);}
+  .callout strong{display:block;margin-bottom:6px;font-size:13px;text-transform:uppercase;letter-spacing:.5px;}
+  .callout.info strong{color:var(--accent2);} .callout.warn strong{color:var(--accent3);}
+  .callout.error strong{color:var(--accent4);} .callout.tip strong{color:var(--accent);}
+  .compare{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:20px 0;}
+  .compare>div{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:18px;}
+  .compare>div h4{margin-top:0;margin-bottom:10px;}
+  table{width:100%;border-collapse:collapse;margin:20px 0 28px;}
+  th{background:var(--surface2);color:var(--accent2);font-size:12px;text-transform:uppercase;letter-spacing:.5px;padding:10px 14px;text-align:left;border-bottom:2px solid var(--border);}
+  td{padding:10px 14px;border-bottom:1px solid var(--border);font-size:14px;}
+  tr:hover td{background:rgba(255,255,255,.02);}
+  td code{font-size:12.5px;}
+
+  /* Utility demo boxes */
+  .demo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin:16px 0 24px;}
+  .demo-box{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px;font-size:12px;font-family:monospace;}
+  .demo-box .label{color:var(--muted);font-size:11px;margin-bottom:6px;}
+  .demo-box .result{color:var(--tw);font-weight:600;}
+
+  /* Color swatches */
+  .swatches{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 24px;}
+  .swatch{width:52px;text-align:center;}
+  .swatch-color{height:36px;border-radius:6px;margin-bottom:4px;border:1px solid rgba(255,255,255,.1);}
+  .swatch-name{font-size:10px;color:var(--muted);}
+  .swatch-value{font-size:9px;color:var(--border);font-family:monospace;}
+
+  /* Spacing scale visual */
+  .spacing-row{display:flex;align-items:center;gap:12px;margin-bottom:8px;}
+  .spacing-bar{background:var(--tw);height:16px;border-radius:3px;opacity:.7;}
+  .spacing-label{font-size:12px;color:var(--muted);font-family:monospace;min-width:60px;}
+  .spacing-px{font-size:12px;color:var(--text);}
+
+  /* Responsive preview */
+  .breakpoint-row{display:flex;align-items:center;gap:0;margin:16px 0;}
+  .bp-box{flex:1;padding:10px 8px;text-align:center;font-size:12px;border:1px solid var(--border);}
+  .bp-box:first-child{border-radius:8px 0 0 8px;}
+  .bp-box:last-child{border-radius:0 8px 8px 0;}
+  .bp-active{background:rgba(56,189,248,.15);border-color:var(--tw);color:var(--tw);}
+  .bp-label{font-weight:700;font-size:11px;}
+  .bp-sub{font-size:10px;color:var(--muted);margin-top:2px;}
+</style>
+</head>
+<body>
+<nav id="sidebar">
+  <div class="logo">Smart Brief <span>Docs</span></div>
+  <div class="section-title">Intro</div>
+  <a href="#what-is">What is Tailwind?</a>
+  <a href="#utility-first">Utility-first concept</a>
+  <a href="#setup">Setup (v4)</a>
+  <a href="#v3-vs-v4">v3 vs v4 differences</a>
+
+  <div class="section-title">Layout</div>
+  <a href="#display">Display</a>
+  <a href="#flexbox">Flexbox</a>
+  <a href="#grid">Grid</a>
+  <a href="#position">Position</a>
+  <a href="#overflow">Overflow & Z-index</a>
+
+  <div class="section-title">Spacing & Sizing</div>
+  <a href="#spacing">Spacing scale</a>
+  <a href="#padding-margin">Padding & Margin</a>
+  <a href="#gap">Gap</a>
+  <a href="#sizing">Width & Height</a>
+
+  <div class="section-title">Typography</div>
+  <a href="#font-size">Font size</a>
+  <a href="#font-weight">Font weight & style</a>
+  <a href="#text-align">Alignment & transform</a>
+  <a href="#tracking-leading">Tracking & Leading</a>
+  <a href="#line-clamp">Line clamp</a>
+
+  <div class="section-title">Colors & Borders</div>
+  <a href="#colors">Color system</a>
+  <a href="#opacity-modifier">Opacity modifier /</a>
+  <a href="#background">Background</a>
+  <a href="#border">Border & Radius</a>
+  <a href="#shadow">Shadow & Ring</a>
+
+  <div class="section-title">Effects & Motion</div>
+  <a href="#opacity">Opacity</a>
+  <a href="#transform">Transform</a>
+  <a href="#transition">Transition</a>
+
+  <div class="section-title">Modifiers</div>
+  <a href="#responsive">Responsive (sm: md: lg:)</a>
+  <a href="#hover-focus">hover: focus: active:</a>
+  <a href="#disabled">disabled: checked:</a>
+  <a href="#group">group & group-hover:</a>
+  <a href="#peer">peer & peer-*</a>
+  <a href="#placeholder">placeholder:</a>
+  <a href="#dark">dark:</a>
+
+  <div class="section-title">Customization</div>
+  <a href="#arbitrary">Arbitrary values [ ]</a>
+  <a href="#custom-theme">Custom theme (v4)</a>
+  <a href="#applying-css">Applying CSS directly</a>
+
+  <div class="section-title">Smart Brief</div>
+  <a href="#project-patterns">Project patterns</a>
+  <a href="#class-merging">Dynamic class merging</a>
+</nav>
+
+<main>
+<h1>Tailwind CSS</h1>
+<p style="color:var(--muted);font-size:17px;">Everything you need to work with Tailwind — every utility, every modifier, v4 setup, and real Smart Brief examples.</p>
+
+<!-- ============================================================ WHAT IS -->
+<h2 id="what-is">What is Tailwind?</h2>
+<p>Tailwind CSS is a <strong>utility-first CSS framework</strong>. Instead of writing CSS in a separate file, you apply small single-purpose classes directly to your HTML/JSX.</p>
+
+<div class="compare">
+  <div>
+    <h4 style="color:var(--muted)">Traditional CSS</h4>
+    <pre><span class="c">/* button.css */</span>
+<span class="n">.btn</span> {
+  background: #414CC4;
+  color: white;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 700;
+  transition: background 0.2s;
+}
+<span class="n">.btn:hover</span> {
+  background: #3a44b0;
+}</pre>
+    <pre><span class="c">/* button.jsx */</span>
+&lt;button <span class="tw">className</span>=<span class="s">"btn"</span>&gt;Click&lt;/button&gt;</pre>
+  </div>
+  <div>
+    <h4 style="color:var(--tw)">Tailwind</h4>
+    <pre><span class="c">/* No CSS file needed */</span>
+&lt;button
+  <span class="tw">className</span>=<span class="s">"bg-[#414CC4] text-white
+    px-6 py-3 rounded-lg font-bold
+    hover:bg-[#3a44b0] transition-colors"</span>
+&gt;
+  Click
+&lt;/button&gt;</pre>
+    <p style="font-size:13px;color:var(--muted);margin-top:8px;">All styling is inline in the JSX. No CSS context-switching.</p>
+  </div>
+</div>
+
+<p>Tailwind scans your JSX files, finds every class you use, and generates <strong>only those CSS rules</strong> — the final CSS file is tiny even for large projects.</p>
+
+<!-- ============================================================ UTILITY FIRST -->
+<h2 id="utility-first">Utility-First Concept</h2>
+<p>Each class does <strong>one thing</strong>:</p>
+<table>
+  <tr><th>Class</th><th>CSS it generates</th></tr>
+  <tr><td><code>flex</code></td><td><code>display: flex</code></td></tr>
+  <tr><td><code>items-center</code></td><td><code>align-items: center</code></td></tr>
+  <tr><td><code>gap-4</code></td><td><code>gap: 1rem</code></td></tr>
+  <tr><td><code>text-white</code></td><td><code>color: #fff</code></td></tr>
+  <tr><td><code>font-bold</code></td><td><code>font-weight: 700</code></td></tr>
+  <tr><td><code>rounded-xl</code></td><td><code>border-radius: 0.75rem</code></td></tr>
+  <tr><td><code>hover:bg-blue-500</code></td><td><code>&:hover { background-color: #3b82f6 }</code></td></tr>
+  <tr><td><code>md:flex</code></td><td><code>@media (min-width:768px) { display: flex }</code></td></tr>
+</table>
+
+<p>You combine classes to build complex styles — no naming, no file switching, no specificity battles.</p>
+
+<!-- ============================================================ SETUP -->
+<h2 id="setup">Setup (Tailwind v4)</h2>
+
+<pre><span class="c"># Install</span>
+npm install tailwindcss @tailwindcss/vite</pre>
+
+<p>In <code>vite.config.ts</code> — add the Tailwind plugin:</p>
+<pre><span class="k">import</span> tailwindcss <span class="k">from</span> <span class="s">'@tailwindcss/vite'</span>
+<span class="k">import</span> { defineConfig } <span class="k">from</span> <span class="s">'vite'</span>
+
+<span class="k">export default</span> <span class="f">defineConfig</span>({
+  plugins: [react(), tailwindcss()]
+})</pre>
+
+<p>In your main CSS file (<code>index.css</code>) — one line replaces all v3 directives:</p>
+<pre><span class="c">/* index.css — that's it, no tailwind.config.js needed */</span>
+<span class="tw">@import</span> <span class="s">"tailwindcss"</span>;</pre>
+
+<p>Import that CSS in your entry point (<code>main.tsx</code>):</p>
+<pre><span class="k">import</span> <span class="s">"./index.css"</span></pre>
+
+<!-- ============================================================ V3 VS V4 -->
+<h2 id="v3-vs-v4">v3 vs v4 — Key Differences</h2>
+<table>
+  <tr><th>Feature</th><th>Tailwind v3</th><th>Tailwind v4 (Smart Brief)</th></tr>
+  <tr><td>Install</td><td><code>npm install tailwindcss postcss autoprefixer</code></td><td><code>npm install tailwindcss @tailwindcss/vite</code></td></tr>
+  <tr><td>CSS entry</td><td><code>@tailwind base; @tailwind components; @tailwind utilities;</code></td><td><code>@import "tailwindcss";</code></td></tr>
+  <tr><td>Config file</td><td><code>tailwind.config.js</code> required</td><td>No config file needed</td></tr>
+  <tr><td>Custom theme</td><td><code>theme.extend</code> in config</td><td><code>@theme { }</code> block in CSS</td></tr>
+  <tr><td>Custom colors</td><td><code>colors: { brand: '#...' }</code> in config</td><td><code>--color-brand: #...;</code> in <code>@theme</code></td></tr>
+  <tr><td>Custom fonts</td><td><code>fontFamily: { poppins: [...] }</code></td><td><code>--font-poppins: ['Poppins', sans-serif];</code></td></tr>
+  <tr><td>Arbitrary values</td><td><code>bg-[#1a2238]</code></td><td>Same</td></tr>
+  <tr><td>Performance</td><td>Good</td><td>Much faster build (Rust-based engine)</td></tr>
+</table>
+
+<div class="callout info">
+  <strong>Most class names are identical between v3 and v4</strong>
+  If you've seen Tailwind v3 code, almost everything works the same. The main difference is how you set it up and define custom values.
+</div>
+
+<!-- ============================================================ DISPLAY -->
+<h2 id="display">Display</h2>
+<table>
+  <tr><th>Class</th><th>CSS</th><th>Use case</th></tr>
+  <tr><td><code>block</code></td><td><code>display: block</code></td><td>Full width, stacks vertically</td></tr>
+  <tr><td><code>inline</code></td><td><code>display: inline</code></td><td>Flows with text</td></tr>
+  <tr><td><code>inline-block</code></td><td><code>display: inline-block</code></td><td>Inline but can have width/height</td></tr>
+  <tr><td><code>flex</code></td><td><code>display: flex</code></td><td>Flexbox container</td></tr>
+  <tr><td><code>inline-flex</code></td><td><code>display: inline-flex</code></td><td>Flex but inline</td></tr>
+  <tr><td><code>grid</code></td><td><code>display: grid</code></td><td>Grid container</td></tr>
+  <tr><td><code>hidden</code></td><td><code>display: none</code></td><td>Hide element</td></tr>
+</table>
+<pre><span class="c">/* Smart Brief — hide desktop nav on mobile, show flex on md+ */</span>
+&lt;div <span class="tw">className</span>=<span class="s">"hidden md:flex items-center gap-7"</span>&gt;
+  {navLinks}
+&lt;/div&gt;
+
+&lt;div <span class="tw">className</span>=<span class="s">"md:hidden"</span>&gt;
+  {/* mobile nav */}
+&lt;/div&gt;</pre>
+
+<!-- ============================================================ FLEXBOX -->
+<h2 id="flexbox">Flexbox</h2>
+<h3>Direction & Wrap</h3>
+<table>
+  <tr><th>Class</th><th>CSS</th></tr>
+  <tr><td><code>flex-row</code></td><td><code>flex-direction: row</code> (default)</td></tr>
+  <tr><td><code>flex-col</code></td><td><code>flex-direction: column</code></td></tr>
+  <tr><td><code>flex-row-reverse</code></td><td><code>flex-direction: row-reverse</code></td></tr>
+  <tr><td><code>flex-wrap</code></td><td><code>flex-wrap: wrap</code></td></tr>
+  <tr><td><code>flex-nowrap</code></td><td><code>flex-wrap: nowrap</code></td></tr>
+</table>
+
+<h3>Align Items (cross axis — vertical when flex-row)</h3>
+<table>
+  <tr><th>Class</th><th>CSS</th><th>Visual</th></tr>
+  <tr><td><code>items-start</code></td><td><code>align-items: flex-start</code></td><td>All to top</td></tr>
+  <tr><td><code>items-center</code></td><td><code>align-items: center</code></td><td>All centered vertically</td></tr>
+  <tr><td><code>items-end</code></td><td><code>align-items: flex-end</code></td><td>All to bottom</td></tr>
+  <tr><td><code>items-stretch</code></td><td><code>align-items: stretch</code></td><td>Fill height (default)</td></tr>
+  <tr><td><code>items-baseline</code></td><td><code>align-items: baseline</code></td><td>Align text baselines</td></tr>
+</table>
+
+<h3>Justify Content (main axis — horizontal when flex-row)</h3>
+<table>
+  <tr><th>Class</th><th>CSS</th></tr>
+  <tr><td><code>justify-start</code></td><td><code>justify-content: flex-start</code></td></tr>
+  <tr><td><code>justify-center</code></td><td><code>justify-content: center</code></td></tr>
+  <tr><td><code>justify-end</code></td><td><code>justify-content: flex-end</code></td></tr>
+  <tr><td><code>justify-between</code></td><td><code>justify-content: space-between</code></td></tr>
+  <tr><td><code>justify-around</code></td><td><code>justify-content: space-around</code></td></tr>
+  <tr><td><code>justify-evenly</code></td><td><code>justify-content: space-evenly</code></td></tr>
+</table>
+
+<h3>Flex Children</h3>
+<table>
+  <tr><th>Class</th><th>CSS</th><th>Use</th></tr>
+  <tr><td><code>flex-1</code></td><td><code>flex: 1 1 0%</code></td><td>Grow to fill available space</td></tr>
+  <tr><td><code>flex-auto</code></td><td><code>flex: 1 1 auto</code></td><td>Grow and shrink based on size</td></tr>
+  <tr><td><code>flex-none</code></td><td><code>flex: none</code></td><td>Don't grow or shrink</td></tr>
+  <tr><td><code>shrink-0</code></td><td><code>flex-shrink: 0</code></td><td>Never shrink (keep original size)</td></tr>
+  <tr><td><code>grow</code></td><td><code>flex-grow: 1</code></td><td>Grow to fill space</td></tr>
+  <tr><td><code>self-center</code></td><td><code>align-self: center</code></td><td>Override parent's align-items for this child</td></tr>
+</table>
+
+<pre><span class="c">/* Smart Brief Navbar — logo fixed, nav grows, auth on right */</span>
+&lt;div <span class="tw">className</span>=<span class="s">"flex items-center justify-between px-6 py-4"</span>&gt;
+  &lt;Logo <span class="tw">className</span>=<span class="s">"w-44 shrink-0"</span> /&gt;              <span class="c">{/* never shrink */}</span>
+  &lt;div <span class="tw">className</span>=<span class="s">"flex items-center gap-7"</span>&gt;...&lt;/div&gt;
+  &lt;div <span class="tw">className</span>=<span class="s">"flex items-center gap-3"</span>&gt;...&lt;/div&gt;
+&lt;/div&gt;
+
+<span class="c">/* OR divider line — flex-1 makes both lines fill equally */</span>
+&lt;div <span class="tw">className</span>=<span class="s">"flex items-center gap-3"</span>&gt;
+  &lt;div <span class="tw">className</span>=<span class="s">"flex-1 h-px bg-[#2E3A5C]"</span> /&gt;
+  &lt;span <span class="tw">className</span>=<span class="s">"text-white/30 text-xs"</span>&gt;OR&lt;/span&gt;
+  &lt;div <span class="tw">className</span>=<span class="s">"flex-1 h-px bg-[#2E3A5C]"</span> /&gt;
+&lt;/div&gt;</pre>
+
+<!-- ============================================================ GRID -->
+<h2 id="grid">Grid</h2>
+<table>
+  <tr><th>Class</th><th>CSS</th></tr>
+  <tr><td><code>grid-cols-1</code></td><td><code>grid-template-columns: repeat(1, minmax(0,1fr))</code></td></tr>
+  <tr><td><code>grid-cols-2</code></td><td><code>grid-template-columns: repeat(2, minmax(0,1fr))</code></td></tr>
+  <tr><td><code>grid-cols-3</code></td><td><code>grid-template-columns: repeat(3, minmax(0,1fr))</code></td></tr>
+  <tr><td><code>grid-cols-4</code></td><td><code>grid-template-columns: repeat(4, minmax(0,1fr))</code></td></tr>
+  <tr><td><code>col-span-2</code></td><td><code>grid-column: span 2 / span 2</code></td></tr>
+  <tr><td><code>col-span-full</code></td><td><code>grid-column: 1 / -1</code></td></tr>
+  <tr><td><code>grid-cols-[auto,1fr]</code></td><td>arbitrary columns</td></tr>
+</table>
+
+<pre><span class="c">/* BriefCard — 2 column info grid */</span>
+&lt;div <span class="tw">className</span>=<span class="s">"grid grid-cols-2 gap-4 border-t border-[#2E3A5C]/50 pt-5"</span>&gt;
+  &lt;div&gt;Budget: ...&lt;/div&gt;
+  &lt;div&gt;Deadline: ...&lt;/div&gt;
+&lt;/div&gt;
+
+<span class="c">/* Responsive grid — 1 col mobile, 2 tablet, 3 desktop */</span>
+&lt;div <span class="tw">className</span>=<span class="s">"grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"</span>&gt;
+  {briefs.map(b =&gt; &lt;BriefCard key={b.id} brief={b} /&gt;)}
+&lt;/div&gt;</pre>
+
+<!-- ============================================================ POSITION -->
+<h2 id="position">Position</h2>
+<table>
+  <tr><th>Class</th><th>CSS</th><th>Use case</th></tr>
+  <tr><td><code>relative</code></td><td><code>position: relative</code></td><td>Container for absolute children</td></tr>
+  <tr><td><code>absolute</code></td><td><code>position: absolute</code></td><td>Place exactly inside a relative parent</td></tr>
+  <tr><td><code>fixed</code></td><td><code>position: fixed</code></td><td>Fixed to viewport (sticky header)</td></tr>
+  <tr><td><code>sticky</code></td><td><code>position: sticky</code></td><td>Sticks when scrolling past</td></tr>
+  <tr><td><code>inset-0</code></td><td><code>top:0;right:0;bottom:0;left:0</code></td><td>Cover entire parent</td></tr>
+  <tr><td><code>top-0</code></td><td><code>top: 0</code></td><td></td></tr>
+  <tr><td><code>right-3</code></td><td><code>right: 0.75rem</code></td><td></td></tr>
+  <tr><td><code>-translate-y-1/2</code></td><td><code>transform: translateY(-50%)</code></td><td>Vertically center an absolute element</td></tr>
+</table>
+
+<pre><span class="c">/* Password show/hide button — centered vertically inside input */</span>
+&lt;div <span class="tw">className</span>=<span class="s">"relative"</span>&gt;
+  &lt;input <span class="tw">className</span>=<span class="s">"w-full pr-11 ..."</span> /&gt;
+  &lt;button <span class="tw">className</span>=<span class="s">"absolute right-3 top-1/2 -translate-y-1/2"</span>&gt;
+    &lt;EyeOff /&gt;
+  &lt;/button&gt;
+&lt;/div&gt;</pre>
+
+<!-- ============================================================ OVERFLOW -->
+<h2 id="overflow">Overflow & Z-index</h2>
+<table>
+  <tr><th>Class</th><th>CSS</th></tr>
+  <tr><td><code>overflow-hidden</code></td><td><code>overflow: hidden</code></td></tr>
+  <tr><td><code>overflow-auto</code></td><td><code>overflow: auto</code></td></tr>
+  <tr><td><code>overflow-scroll</code></td><td><code>overflow: scroll</code></td></tr>
+  <tr><td><code>overflow-x-auto</code></td><td><code>overflow-x: auto</code></td></tr>
+  <tr><td><code>overflow-y-hidden</code></td><td><code>overflow-y: hidden</code></td></tr>
+  <tr><td><code>z-10</code></td><td><code>z-index: 10</code></td></tr>
+  <tr><td><code>z-50</code></td><td><code>z-index: 50</code></td></tr>
+  <tr><td><code>z-[100]</code></td><td><code>z-index: 100</code></td></tr>
+</table>
+
+<!-- ============================================================ SPACING -->
+<h2 id="spacing">Spacing Scale</h2>
+<p>Tailwind uses a <strong>4px base unit</strong>. Every spacing value is a multiple of 4px:</p>
+
+<div style="margin:20px 0;">
+  <div class="spacing-row"><span class="spacing-label">0 (0px)</span><div class="spacing-bar" style="width:0px;"></div></div>
+  <div class="spacing-row"><span class="spacing-label">0.5 (2px)</span><div class="spacing-bar" style="width:2px;"></div></div>
+  <div class="spacing-row"><span class="spacing-label">1 (4px)</span><div class="spacing-bar" style="width:4px;"></div></div>
+  <div class="spacing-row"><span class="spacing-label">1.5 (6px)</span><div class="spacing-bar" style="width:6px;"></div></div>
+  <div class="spacing-row"><span class="spacing-label">2 (8px)</span><div class="spacing-bar" style="width:8px;"></div></div>
+  <div class="spacing-row"><span class="spacing-label">2.5 (10px)</span><div class="spacing-bar" style="width:10px;"></div></div>
+  <div class="spacing-row"><span class="spacing-label">3 (12px)</span><div class="spacing-bar" style="width:12px;"></div></div>
+  <div class="spacing-row"><span class="spacing-label">4 (16px)</span><div class="spacing-bar" style="width:16px;"></div></div>
+  <div class="spacing-row"><span class="spacing-label">5 (20px)</span><div class="spacing-bar" style="width:20px;"></div></div>
+  <div class="spacing-row"><span class="spacing-label">6 (24px)</span><div class="spacing-bar" style="width:24px;"></div></div>
+  <div class="spacing-row"><span class="spacing-label">8 (32px)</span><div class="spacing-bar" style="width:32px;"></div></div>
+  <div class="spacing-row"><span class="spacing-label">10 (40px)</span><div class="spacing-bar" style="width:40px;"></div></div>
+  <div class="spacing-row"><span class="spacing-label">12 (48px)</span><div class="spacing-bar" style="width:48px;"></div></div>
+  <div class="spacing-row"><span class="spacing-label">16 (64px)</span><div class="spacing-bar" style="width:64px;"></div></div>
+  <div class="spacing-row"><span class="spacing-label">20 (80px)</span><div class="spacing-bar" style="width:80px;"></div></div>
+  <div class="spacing-row"><span class="spacing-label">24 (96px)</span><div class="spacing-bar" style="width:96px;"></div></div>
+</div>
+
+<!-- ============================================================ PADDING MARGIN -->
+<h2 id="padding-margin">Padding & Margin</h2>
+<table>
+  <tr><th>Prefix</th><th>Sides</th><th>Example</th><th>CSS</th></tr>
+  <tr><td><code>p-</code></td><td>All 4 sides</td><td><code>p-4</code></td><td><code>padding: 1rem</code></td></tr>
+  <tr><td><code>px-</code></td><td>Left + Right</td><td><code>px-6</code></td><td><code>padding-left:1.5rem; padding-right:1.5rem</code></td></tr>
+  <tr><td><code>py-</code></td><td>Top + Bottom</td><td><code>py-3</code></td><td><code>padding-top:0.75rem; padding-bottom:0.75rem</code></td></tr>
+  <tr><td><code>pt-</code></td><td>Top only</td><td><code>pt-5</code></td><td><code>padding-top: 1.25rem</code></td></tr>
+  <tr><td><code>pr-</code></td><td>Right only</td><td><code>pr-11</code></td><td><code>padding-right: 2.75rem</code></td></tr>
+  <tr><td><code>pb-</code></td><td>Bottom only</td><td><code>pb-10</code></td><td><code>padding-bottom: 2.5rem</code></td></tr>
+  <tr><td><code>pl-</code></td><td>Left only</td><td><code>pl-2</code></td><td><code>padding-left: 0.5rem</code></td></tr>
+  <tr><td><code>m-</code></td><td>All 4</td><td><code>m-auto</code></td><td><code>margin: auto</code></td></tr>
+  <tr><td><code>mx-</code></td><td>Left + Right</td><td><code>mx-auto</code></td><td>Center horizontally</td></tr>
+  <tr><td><code>my-</code></td><td>Top + Bottom</td><td><code>my-8</code></td><td><code>margin-top:2rem; margin-bottom:2rem</code></td></tr>
+  <tr><td><code>mt-</code></td><td>Top only</td><td><code>mt-2</code></td><td><code>margin-top: 0.5rem</code></td></tr>
+  <tr><td><code>-mt-</code></td><td>Negative top</td><td><code>-mt-2</code></td><td><code>margin-top: -0.5rem</code></td></tr>
+  <tr><td><code>mb-</code></td><td>Bottom only</td><td><code>mb-6</code></td><td><code>margin-bottom: 1.5rem</code></td></tr>
+</table>
+
+<!-- ============================================================ GAP -->
+<h2 id="gap">Gap</h2>
+<p>Used with <code>flex</code> or <code>grid</code> to set spacing between children:</p>
+<table>
+  <tr><th>Class</th><th>CSS</th></tr>
+  <tr><td><code>gap-1</code> → <code>gap-96</code></td><td><code>gap: Npx</code> (same scale as padding)</td></tr>
+  <tr><td><code>gap-x-4</code></td><td><code>column-gap: 1rem</code></td></tr>
+  <tr><td><code>gap-y-2</code></td><td><code>row-gap: 0.5rem</code></td></tr>
+  <tr><td><code>gap-2.5</code></td><td><code>gap: 0.625rem</code></td></tr>
+</table>
+
+<!-- ============================================================ SIZING -->
+<h2 id="sizing">Width & Height</h2>
+<table>
+  <tr><th>Class</th><th>CSS</th><th>Notes</th></tr>
+  <tr><td><code>w-full</code></td><td><code>width: 100%</code></td><td>Full width of parent</td></tr>
+  <tr><td><code>w-auto</code></td><td><code>width: auto</code></td><td></td></tr>
+  <tr><td><code>w-4</code></td><td><code>width: 1rem</code></td><td>Same scale as spacing</td></tr>
+  <tr><td><code>w-1/2</code></td><td><code>width: 50%</code></td><td>Fraction of parent</td></tr>
+  <tr><td><code>w-1/3</code></td><td><code>width: 33.33%</code></td><td></td></tr>
+  <tr><td><code>w-screen</code></td><td><code>width: 100vw</code></td><td>Full viewport width</td></tr>
+  <tr><td><code>w-44</code></td><td><code>width: 11rem</code></td><td>Logo width in Navbar</td></tr>
+  <tr><td><code>w-px</code></td><td><code>width: 1px</code></td><td>Divider line in Navbar</td></tr>
+  <tr><td><code>min-w-0</code></td><td><code>min-width: 0</code></td><td>Allows shrinking below content size</td></tr>
+  <tr><td><code>max-w-sm</code></td><td><code>max-width: 24rem</code></td><td></td></tr>
+  <tr><td><code>max-w-[460px]</code></td><td><code>max-width: 460px</code></td><td>Login form width</td></tr>
+  <tr><td><code>h-full</code></td><td><code>height: 100%</code></td><td></td></tr>
+  <tr><td><code>h-screen</code></td><td><code>height: 100vh</code></td><td></td></tr>
+  <tr><td><code>h-px</code></td><td><code>height: 1px</code></td><td>Horizontal divider</td></tr>
+  <tr><td><code>h-7</code></td><td><code>height: 1.75rem</code></td><td>Avatar size in Navbar</td></tr>
+  <tr><td><code>min-h-screen</code></td><td><code>min-height: 100vh</code></td><td></td></tr>
+  <tr><td><code>size-4</code></td><td><code>width:1rem; height:1rem</code></td><td>Shorthand for equal w+h (v3.4+)</td></tr>
+</table>
+
+<!-- ============================================================ FONT SIZE -->
+<h2 id="font-size">Font Size</h2>
+<table>
+  <tr><th>Class</th><th>Font size</th><th>Line height</th></tr>
+  <tr><td><code>text-xs</code></td><td>12px</td><td>16px</td></tr>
+  <tr><td><code>text-sm</code></td><td>14px</td><td>20px</td></tr>
+  <tr><td><code>text-base</code></td><td>16px</td><td>24px</td></tr>
+  <tr><td><code>text-lg</code></td><td>18px</td><td>28px</td></tr>
+  <tr><td><code>text-xl</code></td><td>20px</td><td>28px</td></tr>
+  <tr><td><code>text-2xl</code></td><td>24px</td><td>32px</td></tr>
+  <tr><td><code>text-3xl</code></td><td>30px</td><td>36px</td></tr>
+  <tr><td><code>text-4xl</code></td><td>36px</td><td>40px</td></tr>
+  <tr><td><code>text-5xl</code></td><td>48px</td><td>1</td></tr>
+  <tr><td><code>text-[14px]</code></td><td>14px exact</td><td>—</td></tr>
+  <tr><td><code>text-[10px]</code></td><td>10px exact</td><td>—</td></tr>
+</table>
+
+<!-- ============================================================ FONT WEIGHT -->
+<h2 id="font-weight">Font Weight & Style</h2>
+<table>
+  <tr><th>Class</th><th>CSS</th></tr>
+  <tr><td><code>font-thin</code></td><td><code>font-weight: 100</code></td></tr>
+  <tr><td><code>font-light</code></td><td><code>font-weight: 300</code></td></tr>
+  <tr><td><code>font-normal</code></td><td><code>font-weight: 400</code></td></tr>
+  <tr><td><code>font-medium</code></td><td><code>font-weight: 500</code></td></tr>
+  <tr><td><code>font-semibold</code></td><td><code>font-weight: 600</code></td></tr>
+  <tr><td><code>font-bold</code></td><td><code>font-weight: 700</code></td></tr>
+  <tr><td><code>font-extrabold</code></td><td><code>font-weight: 800</code></td></tr>
+  <tr><td><code>font-black</code></td><td><code>font-weight: 900</code></td></tr>
+  <tr><td><code>italic</code></td><td><code>font-style: italic</code></td></tr>
+  <tr><td><code>not-italic</code></td><td><code>font-style: normal</code></td></tr>
+  <tr><td><code>font-mono</code></td><td><code>font-family: monospace</code></td></tr>
+  <tr><td><code>font-poppins</code></td><td>Custom — defined in <code>@theme</code></td></tr>
+</table>
+
+<!-- ============================================================ TEXT ALIGN -->
+<h2 id="text-align">Text Alignment & Transform</h2>
+<table>
+  <tr><th>Class</th><th>CSS</th></tr>
+  <tr><td><code>text-left</code></td><td><code>text-align: left</code></td></tr>
+  <tr><td><code>text-center</code></td><td><code>text-align: center</code></td></tr>
+  <tr><td><code>text-right</code></td><td><code>text-align: right</code></td></tr>
+  <tr><td><code>uppercase</code></td><td><code>text-transform: uppercase</code></td></tr>
+  <tr><td><code>lowercase</code></td><td><code>text-transform: lowercase</code></td></tr>
+  <tr><td><code>capitalize</code></td><td><code>text-transform: capitalize</code></td></tr>
+  <tr><td><code>normal-case</code></td><td><code>text-transform: none</code></td></tr>
+  <tr><td><code>truncate</code></td><td>overflow hidden + ellipsis on one line</td></tr>
+  <tr><td><code>whitespace-nowrap</code></td><td><code>white-space: nowrap</code></td></tr>
+  <tr><td><code>break-all</code></td><td><code>word-break: break-all</code></td></tr>
+  <tr><td><code>underline</code></td><td><code>text-decoration: underline</code></td></tr>
+  <tr><td><code>no-underline</code></td><td><code>text-decoration: none</code></td></tr>
+</table>
+
+<!-- ============================================================ TRACKING LEADING -->
+<h2 id="tracking-leading">Tracking & Leading</h2>
+<p><strong>Tracking</strong> = letter-spacing. <strong>Leading</strong> = line-height.</p>
+<table>
+  <tr><th>Tracking</th><th>CSS</th><th>Leading</th><th>CSS</th></tr>
+  <tr><td><code>tracking-tight</code></td><td>-0.025em</td><td><code>leading-none</code></td><td>1</td></tr>
+  <tr><td><code>tracking-normal</code></td><td>0</td><td><code>leading-tight</code></td><td>1.25</td></tr>
+  <tr><td><code>tracking-wide</code></td><td>0.025em</td><td><code>leading-normal</code></td><td>1.5</td></tr>
+  <tr><td><code>tracking-wider</code></td><td>0.05em</td><td><code>leading-relaxed</code></td><td>1.625</td></tr>
+  <tr><td><code>tracking-widest</code></td><td>0.1em</td><td><code>leading-loose</code></td><td>2</td></tr>
+  <tr><td><code>tracking-[0.2em]</code></td><td>arbitrary</td><td><code>leading-[1.6]</code></td><td>arbitrary</td></tr>
+</table>
+
+<!-- ============================================================ LINE CLAMP -->
+<h2 id="line-clamp">Line Clamp</h2>
+<p>Truncate text after N lines with an ellipsis:</p>
+<table>
+  <tr><th>Class</th><th>Effect</th></tr>
+  <tr><td><code>line-clamp-1</code></td><td>Show 1 line max, ellipsis after</td></tr>
+  <tr><td><code>line-clamp-2</code></td><td>Show 2 lines max</td></tr>
+  <tr><td><code>line-clamp-3</code></td><td>Show 3 lines max</td></tr>
+</table>
+<pre><span class="c">/* BriefCard — title never overflows the card */</span>
+&lt;h3 <span class="tw">className</span>=<span class="s">"text-xl font-bold line-clamp-1"</span> title={brief.title}&gt;
+  {brief.title}
+&lt;/h3&gt;</pre>
+
+<!-- ============================================================ COLORS -->
+<h2 id="colors">Color System</h2>
+<p>Tailwind has a built-in color palette with shades from 50 (lightest) to 950 (darkest):</p>
+<div class="swatches">
+  <div class="swatch"><div class="swatch-color" style="background:#eff6ff;"></div><div class="swatch-name">blue-50</div></div>
+  <div class="swatch"><div class="swatch-color" style="background:#3b82f6;"></div><div class="swatch-name">blue-500</div></div>
+  <div class="swatch"><div class="swatch-color" style="background:#1d4ed8;"></div><div class="swatch-name">blue-700</div></div>
+  <div class="swatch"><div class="swatch-color" style="background:#22c55e;"></div><div class="swatch-name">green-500</div></div>
+  <div class="swatch"><div class="swatch-color" style="background:#10b981;"></div><div class="swatch-name">emerald-500</div></div>
+  <div class="swatch"><div class="swatch-color" style="background:#f59e0b;"></div><div class="swatch-name">amber-400</div></div>
+  <div class="swatch"><div class="swatch-color" style="background:#ef4444;"></div><div class="swatch-name">red-500</div></div>
+  <div class="swatch"><div class="swatch-color" style="background:#f43f5e;"></div><div class="swatch-name">rose-500</div></div>
+  <div class="swatch"><div class="swatch-color" style="background:#8b5cf6;"></div><div class="swatch-name">violet-500</div></div>
+  <div class="swatch"><div class="swatch-color" style="background:#64748b;"></div><div class="swatch-name">slate-500</div></div>
+  <div class="swatch"><div class="swatch-color" style="background:#fff;border:1px solid #333;"></div><div class="swatch-name">white</div></div>
+  <div class="swatch"><div class="swatch-color" style="background:#000;"></div><div class="swatch-name">black</div></div>
+</div>
+
+<p>Use color names with any color utility:</p>
+<pre>text-blue-500       <span class="c">// text color</span>
+bg-emerald-400      <span class="c">// background</span>
+border-amber-400    <span class="c">// border color</span>
+ring-red-500        <span class="c">// focus ring</span>
+fill-white          <span class="c">// SVG fill</span>
+stroke-slate-300    <span class="c">// SVG stroke</span></pre>
+
+<!-- ============================================================ OPACITY MODIFIER -->
+<h2 id="opacity-modifier">Opacity Modifier <code>/</code></h2>
+<p>The <code>/N</code> suffix adds opacity to any color. This is used constantly in Smart Brief:</p>
+<table>
+  <tr><th>Class</th><th>CSS</th><th>Effect</th></tr>
+  <tr><td><code>text-white/80</code></td><td><code>color: rgb(255 255 255 / 80%)</code></td><td>Slightly transparent white text</td></tr>
+  <tr><td><code>text-white/40</code></td><td><code>color: rgb(255 255 255 / 40%)</code></td><td>Dimmed text</td></tr>
+  <tr><td><code>bg-sbteal/10</code></td><td><code>background: rgb(103 207 177 / 10%)</code></td><td>Very transparent teal bg</td></tr>
+  <tr><td><code>border-sbteal/20</code></td><td><code>border-color: rgb(103 207 177 / 20%)</code></td><td>Subtle teal border</td></tr>
+  <tr><td><code>bg-[#2D3652]/40</code></td><td><code>background: #2D3652 at 40% opacity</code></td><td>Works with arbitrary colors too</td></tr>
+  <tr><td><code>bg-sbpurple/30</code></td><td>30% opacity purple bg</td><td>Avatar circle background</td></tr>
+</table>
+
+<pre><span class="c">/* StatusBadge — colored text on very transparent same-color bg */</span>
+&lt;span <span class="tw">className</span>=<span class="s">"text-amber-400 bg-amber-400/10 border border-amber-400/20"</span>&gt;
+  PENDING
+&lt;/span&gt;
+
+<span class="c">/* Dimmed muted text */</span>
+&lt;p <span class="tw">className</span>=<span class="s">"text-white/60"</span>&gt;Subtitle text&lt;/p&gt;
+&lt;p <span class="tw">className</span>=<span class="s">"text-white/30"</span>&gt;Very muted&lt;/p&gt;</pre>
+
+<!-- ============================================================ BACKGROUND -->
+<h2 id="background">Background</h2>
+<table>
+  <tr><th>Class</th><th>CSS</th></tr>
+  <tr><td><code>bg-white</code></td><td><code>background-color: #fff</code></td></tr>
+  <tr><td><code>bg-transparent</code></td><td><code>background-color: transparent</code></td></tr>
+  <tr><td><code>bg-[#1A2238]</code></td><td><code>background-color: #1A2238</code></td></tr>
+  <tr><td><code>bg-theme</code></td><td>Custom color from <code>@theme</code></td></tr>
+  <tr><td><code>bg-gradient-to-r</code></td><td><code>background-image: linear-gradient(to right, ...)</code></td></tr>
+  <tr><td><code>from-purple-500</code></td><td>Gradient start color</td></tr>
+  <tr><td><code>to-blue-500</code></td><td>Gradient end color</td></tr>
+  <tr><td><code>via-pink-500</code></td><td>Gradient middle color</td></tr>
+</table>
+
+<pre><span class="c">/* Gradient button */</span>
+&lt;button <span class="tw">className</span>=<span class="s">"bg-gradient-to-r from-[#414CC4] to-[#67CFB1] text-white px-6 py-3 rounded-xl"</span>&gt;
+  Submit
+&lt;/button&gt;</pre>
+
+<!-- ============================================================ BORDER -->
+<h2 id="border">Border & Border Radius</h2>
+<table>
+  <tr><th>Class</th><th>CSS</th></tr>
+  <tr><td><code>border</code></td><td><code>border-width: 1px</code></td></tr>
+  <tr><td><code>border-2</code></td><td><code>border-width: 2px</code></td></tr>
+  <tr><td><code>border-t</code></td><td>Top border only</td></tr>
+  <tr><td><code>border-b-2</code></td><td>Bottom border 2px</td></tr>
+  <tr><td><code>border-[#2E3A5C]</code></td><td>Custom border color</td></tr>
+  <tr><td><code>border-sbteal</code></td><td>Custom theme border</td></tr>
+  <tr><td><code>border-transparent</code></td><td>Invisible border (keeps layout)</td></tr>
+  <tr><td><code>divide-y</code></td><td>Border between flex/grid children (vertical)</td></tr>
+  <tr><td><code>rounded</code></td><td><code>border-radius: 0.25rem</code></td></tr>
+  <tr><td><code>rounded-md</code></td><td><code>border-radius: 0.375rem</code></td></tr>
+  <tr><td><code>rounded-lg</code></td><td><code>border-radius: 0.5rem</code></td></tr>
+  <tr><td><code>rounded-xl</code></td><td><code>border-radius: 0.75rem</code></td></tr>
+  <tr><td><code>rounded-2xl</code></td><td><code>border-radius: 1rem</code></td></tr>
+  <tr><td><code>rounded-full</code></td><td><code>border-radius: 9999px</code></td></tr>
+  <tr><td><code>rounded-t-xl</code></td><td>Top corners only</td></tr>
+  <tr><td><code>rounded-b-xl</code></td><td>Bottom corners only</td></tr>
+</table>
+
+<!-- ============================================================ SHADOW -->
+<h2 id="shadow">Shadow & Ring</h2>
+<table>
+  <tr><th>Class</th><th>Effect</th></tr>
+  <tr><td><code>shadow-sm</code></td><td>Small shadow</td></tr>
+  <tr><td><code>shadow</code></td><td>Default shadow</td></tr>
+  <tr><td><code>shadow-md</code></td><td>Medium shadow</td></tr>
+  <tr><td><code>shadow-lg</code></td><td>Large shadow</td></tr>
+  <tr><td><code>shadow-xl</code></td><td>Extra large</td></tr>
+  <tr><td><code>shadow-none</code></td><td>Remove shadow</td></tr>
+  <tr><td><code>shadow-[0_8px_32px_rgba(0,0,0,.4)]</code></td><td>Fully custom shadow</td></tr>
+  <tr><td><code>ring-2</code></td><td>2px outline ring (inset, no space) — great for focus</td></tr>
+  <tr><td><code>ring-blue-500</code></td><td>Ring color</td></tr>
+  <tr><td><code>ring-offset-2</code></td><td>Space between element and ring</td></tr>
+</table>
+
+<!-- ============================================================ OPACITY -->
+<h2 id="opacity">Opacity</h2>
+<table>
+  <tr><th>Class</th><th>CSS</th></tr>
+  <tr><td><code>opacity-0</code></td><td><code>opacity: 0</code></td></tr>
+  <tr><td><code>opacity-50</code></td><td><code>opacity: 0.5</code></td></tr>
+  <tr><td><code>opacity-100</code></td><td><code>opacity: 1</code></td></tr>
+  <tr><td><code>opacity-[0.15]</code></td><td>Arbitrary opacity</td></tr>
+</table>
+<div class="callout info">
+  <strong>opacity vs color /N</strong>
+  <code>opacity-50</code> makes the entire element transparent (including children). <code>text-white/50</code> only makes the text color transparent — children are unaffected. Prefer <code>/N</code> for colors.
+</div>
+
+<!-- ============================================================ TRANSFORM -->
+<h2 id="transform">Transform</h2>
+<table>
+  <tr><th>Class</th><th>CSS</th></tr>
+  <tr><td><code>translate-x-4</code></td><td><code>transform: translateX(1rem)</code></td></tr>
+  <tr><td><code>-translate-y-1/2</code></td><td><code>transform: translateY(-50%)</code></td></tr>
+  <tr><td><code>translate-x-1</code></td><td><code>transform: translateX(0.25rem)</code></td></tr>
+  <tr><td><code>scale-100</code></td><td><code>transform: scale(1)</code></td></tr>
+  <tr><td><code>scale-110</code></td><td><code>transform: scale(1.1)</code></td></tr>
+  <tr><td><code>scale-95</code></td><td><code>transform: scale(0.95)</code></td></tr>
+  <tr><td><code>rotate-45</code></td><td><code>transform: rotate(45deg)</code></td></tr>
+  <tr><td><code>-rotate-90</code></td><td><code>transform: rotate(-90deg)</code></td></tr>
+  <tr><td><code>-translate-y-1</code></td><td><code>transform: translateY(-0.25rem)</code></td></tr>
+</table>
+
+<pre><span class="c">/* BriefCard — lift up on hover + icon scale */</span>
+&lt;div <span class="tw">className</span>=<span class="s">"hover:-translate-y-1 transition-all duration-300"</span>&gt;
+  &lt;div <span class="tw">className</span>=<span class="s">"group-hover:scale-110 transition-transform duration-300"</span>&gt;
+    &lt;FileText /&gt;
+  &lt;/div&gt;
+&lt;/div&gt;</pre>
+
+<!-- ============================================================ TRANSITION -->
+<h2 id="transition">Transition & Animation</h2>
+<table>
+  <tr><th>Class</th><th>CSS</th></tr>
+  <tr><td><code>transition</code></td><td>Transitions: color, bg, border, opacity, shadow, transform</td></tr>
+  <tr><td><code>transition-colors</code></td><td>Only: color, bg-color, border-color, text-decoration-color, fill, stroke</td></tr>
+  <tr><td><code>transition-all</code></td><td>All properties</td></tr>
+  <tr><td><code>transition-transform</code></td><td>Only transform</td></tr>
+  <tr><td><code>transition-opacity</code></td><td>Only opacity</td></tr>
+  <tr><td><code>duration-150</code></td><td><code>transition-duration: 150ms</code></td></tr>
+  <tr><td><code>duration-300</code></td><td><code>transition-duration: 300ms</code></td></tr>
+  <tr><td><code>duration-500</code></td><td><code>transition-duration: 500ms</code></td></tr>
+  <tr><td><code>ease-in</code></td><td><code>transition-timing-function: ease-in</code></td></tr>
+  <tr><td><code>ease-out</code></td><td>ease-out</td></tr>
+  <tr><td><code>ease-in-out</code></td><td>ease-in-out</td></tr>
+  <tr><td><code>animate-spin</code></td><td>Spinning animation (loading spinner)</td></tr>
+  <tr><td><code>animate-pulse</code></td><td>Pulse fade in/out (skeleton)</td></tr>
+  <tr><td><code>animate-bounce</code></td><td>Bounce up/down</td></tr>
+</table>
+
+<div class="callout tip">
+  <strong>Always pair transition with a state modifier</strong>
+  <code>transition-colors</code> alone does nothing. You need <code>hover:bg-blue-500 transition-colors</code> — the transition is what makes the change animated instead of instant.
+</div>
+
+<!-- ============================================================ RESPONSIVE -->
+<h2 id="responsive">Responsive — sm: md: lg: xl: 2xl:</h2>
+<p>Tailwind uses <strong>mobile-first</strong> breakpoints — unprefixed classes apply to all sizes, prefixed classes apply at that size and up:</p>
+
+<div class="breakpoint-row">
+  <div class="bp-box"><div class="bp-label">none</div><div class="bp-sub">0px+</div><div class="bp-sub">Mobile</div></div>
+  <div class="bp-box bp-active"><div class="bp-label">sm:</div><div class="bp-sub">640px+</div><div class="bp-sub">Small tablet</div></div>
+  <div class="bp-box"><div class="bp-label">md:</div><div class="bp-sub">768px+</div><div class="bp-sub">Tablet</div></div>
+  <div class="bp-box"><div class="bp-label">lg:</div><div class="bp-sub">1024px+</div><div class="bp-sub">Desktop</div></div>
+  <div class="bp-box"><div class="bp-label">xl:</div><div class="bp-sub">1280px+</div><div class="bp-sub">Large</div></div>
+  <div class="bp-box"><div class="bp-label">2xl:</div><div class="bp-sub">1536px+</div><div class="bp-sub">XL</div></div>
+</div>
+
+<pre><span class="c">/* Mobile: stacked, md+: side by side */</span>
+&lt;div <span class="tw">className</span>=<span class="s">"flex flex-col md:flex-row gap-4"</span>&gt;...&lt;/div&gt;
+
+<span class="c">/* Mobile: 1 col, sm: 2 cols, lg: 3 cols */</span>
+&lt;div <span class="tw">className</span>=<span class="s">"grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"</span>&gt;
+
+<span class="c">/* Smart Brief — hide desktop nav on mobile */</span>
+&lt;div <span class="tw">className</span>=<span class="s">"hidden md:flex items-center gap-7"</span>&gt;...&lt;/div&gt;
+&lt;div <span class="tw">className</span>=<span class="s">"md:hidden"</span>&gt;...&lt;/div&gt;
+
+<span class="c">/* Font size grows on larger screens */</span>
+&lt;p <span class="tw">className</span>=<span class="s">"text-sm md:text-base lg:text-lg"</span>&gt;...&lt;/p&gt;
+
+<span class="c">/* Padding increases on larger screens */</span>
+&lt;div <span class="tw">className</span>=<span class="s">"px-4 sm:px-6 lg:px-8"</span>&gt;...&lt;/div&gt;</pre>
+
+<div class="callout warn">
+  <strong>Mobile-first means: base = mobile, then override for larger</strong>
+  <code>hidden md:flex</code> → hidden on mobile, flex on md+. NOT the other way around.
+</div>
+
+<!-- ============================================================ HOVER FOCUS -->
+<h2 id="hover-focus">hover: focus: active:</h2>
+<table>
+  <tr><th>Modifier</th><th>When it applies</th><th>Example</th></tr>
+  <tr><td><code>hover:</code></td><td>Mouse over element</td><td><code>hover:bg-blue-600</code></td></tr>
+  <tr><td><code>focus:</code></td><td>Element has focus (keyboard/click)</td><td><code>focus:border-[#414CC4]</code></td></tr>
+  <tr><td><code>focus-visible:</code></td><td>Keyboard focus only (not mouse)</td><td><code>focus-visible:ring-2</code></td></tr>
+  <tr><td><code>active:</code></td><td>Mouse/touch press</td><td><code>active:scale-95</code></td></tr>
+  <tr><td><code>focus-within:</code></td><td>When any child has focus</td><td><code>focus-within:border-blue-400</code></td></tr>
+</table>
+
+<pre><span class="c">/* Input with different border on error vs focus */</span>
+&lt;input
+  <span class="tw">className</span>=<span class="s">{`bg-[#2D3652] border rounded-md px-4 py-3 text-white
+    focus:outline-none transition-colors
+    ${fieldErrors.email
+      ? "border-red-400 focus:border-red-400"
+      : "border-[#2E3A5C] focus:border-[#414CC4]"
+    }`}
+/&gt;
+
+<span class="c">/* Button with hover + active press effect */</span>
+&lt;button <span class="tw">className</span>=<span class="s">"bg-[#414CC4] hover:bg-[#3a44b0] active:scale-95 transition-all"</span>&gt;
+  Submit
+&lt;/button&gt;</pre>
+
+<!-- ============================================================ DISABLED -->
+<h2 id="disabled">disabled: checked: required:</h2>
+<table>
+  <tr><th>Modifier</th><th>When</th><th>Example</th></tr>
+  <tr><td><code>disabled:</code></td><td>Button/input is disabled</td><td><code>disabled:opacity-50 disabled:cursor-not-allowed</code></td></tr>
+  <tr><td><code>checked:</code></td><td>Checkbox/radio is checked</td><td><code>checked:bg-blue-500</code></td></tr>
+  <tr><td><code>required:</code></td><td>Input has required attribute</td><td><code>required:border-red-400</code></td></tr>
+  <tr><td><code>invalid:</code></td><td>Input fails browser validation</td><td><code>invalid:border-red-400</code></td></tr>
+</table>
+
+<pre><span class="c">/* Smart Brief — loading state button */</span>
+&lt;button
+  type=<span class="s">"submit"</span>
+  disabled={loading}
+  <span class="tw">className</span>=<span class="s">"bg-[#414CC4] text-white font-bold py-3 rounded-md
+    disabled:opacity-50 disabled:cursor-not-allowed
+    hover:bg-[#3a44b0] transition-colors"</span>
+&gt;
+  {loading ? <span class="s">"LOGGING IN..."</span> : <span class="s">"LOG IN"</span>}
+&lt;/button&gt;</pre>
+
+<!-- ============================================================ GROUP -->
+<h2 id="group">group & group-hover:</h2>
+<p>
+  The <code>group</code> modifier lets a <strong>parent's hover state style its children</strong>.
+  Add <code>group</code> to the parent, then <code>group-hover:</code> to any child.
+</p>
+
+<pre><span class="c">/* BriefCard — hovering the card scales the icon and changes title color */</span>
+&lt;div <span class="tw">className</span>=<span class="s">"group bg-[#1A2238] hover:border-sbteal/50 rounded-2xl p-6 transition-all"</span>&gt;
+
+  <span class="c">{/* Icon — scales up when PARENT is hovered */}</span>
+  &lt;div <span class="tw">className</span>=<span class="s">"bg-[#2D3652] p-3 rounded-xl group-hover:scale-110 transition-transform"</span>&gt;
+    &lt;FileText /&gt;
+  &lt;/div&gt;
+
+  <span class="c">{/* Title — turns teal when PARENT is hovered */}</span>
+  &lt;h3 <span class="tw">className</span>=<span class="s">"text-xl font-bold group-hover:text-sbteal transition-colors"</span>&gt;
+    {brief.title}
+  &lt;/h3&gt;
+
+  <span class="c">{/* Arrow — slides right when PARENT is hovered */}</span>
+  &lt;ChevronRight <span class="tw">className</span>=<span class="s">"group-hover:translate-x-1 transition-transform"</span> /&gt;
+&lt;/div&gt;</pre>
+
+<h3>Named groups</h3>
+<p>If you have nested groups, name them to avoid ambiguity:</p>
+<pre><span class="c">/* group/card and group/button are separate groups */</span>
+&lt;div <span class="tw">className</span>=<span class="s">"group/card"</span>&gt;
+  &lt;button <span class="tw">className</span>=<span class="s">"group/button"</span>&gt;
+    &lt;span <span class="tw">className</span>=<span class="s">"group-hover/card:text-blue-500"</span>&gt;card hovered&lt;/span&gt;
+    &lt;span <span class="tw">className</span>=<span class="s">"group-hover/button:text-red-500"</span>&gt;button hovered&lt;/span&gt;
+  &lt;/button&gt;
+&lt;/div&gt;</pre>
+
+<!-- ============================================================ PEER -->
+<h2 id="peer">peer & peer-*</h2>
+<p>
+  Like <code>group</code>, but for <strong>sibling elements</strong>. Add <code>peer</code> to an element,
+  then <code>peer-hover:</code>, <code>peer-focus:</code>, <code>peer-checked:</code> on a sibling that comes after it.
+</p>
+
+<pre><span class="c">/* Show label when input is focused */</span>
+&lt;input <span class="tw">className</span>=<span class="s">"peer border ..."</span> /&gt;
+&lt;label <span class="tw">className</span>=<span class="s">"text-gray-400 peer-focus:text-blue-500 transition-colors"</span>&gt;
+  Email
+&lt;/label&gt;
+
+<span class="c">/* Toggle visibility based on checkbox state */</span>
+&lt;input type=<span class="s">"checkbox"</span> <span class="tw">className</span>=<span class="s">"peer hidden"</span> id=<span class="s">"toggle"</span> /&gt;
+&lt;label htmlFor=<span class="s">"toggle"</span>&gt;Show more&lt;/label&gt;
+&lt;div <span class="tw">className</span>=<span class="s">"hidden peer-checked:block"</span>&gt;
+  Hidden content revealed when checked
+&lt;/div&gt;</pre>
+
+<!-- ============================================================ PLACEHOLDER -->
+<h2 id="placeholder">placeholder:</h2>
+<pre><span class="c">/* Style placeholder text */</span>
+&lt;input
+  placeholder=<span class="s">"Enter your email..."</span>
+  <span class="tw">className</span>=<span class="s">"placeholder-white/40 text-white bg-[#2D3652]"</span>
+/&gt;
+
+<span class="c">/* On focus, placeholder fades out */</span>
+&lt;input <span class="tw">className</span>=<span class="s">"placeholder-gray-400 focus:placeholder-gray-300"</span> /&gt;</pre>
+
+<!-- ============================================================ DARK -->
+<h2 id="dark">dark:</h2>
+<p>Apply styles only when the user's OS/browser is in dark mode:</p>
+<pre>&lt;div <span class="tw">className</span>=<span class="s">"bg-white text-black dark:bg-gray-900 dark:text-white"</span>&gt;
+  Adapts to system preference
+&lt;/div&gt;</pre>
+<div class="callout info">
+  <strong>Smart Brief doesn't use dark: — it's always dark</strong>
+  The entire app uses dark backgrounds by default. You'd need <code>dark:</code> only if you wanted a light mode that switches to dark.
+</div>
+
+<!-- ============================================================ ARBITRARY -->
+<h2 id="arbitrary">Arbitrary Values <code>[ ]</code></h2>
+<p>When the built-in scale doesn't have what you need, use brackets to pass any CSS value:</p>
+
+<pre><span class="c">/* Colors */</span>
+bg-[#1A2238]              <span class="c">// exact hex color</span>
+text-[#64748B]
+border-[#2E3A5C]
+
+<span class="c">/* Sizes */</span>
+w-[460px]                 <span class="c">// exact pixel width</span>
+max-w-[460px]
+h-[calc(100vh-80px)]      <span class="c">// calc() expression</span>
+text-[14px]               <span class="c">// exact font size</span>
+text-[10px]
+
+<span class="c">/* Spacing */</span>
+p-[22px]
+gap-[18px]
+
+<span class="c">/* Opacity with arbitrary colors */</span>
+bg-[#2D3652]/40           <span class="c">// arbitrary color + opacity modifier</span>
+
+<span class="c">/* Z-index */</span>
+z-[100]
+z-[9999]
+
+<span class="c">/* Custom shadow */</span>
+shadow-[0_8px_32px_rgba(0,0,0,.4)]
+
+<span class="c">/* Grid */</span>
+grid-cols-[1fr_2fr_1fr]
+
+<span class="c">/* Tracking */</span>
+tracking-[0.2em]</pre>
+
+<div class="callout warn">
+  <strong>Use arbitrary values sparingly</strong>
+  Prefer Tailwind's built-in scale when possible. Arbitrary values are great for brand colors (<code>bg-[#414CC4]</code>) and exact sizes from a design, but overusing them defeats the consistency of the scale.
+</div>
+
+<!-- ============================================================ CUSTOM THEME -->
+<h2 id="custom-theme">Custom Theme (v4)</h2>
+<p>Define your own colors, fonts, and spacing in the <code>@theme</code> block in your CSS file:</p>
+
+<pre><span class="c">/* index.css — Smart Brief's @theme */</span>
+<span class="tw">@import</span> <span class="s">"tailwindcss"</span>;
+
+<span class="tw">@theme</span> {
+  <span class="c">/* Custom font — use as font-poppins */</span>
+  --font-poppins: ['Poppins', 'sans-serif'];
+
+  <span class="c">/* Custom colors — use as bg-theme, text-theme, etc. */</span>
+  --color-theme:    #141824;   <span class="c">/* bg-theme */</span>
+  --color-sbpurple: #414CC4;   <span class="c">/* bg-sbpurple, text-sbpurple, border-sbpurple */</span>
+  --color-sbteal:   #67CFB1;   <span class="c">/* bg-sbteal, text-sbteal, border-sbteal */</span>
+}</pre>
+
+<p>After this, you can use these as any Tailwind color utility:</p>
+
+<pre>bg-theme           <span class="c">// background-color: #141824</span>
+text-sbteal        <span class="c">// color: #67CFB1</span>
+border-sbpurple    <span class="c">// border-color: #414CC4</span>
+bg-sbteal/10       <span class="c">// + opacity modifier works too!</span>
+font-poppins       <span class="c">// font-family: 'Poppins'</span></pre>
+
+<h3>Adding more custom values</h3>
+<pre><span class="tw">@theme</span> {
+  <span class="c">/* Custom spacing */</span>
+  --spacing-18: 4.5rem;       <span class="c">/* p-18, m-18, gap-18 */</span>
+
+  <span class="c">/* Custom breakpoint */</span>
+  --breakpoint-xs: 480px;     <span class="c">/* xs:flex, xs:hidden, etc. */</span>
+
+  <span class="c">/* Custom font size */</span>
+  --text-xxs: 0.625rem;       <span class="c">/* text-xxs */</span>
+
+  <span class="c">/* Custom border radius */</span>
+  --radius-4xl: 2rem;         <span class="c">/* rounded-4xl */</span>
+
+  <span class="c">/* Custom animation */</span>
+  --animate-fade-in: fadeIn 0.3s ease-out;
+}</pre>
+
+<!-- ============================================================ APPLYING CSS -->
+<h2 id="applying-css">Applying CSS Directly — @apply</h2>
+<p>
+  If you have a class that's reused many times with the same long Tailwind string,
+  you can create a CSS class using <code>@apply</code>:
+</p>
+
+<pre><span class="c">/* index.css */</span>
+<span class="tw">@layer</span> components {
+  .btn-primary {
+    <span class="tw">@apply</span> bg-sbpurple text-white px-6 py-3 rounded-xl font-bold
+           hover:bg-[#3a44b0] transition-colors disabled:opacity-50
+           disabled:cursor-not-allowed;
+  }
+
+  .input-field {
+    <span class="tw">@apply</span> bg-[#2D3652] border border-[#2E3A5C] rounded-md px-4 py-3
+           text-white placeholder-white/40 text-sm focus:outline-none
+           focus:border-[#414CC4] transition-colors;
+  }
+
+  .card {
+    <span class="tw">@apply</span> bg-[#1A2238] border border-[#2E3A5C] rounded-2xl p-6;
+  }
+}</pre>
+
+<pre><span class="c">/* Now use in JSX */</span>
+&lt;button <span class="tw">className</span>=<span class="s">"btn-primary"</span>&gt;Submit&lt;/button&gt;
+&lt;input <span class="tw">className</span>=<span class="s">"input-field"</span> /&gt;</pre>
+
+<div class="callout tip">
+  <strong>When to use @apply vs inline classes</strong>
+  Use <code>@apply</code> for component styles you repeat across many files (buttons, inputs, cards). Keep one-off styles inline. Don't <code>@apply</code> everything — you lose the benefits of utility-first.
+</div>
+
+<!-- ============================================================ PROJECT PATTERNS -->
+<h2 id="project-patterns">Smart Brief Patterns</h2>
+
+<h3>The status badge pattern</h3>
+<pre><span class="c">/* StatusBadge.tsx — shared base classes + status-specific color classes */</span>
+<span class="k">const</span> base = <span class="s">"flex items-center gap-1.5 font-bold uppercase tracking-wider rounded-full"</span>
+<span class="k">const</span> size = large ? <span class="s">"px-5 py-2.5 text-xs"</span> : <span class="s">"px-3 py-1 text-[10px]"</span>
+
+<span class="c">// Each status gets text + bg + border all from the same color</span>
+case <span class="s">'ACCEPTED'</span>: <span class="k">return</span> &lt;span <span class="tw">className</span>=<span class="s">{`${base} ${size} text-sbteal bg-sbteal/10 border border-sbteal/20`}</span>&gt;
+
+case <span class="s">'REFUSED'</span>:  <span class="k">return</span> &lt;span <span class="tw">className</span>=<span class="s">{`${base} ${size} text-rose-400 bg-rose-400/10 border border-rose-400/20`}</span>&gt;</pre>
+
+<h3>Conditional classes pattern</h3>
+<pre><span class="c">/* BriefCard — conditional cursor and bg based on prop */</span>
+&lt;div
+  <span class="tw">className</span>=<span class="s">{`group bg-[#1A2238] border border-[#2E3A5C] rounded-2xl p-6 transition-all
+    ${onClick ? 'cursor-pointer hover:bg-[#1f2845]' : ''}`}
+/&gt;
+
+<span class="c">/* Login.tsx — conditional border based on validation error */</span>
+&lt;input
+  <span class="tw">className</span>=<span class="s">{`bg-[#2D3652] border rounded-md px-4 py-3 text-white
+    ${fieldErrors.email
+      ? "border-red-400 focus:border-red-400"
+      : "border-[#2E3A5C] focus:border-[#414CC4]"
+    }`}
+/&gt;</pre>
+
+<!-- ============================================================ CLASS MERGING -->
+<h2 id="class-merging">Dynamic Class Merging</h2>
+<p>Template literals get messy fast. Use the <code>clsx</code> or <code>cn</code> utility for clean conditional classes:</p>
+
+<pre><span class="c"># Install clsx</span>
+npm install clsx</pre>
+
+<pre><span class="k">import</span> clsx <span class="k">from</span> <span class="s">"clsx"</span>
+
+<span class="c">// clsx merges class strings, conditionally includes classes</span>
+&lt;div <span class="tw">className</span>={<span class="f">clsx</span>(
+  <span class="s">"bg-[#1A2238] border rounded-2xl p-6 transition-all"</span>,
+  onClick && <span class="s">"cursor-pointer hover:bg-[#1f2845]"</span>,
+  isActive && <span class="s">"border-sbteal"</span>,
+  !isActive && <span class="s">"border-[#2E3A5C]"</span>
+)} /&gt;
+
+<span class="c">// or with object syntax</span>
+<span class="f">clsx</span>({
+  <span class="s">"opacity-50 cursor-not-allowed"</span>: disabled,
+  <span class="s">"hover:bg-sbpurple"</span>:             !disabled,
+})</pre>
+
+<h3>cn utility (clsx + tailwind-merge)</h3>
+<p>If you apply conflicting classes (e.g. both <code>p-4</code> and <code>p-6</code>), Tailwind generates both but only the last in the stylesheet wins — not the last in your className string. <code>tailwind-merge</code> fixes this:</p>
+
+<pre>npm install clsx tailwind-merge</pre>
+
+<pre><span class="c">// lib/utils.ts — standard pattern in most React+Tailwind projects</span>
+<span class="k">import</span> { clsx, type ClassValue } <span class="k">from</span> <span class="s">"clsx"</span>
+<span class="k">import</span> { twMerge } <span class="k">from</span> <span class="s">"tailwind-merge"</span>
+
+<span class="k">export function</span> <span class="f">cn</span>(...inputs: <span class="t">ClassValue</span>[]) {
+  <span class="k">return</span> <span class="f">twMerge</span>(<span class="f">clsx</span>(inputs))
+}
+
+<span class="c">// Usage — p-6 wins over p-4, no conflict</span>
+<span class="f">cn</span>(<span class="s">"p-4 text-sm"</span>, <span class="s">"p-6"</span>)  <span class="c">// → "text-sm p-6"</span></pre>
+
+</main>
+
+<script>
+  const sections = document.querySelectorAll('h2[id], h3[id]');
+  const links    = document.querySelectorAll('nav a');
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        links.forEach(l => l.classList.remove('active'));
+        const a = document.querySelector(`nav a[href="#${entry.target.id}"]`);
+        if (a) a.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-10% 0px -80% 0px' });
+  sections.forEach(s => io.observe(s));
+</script>
+</body>
+</html>
